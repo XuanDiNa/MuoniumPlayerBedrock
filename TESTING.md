@@ -6,8 +6,8 @@
 4. Check 3D lyrics and cinematic camera separately, including block occlusion.
 5. When reporting, include package/game/loader versions and event time. Review logs for private data before sharing.
 
-Public3 additionally checks the six reviewed 26.60 GUI/console/launcher forms. With ModMenu 0.6.0-test11, check the player Workspace, Open player and Edit HUD after a full game restart; check the alternate console option if used. The native log should contain `START version=0.12.0-test3-mc2660-console`, `HOST VERIFIED profile=...` and `MODMENU workspace registered edition=vanilla ABI=WorkspaceV1`. Do not replace only the DLL: the matching manifest version is required by Workspace registration. Repeat a basic Workspace/open/playback check on any older supported version you use.
+Republished public2 additionally checks the six reviewed 26.60 GUI/console/launcher forms. With ModMenu 0.6.0-test11, check the player Workspace, Open player and Edit HUD after a full game restart; check the alternate console option if used. The native log should contain `START version=0.12.0-test3-mc2660-console`, `HOST VERIFIED profile=...` and `MODMENU workspace registered edition=vanilla ABI=WorkspaceV1`. Do not replace only the DLL: the matching manifest version is required by Workspace registration. Repeat a basic Workspace/open/playback check on any older supported version you use.
 
-Public-font editions replace four text font resources and include their OFL notices. Public3 changes the native DLL's exact image allowlist/version; Java classes and the separate LL DLL are preserved. Automated checks do not establish manual Minecraft acceptance. See README and PUBLIC-EDITION.json for each baseline's acceptance boundary.
+Public-font editions replace four text font resources and include their OFL notices. Republished public2 changes the native DLL's exact image allowlist/version; Java classes and the separate LL DLL are preserved. Automated checks do not establish manual Minecraft acceptance. See README and PUBLIC-EDITION.json for each baseline's acceptance boundary.
 
 繁體中文：先檢查工作頁、播放／切歌／佇列，再測新舊 UI、中文及歌詞、滾輪、Esc、切出返回；3D 歌詞與運鏡另外確認。保留原穩定版。日誌分享前請檢查私人資料。
