@@ -1,0 +1,19 @@
+{
+  "levilamina": "LiteLDev/LeviLamina v26.60.7",
+  "gsl": "microsoft/GSL v4.2.0",
+  "include_only_adaptation": true,
+  "inputs": [
+    {
+      "url": "https://raw.githubusercontent.com/microsoft/GSL/v4.2.0/include/gsl/pointers",
+      "sha256": "7b221631564b845e8ca60be66102b308e19dcca6c313c25765538a837cb0d306"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/microsoft/GSL/v4.2.0/include/gsl/assert",
+      "sha256": "4a94024812aae787c01f69de4908b82cd80155af1791130ed2d053f7555f013f"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/microsoft/GSL/v4.2.0/include/gsl/util",
+      "sha256": "8b49f6e0bdf6bb17d954219f092971d3e1ee11a89e5fbfc0380cec2340bc1a57"
+    }
+  ]
+}

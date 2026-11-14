@@ -1,0 +1,52 @@
+[
+  {
+    "file": "LWJGL-LICENSE.txt",
+    "url": "https://raw.githubusercontent.com/LWJGL/lwjgl3/3.3.6/LICENSE.md",
+    "sha256": "4c2f770897d0cfda4d9a65bb4d6d6983dccfd57d4c7eb74ea5ded0762cbc0e75"
+  },
+  {
+    "file": "Skija-LICENSE.txt",
+    "url": "https://raw.githubusercontent.com/HumbleUI/Skija/master/LICENSE",
+    "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+  },
+  {
+    "file": "Types-LICENSE.txt",
+    "url": "https://raw.githubusercontent.com/HumbleUI/Types/master/LICENSE",
+    "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+  },
+  {
+    "file": "JOML-LICENSE.txt",
+    "url": "https://raw.githubusercontent.com/JOML-CI/JOML/1.10.8/LICENSE",
+    "sha256": "c48b908c4d3d0b2b83c21dd7b236f98d10c12721bcf7965d12c68a2814ae787d"
+  },
+  {
+    "file": "Kotlin-LICENSE.txt",
+    "url": "https://raw.githubusercontent.com/JetBrains/kotlin/v1.8.20/license/LICENSE.txt",
+    "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+  },
+  {
+    "file": "zstd-jni-LICENSE.txt",
+    "url": "https://raw.githubusercontent.com/luben/zstd-jni/v1.5.6-9/LICENSE",
+    "sha256": "c6a6a8926f2f1732603e4b75779a5f6ce79238eb79bc36dcc5b7feb509bc6cd9"
+  },
+  {
+    "file": "GLFW-LICENSE.txt",
+    "url": "https://raw.githubusercontent.com/glfw/glfw/3.4/LICENSE.md",
+    "sha256": "149704059b5d0bf551637e50042dd4de9c2cae921021f6636298911e3a5f9462"
+  },
+  {
+    "file": "STB-LICENSE.txt",
+    "url": "https://raw.githubusercontent.com/nothings/stb/master/LICENSE",
+    "sha256": "bebfe904b14301657e4e5d655c811d51fd31b97c455b9cc2d8600d6bac6cff63"
+  },
+  {
+    "file": "OpenAL-Soft-COPYING.txt",
+    "url": "https://raw.githubusercontent.com/kcat/openal-soft/master/COPYING",
+    "sha256": "d808ce217e5b611854da622b57ec29fe545584c48bc5352fae72a4b6e5074a15"
+  },
+  {
+    "file": "JAAD-LICENSE.txt",
+    "url": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+    "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+  }
+]

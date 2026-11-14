@@ -1,0 +1,938 @@
+{
+  "schemaVersion": 5,
+  "plugin": {
+    "id": "MuoniumPlayerBedrock",
+    "entry": "MuoniumPlayerBedrock.dll",
+    "versions": [
+      "0.12.0-test2-mc2645-2651"
+    ]
+  },
+  "config": {
+    "file": "MuoniumPlayerBedrock.json",
+    "reload": "hot"
+  },
+  "fields": [
+    {
+      "path": "/hudEnabled",
+      "type": "boolean",
+      "default": true,
+      "label": {
+        "en_US": "Player HUD widgets",
+        "zh_TW": "播放器 HUD 元件",
+        "zh_CN": "播放器 HUD 组件"
+      },
+      "description": {
+        "en_US": "Show the original player HUD, including the dynamic island, spectrum and cards. Hiding it keeps playback, the player panel and independent lyric overlay available.",
+        "zh_TW": "顯示原作 HUD，包含靈動島、頻譜及歌曲卡。關閉仍可播放音樂、開啟播放器及使用獨立歌詞浮層。",
+        "zh_CN": "显示原作 HUD，包括灵动岛、频谱及歌曲卡。关闭后仍可播放音乐、打开播放器及使用独立歌词浮层。"
+      },
+      "category": {
+        "en_US": "HUD overview",
+        "zh_TW": "HUD 總覽",
+        "zh_CN": "HUD 总览"
+      }
+    },
+    {
+      "path": "/musicInfoEnabled",
+      "type": "boolean",
+      "default": true,
+      "label": {
+        "en_US": "Song information card",
+        "zh_TW": "歌曲資訊卡",
+        "zh_CN": "歌曲信息卡"
+      },
+      "description": {
+        "en_US": "Independent world HUD widget. Requires Player HUD widgets. Does not stop music.",
+        "zh_TW": "獨立世界 HUD 元件，需開啟「播放器 HUD 元件」，不影響音樂播放。",
+        "zh_CN": "独立世界 HUD 组件，需要开启「播放器 HUD 组件」，不影响音乐播放。"
+      },
+      "category": {
+        "en_US": "Song card",
+        "zh_TW": "歌曲資訊卡",
+        "zh_CN": "歌曲信息卡"
+      }
+    },
+    {
+      "path": "/infoXPercent",
+      "type": "slider",
+      "numberType": "integer",
+      "default": 0,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": {
+        "en_US": "Song card: horizontal position",
+        "zh_TW": "歌曲卡：水平位置",
+        "zh_CN": "歌曲卡：水平位置"
+      },
+      "category": {
+        "en_US": "Song card",
+        "zh_TW": "歌曲資訊卡",
+        "zh_CN": "歌曲信息卡"
+      }
+    },
+    {
+      "path": "/infoYPercent",
+      "type": "slider",
+      "numberType": "integer",
+      "default": 43,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": {
+        "en_US": "Song card: vertical position",
+        "zh_TW": "歌曲卡：垂直位置",
+        "zh_CN": "歌曲卡：垂直位置"
+      },
+      "category": {
+        "en_US": "Song card",
+        "zh_TW": "歌曲資訊卡",
+        "zh_CN": "歌曲信息卡"
+      }
+    },
+    {
+      "path": "/infoScalePercent",
+      "type": "slider",
+      "numberType": "integer",
+      "default": 100,
+      "min": 50,
+      "max": 200,
+      "step": 1,
+      "unit": "%",
+      "label": {
+        "en_US": "Song card: size",
+        "zh_TW": "歌曲卡：大小",
+        "zh_CN": "歌曲卡：大小"
+      },
+      "category": {
+        "en_US": "Song card",
+        "zh_TW": "歌曲資訊卡",
+        "zh_CN": "歌曲信息卡"
+      }
+    },
+    {
+      "path": "/musicLyricsEnabled",
+      "type": "boolean",
+      "default": true,
+      "label": {
+        "en_US": "Desktop lyric widget",
+        "zh_TW": "桌面歌詞元件",
+        "zh_CN": "桌面歌词组件"
+      },
+      "description": {
+        "en_US": "Independent world HUD widget. Requires Player HUD widgets. Does not stop music.",
+        "zh_TW": "獨立世界 HUD 元件，需開啟「播放器 HUD 元件」，不影響音樂播放。",
+        "zh_CN": "独立世界 HUD 组件，需要开启「播放器 HUD 组件」，不影响音乐播放。"
+      },
+      "category": {
+        "en_US": "Desktop lyrics",
+        "zh_TW": "桌面歌詞",
+        "zh_CN": "桌面歌词"
+      }
+    },
+    {
+      "path": "/desktopLyricsXPercent",
+      "type": "slider",
+      "numberType": "integer",
+      "default": 50,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": {
+        "en_US": "Desktop lyrics: horizontal position",
+        "zh_TW": "桌面歌詞：水平位置",
+        "zh_CN": "桌面歌词：水平位置"
+      },
+      "category": {
+        "en_US": "Desktop lyrics",
+        "zh_TW": "桌面歌詞",
+        "zh_CN": "桌面歌词"
+      }
+    },
+    {
+      "path": "/desktopLyricsYPercent",
+      "type": "slider",
+      "numberType": "integer",
+      "default": 87,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": {
+        "en_US": "Desktop lyrics: vertical position",
+        "zh_TW": "桌面歌詞：垂直位置",
+        "zh_CN": "桌面歌词：垂直位置"
+      },
+      "category": {
+        "en_US": "Desktop lyrics",
+        "zh_TW": "桌面歌詞",
+        "zh_CN": "桌面歌词"
+      }
+    },
+    {
+      "path": "/desktopLyricsScalePercent",
+      "type": "slider",
+      "numberType": "integer",
+      "default": 85,
+      "min": 50,
+      "max": 200,
+      "step": 1,
+      "unit": "%",
+      "label": {
+        "en_US": "Desktop lyrics: size",
+        "zh_TW": "桌面歌詞：大小",
+        "zh_CN": "桌面歌词：大小"
+      },
+      "category": {
+        "en_US": "Desktop lyrics",
+        "zh_TW": "桌面歌詞",
+        "zh_CN": "桌面歌词"
+      }
+    },
+    {
+      "path": "/dynamicIslandEnabled",
+      "type": "boolean",
+      "default": true,
+      "label": {
+        "en_US": "Dynamic island",
+        "zh_TW": "靈動島",
+        "zh_CN": "灵动岛"
+      },
+      "description": {
+        "en_US": "Toggle the original dynamic island. Requires Player HUD widgets. Other original widgets keep their own settings.",
+        "zh_TW": "單獨開關原作靈動島，需啟用「播放器 HUD 元件」。其他原作元件保留各自設定。",
+        "zh_CN": "单独开关原作灵动岛，需要启用「播放器 HUD 组件」。其他原作组件保留各自设置。"
+      },
+      "category": {
+        "en_US": "Dynamic island",
+        "zh_TW": "靈動島",
+        "zh_CN": "灵动岛"
+      }
+    },
+    {
+      "path": "/islandOffsetX",
+      "type": "slider",
+      "numberType": "integer",
+      "default": 0,
+      "min": -1000,
+      "max": 1000,
+      "step": 1,
+      "unit": "px",
+      "label": {
+        "en_US": "Dynamic island: horizontal offset",
+        "zh_TW": "靈動島：水平偏移",
+        "zh_CN": "灵动岛：水平偏移"
+      },
+      "description": {
+        "en_US": "Offset from the original position in GUI pixels; negative values move left/up. Reset to 0 if off-screen.",
+        "zh_TW": "相對原位置的 GUI 像素偏移，負值往左／上；超出畫面時重設為 0。",
+        "zh_CN": "相对原位置的 GUI 像素偏移，负值往左／上；超出画面时重置为 0。"
+      },
+      "category": {
+        "en_US": "Dynamic island",
+        "zh_TW": "靈動島",
+        "zh_CN": "灵动岛"
+      }
+    },
+    {
+      "path": "/islandOffsetY",
+      "type": "slider",
+      "numberType": "integer",
+      "default": 0,
+      "min": -1000,
+      "max": 1000,
+      "step": 1,
+      "unit": "px",
+      "label": {
+        "en_US": "Dynamic island: vertical offset",
+        "zh_TW": "靈動島：垂直偏移",
+        "zh_CN": "灵动岛：垂直偏移"
+      },
+      "description": {
+        "en_US": "Offset from the original position in GUI pixels; negative values move left/up. Reset to 0 if off-screen.",
+        "zh_TW": "相對原位置的 GUI 像素偏移，負值往左／上；超出畫面時重設為 0。",
+        "zh_CN": "相对原位置的 GUI 像素偏移，负值往左／上；超出画面时重置为 0。"
+      },
+      "category": {
+        "en_US": "Dynamic island",
+        "zh_TW": "靈動島",
+        "zh_CN": "灵动岛"
+      }
+    },
+    {
+      "path": "/islandScalePercent",
+      "type": "slider",
+      "numberType": "integer",
+      "default": 88,
+      "min": 60,
+      "max": 135,
+      "step": 1,
+      "unit": "%",
+      "label": {
+        "en_US": "Dynamic island: size",
+        "zh_TW": "靈動島：大小",
+        "zh_CN": "灵动岛：大小"
+      },
+      "category": {
+        "en_US": "Dynamic island",
+        "zh_TW": "靈動島",
+        "zh_CN": "灵动岛"
+      }
+    },
+    {
+      "path": "/spectrumEnabled",
+      "type": "boolean",
+      "default": true,
+      "label": {
+        "en_US": "HUD spectrum",
+        "zh_TW": "HUD 頻譜",
+        "zh_CN": "HUD 频谱"
+      },
+      "description": {
+        "en_US": "Independent world HUD widget. Requires Player HUD widgets. Does not stop music.",
+        "zh_TW": "獨立世界 HUD 元件，需開啟「播放器 HUD 元件」，不影響音樂播放。",
+        "zh_CN": "独立世界 HUD 组件，需要开启「播放器 HUD 组件」，不影响音乐播放。"
+      },
+      "category": {
+        "en_US": "Spectrum",
+        "zh_TW": "頻譜",
+        "zh_CN": "频谱"
+      }
+    },
+    {
+      "path": "/spectrumOffsetX",
+      "type": "slider",
+      "numberType": "integer",
+      "default": 0,
+      "min": -1000,
+      "max": 1000,
+      "step": 1,
+      "unit": "px",
+      "label": {
+        "en_US": "Spectrum: horizontal offset",
+        "zh_TW": "頻譜：水平偏移",
+        "zh_CN": "频谱：水平偏移"
+      },
+      "description": {
+        "en_US": "Offset from the original position in GUI pixels; negative values move left/up. Reset to 0 if off-screen.",
+        "zh_TW": "相對原位置的 GUI 像素偏移，負值往左／上；超出畫面時重設為 0。",
+        "zh_CN": "相对原位置的 GUI 像素偏移，负值往左／上；超出画面时重置为 0。"
+      },
+      "category": {
+        "en_US": "Spectrum",
+        "zh_TW": "頻譜",
+        "zh_CN": "频谱"
+      }
+    },
+    {
+      "path": "/spectrumOffsetY",
+      "type": "slider",
+      "numberType": "integer",
+      "default": 0,
+      "min": -1000,
+      "max": 1000,
+      "step": 1,
+      "unit": "px",
+      "label": {
+        "en_US": "Spectrum: vertical offset",
+        "zh_TW": "頻譜：垂直偏移",
+        "zh_CN": "频谱：垂直偏移"
+      },
+      "description": {
+        "en_US": "Offset from the original position in GUI pixels; negative values move left/up. Reset to 0 if off-screen.",
+        "zh_TW": "相對原位置的 GUI 像素偏移，負值往左／上；超出畫面時重設為 0。",
+        "zh_CN": "相对原位置的 GUI 像素偏移，负值往左／上；超出画面时重置为 0。"
+      },
+      "category": {
+        "en_US": "Spectrum",
+        "zh_TW": "頻譜",
+        "zh_CN": "频谱"
+      }
+    },
+    {
+      "path": "/spectrumScalePercent",
+      "type": "slider",
+      "numberType": "integer",
+      "default": 100,
+      "min": 25,
+      "max": 200,
+      "step": 1,
+      "unit": "%",
+      "label": {
+        "en_US": "Spectrum: size",
+        "zh_TW": "頻譜：大小",
+        "zh_CN": "频谱：大小"
+      },
+      "category": {
+        "en_US": "Spectrum",
+        "zh_TW": "頻譜",
+        "zh_CN": "频谱"
+      }
+    },
+    {
+      "path": "/lyricsEnabled",
+      "type": "boolean",
+      "default": true,
+      "label": {
+        "en_US": "Independent subtitle layer",
+        "zh_TW": "獨立字幕浮層",
+        "zh_CN": "独立字幕浮层"
+      },
+      "description": {
+        "en_US": "Controls the ordinary/view-following/world lyric layer, separately from desktop lyrics and Player HUD widgets.",
+        "zh_TW": "單獨控制普通／視角跟隨／世界定位字幕，與桌面歌詞及播放器 HUD 分開。",
+        "zh_CN": "单独控制普通／视角跟随／世界定位字幕，与桌面歌词及播放器 HUD 分开。"
+      },
+      "category": {
+        "en_US": "Independent subtitles",
+        "zh_TW": "獨立字幕",
+        "zh_CN": "独立字幕"
+      }
+    },
+    {
+      "path": "/lyricsMode",
+      "type": "choice",
+      "default": 1,
+      "label": {
+        "en_US": "Lyric presentation",
+        "zh_TW": "歌詞顯示方式",
+        "zh_CN": "歌词显示方式"
+      },
+      "options": [
+        {
+          "en_US": "Ordinary lyric HUD",
+          "zh_TW": "普通歌詞 HUD",
+          "zh_CN": "普通歌词 HUD"
+        },
+        {
+          "en_US": "View-following 3D stage",
+          "zh_TW": "跟隨視角的 3D 舞台",
+          "zh_CN": "跟随视角的 3D 舞台"
+        },
+        {
+          "en_US": "World-positioned 3D lyrics",
+          "zh_TW": "世界定位 3D 歌詞",
+          "zh_CN": "世界定位 3D 歌词"
+        }
+      ],
+      "description": {
+        "en_US": "Choose flat lyrics, a view-following stage, or world-positioned lyrics. World mode hides outside an active world; optional coarse voxel occlusion is available below.",
+        "zh_TW": "選擇平面歌詞、跟隨視角舞台或世界定位歌詞。世界模式離開有效世界畫面即隱藏；下方可啟用近似方塊遮擋。",
+        "zh_CN": "选择平面歌词、跟随视角舞台或世界定位歌词。世界模式离开有效世界画面即隐藏；下方可启用近似方块遮挡。"
+      },
+      "category": {
+        "en_US": "Independent subtitles",
+        "zh_TW": "獨立字幕",
+        "zh_CN": "独立字幕"
+      }
+    },
+    {
+      "path": "/stageStyle",
+      "type": "choice",
+      "default": 0,
+      "label": {
+        "en_US": "3D lyric style",
+        "zh_TW": "3D 歌詞樣式",
+        "zh_CN": "3D 歌词样式"
+      },
+      "options": [
+        {
+          "en_US": "Simple",
+          "zh_TW": "簡潔",
+          "zh_CN": "简洁"
+        },
+        {
+          "en_US": "Cadenza",
+          "zh_TW": "心象",
+          "zh_CN": "心象"
+        },
+        {
+          "en_US": "Huiguang",
+          "zh_TW": "繪光",
+          "zh_CN": "绘光"
+        }
+      ],
+      "category": {
+        "en_US": "Independent subtitles",
+        "zh_TW": "獨立字幕",
+        "zh_CN": "独立字幕"
+      }
+    },
+    {
+      "path": "/stageScalePercent",
+      "type": "slider",
+      "numberType": "integer",
+      "default": 100,
+      "min": 40,
+      "max": 300,
+      "step": 5,
+      "unit": "%",
+      "label": {
+        "en_US": "3D lyric scale",
+        "zh_TW": "3D 歌詞大小",
+        "zh_CN": "3D 歌词大小"
+      },
+      "category": {
+        "en_US": "Independent subtitles",
+        "zh_TW": "獨立字幕",
+        "zh_CN": "独立字幕"
+      }
+    },
+    {
+      "path": "/stageSpreadDeg",
+      "type": "slider",
+      "numberType": "integer",
+      "default": 20,
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "deg",
+      "label": {
+        "en_US": "3D lyric spread",
+        "zh_TW": "3D 歌詞展開角度",
+        "zh_CN": "3D 歌词展开角度"
+      },
+      "category": {
+        "en_US": "Independent subtitles",
+        "zh_TW": "獨立字幕",
+        "zh_CN": "独立字幕"
+      }
+    },
+    {
+      "path": "/lyricsFontSize",
+      "type": "slider",
+      "numberType": "integer",
+      "default": 22,
+      "min": 14,
+      "max": 48,
+      "step": 1,
+      "label": {
+        "en_US": "Ordinary HUD text size",
+        "zh_TW": "普通 HUD 文字大小",
+        "zh_CN": "普通 HUD 文字大小"
+      },
+      "category": {
+        "en_US": "Independent subtitles",
+        "zh_TW": "獨立字幕",
+        "zh_CN": "独立字幕"
+      }
+    },
+    {
+      "path": "/lyricsOffsetY",
+      "type": "slider",
+      "numberType": "integer",
+      "default": 70,
+      "min": 0,
+      "max": 500,
+      "step": 1,
+      "unit": "px",
+      "label": {
+        "en_US": "Ordinary HUD distance from bottom",
+        "zh_TW": "普通 HUD 距底部位置",
+        "zh_CN": "普通 HUD 距底部位置"
+      },
+      "description": {
+        "en_US": "Offset from the original position in GUI pixels; negative values move left/up. Reset to 0 if off-screen.",
+        "zh_TW": "相對原位置的 GUI 像素偏移，負值往左／上；超出畫面時重設為 0。",
+        "zh_CN": "相对原位置的 GUI 像素偏移，负值往左／上；超出画面时重置为 0。"
+      },
+      "category": {
+        "en_US": "Independent subtitles",
+        "zh_TW": "獨立字幕",
+        "zh_CN": "独立字幕"
+      }
+    },
+    {
+      "path": "/lyricColorCustom",
+      "type": "boolean",
+      "default": false,
+      "label": {
+        "en_US": "Custom subtitle color",
+        "zh_TW": "自訂字幕顏色",
+        "zh_CN": "自定义字幕颜色"
+      },
+      "description": {
+        "en_US": "Use RGB sliders for desktop lyrics and all three independent subtitle modes. Off restores the original palette. 3D effects retain their shading.",
+        "zh_TW": "使用 RGB 滑動條設定桌面歌詞及三種獨立字幕模式顏色，關閉恢復原配色；3D 特效保留明暗變化。",
+        "zh_CN": "使用 RGB 滑动条设置桌面歌词及三种独立字幕模式颜色，关闭恢复原配色；3D 特效保留明暗变化。"
+      },
+      "category": {
+        "en_US": "Subtitle colors",
+        "zh_TW": "字幕顏色",
+        "zh_CN": "字幕颜色"
+      }
+    },
+    {
+      "path": "/lyricColorRed",
+      "type": "slider",
+      "numberType": "integer",
+      "default": 255,
+      "min": 0,
+      "max": 255,
+      "step": 1,
+      "label": {
+        "en_US": "Subtitle color: Red",
+        "zh_TW": "字幕顏色：紅",
+        "zh_CN": "字幕颜色：红"
+      },
+      "category": {
+        "en_US": "Subtitle colors",
+        "zh_TW": "字幕顏色",
+        "zh_CN": "字幕颜色"
+      }
+    },
+    {
+      "path": "/lyricColorGreen",
+      "type": "slider",
+      "numberType": "integer",
+      "default": 255,
+      "min": 0,
+      "max": 255,
+      "step": 1,
+      "label": {
+        "en_US": "Subtitle color: Green",
+        "zh_TW": "字幕顏色：綠",
+        "zh_CN": "字幕颜色：绿"
+      },
+      "category": {
+        "en_US": "Subtitle colors",
+        "zh_TW": "字幕顏色",
+        "zh_CN": "字幕颜色"
+      }
+    },
+    {
+      "path": "/lyricColorBlue",
+      "type": "slider",
+      "numberType": "integer",
+      "default": 255,
+      "min": 0,
+      "max": 255,
+      "step": 1,
+      "label": {
+        "en_US": "Subtitle color: Blue",
+        "zh_TW": "字幕顏色：藍",
+        "zh_CN": "字幕颜色：蓝"
+      },
+      "category": {
+        "en_US": "Subtitle colors",
+        "zh_TW": "字幕顏色",
+        "zh_CN": "字幕颜色"
+      }
+    },
+    {
+      "path": "/enabled",
+      "type": "boolean",
+      "default": true,
+      "label": {
+        "en_US": "Enabled",
+        "zh_TW": "啟用",
+        "zh_CN": "启用"
+      },
+      "category": {
+        "en_US": "Playback and shortcuts",
+        "zh_TW": "播放與快捷鍵",
+        "zh_CN": "播放与快捷键"
+      }
+    },
+    {
+      "path": "/volume",
+      "type": "slider",
+      "numberType": "integer",
+      "default": 70,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": {
+        "en_US": "Music volume",
+        "zh_TW": "音樂音量",
+        "zh_CN": "音乐音量"
+      },
+      "category": {
+        "en_US": "Playback and shortcuts",
+        "zh_TW": "播放與快捷鍵",
+        "zh_CN": "播放与快捷键"
+      }
+    },
+    {
+      "path": "/repeat",
+      "type": "choice",
+      "default": 0,
+      "label": {
+        "en_US": "Repeat",
+        "zh_TW": "重複播放",
+        "zh_CN": "重复播放"
+      },
+      "options": [
+        {
+          "en_US": "Off",
+          "zh_TW": "關閉",
+          "zh_CN": "关闭"
+        },
+        {
+          "en_US": "Queue",
+          "zh_TW": "整個佇列",
+          "zh_CN": "整个队列"
+        },
+        {
+          "en_US": "Track",
+          "zh_TW": "單曲",
+          "zh_CN": "单曲"
+        }
+      ],
+      "category": {
+        "en_US": "Playback and shortcuts",
+        "zh_TW": "播放與快捷鍵",
+        "zh_CN": "播放与快捷键"
+      }
+    },
+    {
+      "path": "/shuffle",
+      "type": "boolean",
+      "default": false,
+      "label": {
+        "en_US": "Shuffle local / stream queue",
+        "zh_TW": "隨機播放本機／串流佇列",
+        "zh_CN": "随机播放本机／流媒体队列"
+      },
+      "category": {
+        "en_US": "Playback and shortcuts",
+        "zh_TW": "播放與快捷鍵",
+        "zh_CN": "播放与快捷键"
+      }
+    },
+    {
+      "path": "/lyricsTimeOffsetMs",
+      "type": "slider",
+      "numberType": "integer",
+      "default": 0,
+      "min": -60000,
+      "max": 60000,
+      "step": 50,
+      "unit": "ms",
+      "label": {
+        "en_US": "Lyrics timing offset",
+        "zh_TW": "歌詞時間偏移",
+        "zh_CN": "歌词时间偏移"
+      },
+      "description": {
+        "en_US": "Positive values show lyrics earlier. Applies only to a usable playback timeline.",
+        "zh_TW": "正值讓歌詞提早顯示；僅用於可用的播放時間軸。",
+        "zh_CN": "正值让歌词提前显示；仅用于可用的播放时间轴。"
+      },
+      "category": {
+        "en_US": "Independent subtitles",
+        "zh_TW": "獨立字幕",
+        "zh_CN": "独立字幕"
+      }
+    },
+    {
+      "path": "/openKey",
+      "type": "binding",
+      "default": "NONE",
+      "label": {
+        "en_US": "Open player",
+        "zh_TW": "開啟播放器",
+        "zh_CN": "打开播放器"
+      },
+      "description": {
+        "en_US": "Unbound by default. Use Workspace > Player > Open player, or assign an unused key. Duplicate player bindings are refused.",
+        "zh_TW": "預設無綁定。可使用工作頁的「開啟播放器」，或設定未使用的按鍵。播放器內重複綁鍵會被拒絕。",
+        "zh_CN": "默认无绑定。可使用工作页的「打开播放器」，或设置未使用的按键。播放器内重复绑键会被拒绝。"
+      },
+      "category": {
+        "en_US": "Playback and shortcuts",
+        "zh_TW": "播放與快捷鍵",
+        "zh_CN": "播放与快捷键"
+      }
+    },
+    {
+      "path": "/playPauseKey",
+      "type": "binding",
+      "default": "NONE",
+      "label": {
+        "en_US": "Play / pause shortcut",
+        "zh_TW": "播放／暫停快捷鍵",
+        "zh_CN": "播放／暂停快捷键"
+      },
+      "category": {
+        "en_US": "Playback and shortcuts",
+        "zh_TW": "播放與快捷鍵",
+        "zh_CN": "播放与快捷键"
+      }
+    },
+    {
+      "path": "/nextKey",
+      "type": "binding",
+      "default": "NONE",
+      "label": {
+        "en_US": "Next track shortcut",
+        "zh_TW": "下一首快捷鍵",
+        "zh_CN": "下一首快捷键"
+      },
+      "category": {
+        "en_US": "Playback and shortcuts",
+        "zh_TW": "播放與快捷鍵",
+        "zh_CN": "播放与快捷键"
+      }
+    },
+    {
+      "path": "/previousKey",
+      "type": "binding",
+      "default": "NONE",
+      "label": {
+        "en_US": "Previous track shortcut",
+        "zh_TW": "上一首快捷鍵",
+        "zh_CN": "上一首快捷键"
+      },
+      "category": {
+        "en_US": "Playback and shortcuts",
+        "zh_TW": "播放與快捷鍵",
+        "zh_CN": "播放与快捷键"
+      }
+    },
+    {
+      "path": "/speakerEnabled",
+      "type": "boolean",
+      "default": false,
+      "label": {
+        "en_US": "Enable world speaker",
+        "zh_TW": "啟用世界固定音源",
+        "zh_CN": "启用世界固定音源"
+      },
+      "description": {
+        "en_US": "Virtual client-only source; no block, entity or server change. Scene acoustics affects Muonium playback only. Geometry is limited to the current 33-block cube; missing data fades out.",
+        "zh_TW": "純客戶端虛擬音源，不建立方塊或實體、不改伺服器。場景聲學只處理 Muonium 播放；幾何限於目前 33 格立方體，缺少資料會淡出。",
+        "zh_CN": "纯客户端虚拟音源，不建立方块或实体、不改服务器。场景声学只处理 Muonium 播放；几何限于当前33格立方体，缺少数据会淡出。"
+      },
+      "category": {
+        "en_US": "World speaker",
+        "zh_TW": "世界固定音源",
+        "zh_CN": "世界固定音源"
+      }
+    },
+    {
+      "path": "/speakerKey",
+      "type": "binding",
+      "default": "NONE",
+      "label": {
+        "en_US": "Place / remove speaker",
+        "zh_TW": "放置／移除音源",
+        "zh_CN": "放置／移除音源"
+      },
+      "category": {
+        "en_US": "World speaker",
+        "zh_TW": "世界固定音源",
+        "zh_CN": "世界固定音源"
+      },
+      "description": {
+        "en_US": "No default key. In first person aim at a known block within 6 blocks; aim near the existing source to remove it, elsewhere to move. Requires scene acoustics. Vanilla menus or world/dimension changes clear it.",
+        "zh_TW": "預設無綁定。第一人稱對準六格內已知方塊放置；對準原音源附近移除，對準別處移動。需開啟場景聲學；原版選單、世界或維度變更會清除。",
+        "zh_CN": "默认无绑定。第一人称对准六格内已知方块放置；对准原音源附近移除，对准别处移动。需开启场景声学；原版菜单、世界或维度变化会清除。"
+      }
+    },
+    {
+      "path": "/miniPlayerKey",
+      "type": "binding",
+      "default": "NONE",
+      "label": {
+        "en_US": "Open mini player",
+        "zh_TW": "開啟迷你播放器",
+        "zh_CN": "打开迷你播放器"
+      },
+      "description": {
+        "en_US": "Optional shortcut. Default is Unbound; also available on the Workspace page.",
+        "zh_TW": "選用快捷鍵，預設無綁定；也能從工作頁開啟。",
+        "zh_CN": "可选快捷键，默认无绑定；也能从工作页打开。"
+      },
+      "category": {
+        "en_US": "Playback and shortcuts",
+        "zh_TW": "播放與快捷鍵",
+        "zh_CN": "播放与快捷键"
+      }
+    },
+    {
+      "path": "/hudEditorKey",
+      "type": "binding",
+      "default": "NONE",
+      "label": {
+        "en_US": "Open HUD editor",
+        "zh_TW": "開啟 HUD 編輯器",
+        "zh_CN": "打开 HUD 编辑器"
+      },
+      "description": {
+        "en_US": "Optional shortcut. Default is Unbound; also available on the Workspace page.",
+        "zh_TW": "選用快捷鍵，預設無綁定；也能從工作頁開啟。",
+        "zh_CN": "可选快捷键，默认无绑定；也能从工作页打开。"
+      },
+      "category": {
+        "en_US": "Playback and shortcuts",
+        "zh_TW": "播放與快捷鍵",
+        "zh_CN": "播放与快捷键"
+      }
+    },
+    {
+      "path": "/worldLyricsOcclusion",
+      "type": "boolean",
+      "default": false,
+      "label": {
+        "en_US": "Voxel lyric visibility",
+        "zh_TW": "方塊歌詞遮擋",
+        "zh_CN": "方块歌词遮挡"
+      },
+      "description": {
+        "en_US": "Partial clipping against known foreground full blocks in the 33-cube snapshot, including cuts through a glyph. Unknown geometry creates no mask. Not game depth; partial block shapes are approximated.",
+        "zh_TW": "依周圍 33 格立方快照的已知前方完整方塊局部裁切，可遮住半個字；未知幾何不建立遮罩。不是遊戲深度緩衝，非完整方塊形狀仍為近似。",
+        "zh_CN": "按周围 33 格立方快照的已知前方完整方块局部裁切，可遮住半个字；未知几何不建立遮罩。不是游戏深度缓冲，非完整方块形状仍为近似。"
+      },
+      "category": {
+        "en_US": "Integration",
+        "zh_TW": "整合",
+        "zh_CN": "集成"
+      }
+    },
+    {
+      "path": "/smtcPublishEnabled",
+      "type": "boolean",
+      "default": false,
+      "label": {
+        "en_US": "Publish to Windows media",
+        "zh_TW": "發佈到 Windows 媒體",
+        "zh_CN": "发布到 Windows 媒体"
+      },
+      "description": {
+        "en_US": "Publish built-in playback metadata and media-key controls to Windows. External-player mirroring excludes our own session.",
+        "zh_TW": "向 Windows 發佈內建播放器的曲名、封面及媒體鍵控制；外部鏡像排除自身會話。",
+        "zh_CN": "向 Windows 发布内置播放器的曲名、封面及媒体键控制；外部镜像排除自身会话。"
+      },
+      "category": {
+        "en_US": "Integration",
+        "zh_TW": "整合",
+        "zh_CN": "集成"
+      }
+    },
+    {
+      "path": "/islandSearchKey",
+      "type": "binding",
+      "default": "NONE",
+      "label": {
+        "en_US": "Search in island",
+        "zh_TW": "島內搜尋",
+        "zh_CN": "岛内搜索"
+      },
+      "description": {
+        "en_US": "Optional shortcut. Default is Unbound; also available on the Workspace page.",
+        "zh_TW": "選用快捷鍵，預設無綁定；也能從工作頁開啟。",
+        "zh_CN": "可选快捷键，默认无绑定；也能从工作页打开。"
+      },
+      "category": {
+        "en_US": "Playback and shortcuts",
+        "zh_TW": "播放與快捷鍵",
+        "zh_CN": "播放与快捷键"
+      }
+    }
+  ]
+}

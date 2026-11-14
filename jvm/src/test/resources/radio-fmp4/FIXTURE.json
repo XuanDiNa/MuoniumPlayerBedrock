@@ -1,0 +1,15 @@
+{
+  "origin": "Owned synthetic 660-Hz sine; no third-party recording",
+  "generator": "imageio-ffmpeg 0.6.0 bundled FFmpeg",
+  "parameters": "44100 Hz stereo AAC-LC 64k 1.2 seconds, HLS fMP4 0.3s segments",
+  "playlistCorrection": "TARGETDURATION rounded up to 1 second",
+  "files": {
+    "init.mp4": "e1990b6f1c2f13b9f08e6a13b2a8167b21807064914ce4ef8de6420895c23a12",
+    "radio.m3u8": "63cebf1cb9c3dd80f3bbd047657b961e36398fb05eb999472587fd1c58c32ab2",
+    "segment0.m4s": "a0b0568650a95c522263ff8837e8b921ba08023d2dce65663a67125b590222fd",
+    "segment1.m4s": "f31a535d3ad3b07f2877856d6bdde0a700091b8a2f39f590c550ea4e0d464c67",
+    "segment2.m4s": "b9e29f01b53d54af9428056ca9f69bc2b86be935c371fd55b383ac019f2bdb0a",
+    "segment3.m4s": "2595d11009f6d72ae9b5d73a73d63cdf7916f5917a0a6bfd88227d489442f24e",
+    "segment4.m4s": "301f478550a17f9344792c27a755b2bbdba1d1c126aca3a71442c36903e280df"
+  }
+}

@@ -1,0 +1,4 @@
+LIBRARY LeviLamina.dll
+EXPORTS
+?getDefaultAllocator@memory@ll@@YAAEAVIMemoryAllocator@Memory@Bedrock@@XZ
+?throwMemoryException@memory@ll@@YAX_K@Z

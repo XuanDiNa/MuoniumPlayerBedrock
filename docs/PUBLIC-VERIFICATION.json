@@ -1,0 +1,191 @@
+{
+  "edition": "0.12.0-public1",
+  "date": "2026-11-14",
+  "upstream": "9b4cc7e7bd143315da716075a6d024a0d4c0c81b",
+  "productionSourceComparison": {
+    "src": "byte-identical to frozen candidate inputs",
+    "include": "byte-identical to frozen candidate inputs",
+    "jvm/src/main": "byte-identical to frozen candidate inputs"
+  },
+  "javaTests": {
+    "test": {
+      "tests": 529,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "worldSpeakerTest": {
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "playbackRecoveryTest": {
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "stageRenderTest": {
+      "tests": 35,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "nativeD3D12RenderTest": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "alphaBoundsRenderTest": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "uiPresentationRenderTest": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "testInvocations": 584,
+  "nativeSourceBuild": "clean public source release DLL build passed; rebuild not substituted into frozen packages",
+  "packagedPlayerSmoke": {
+    "mc26.45-26.51-native": {
+      "exit": 0,
+      "capture": true
+    },
+    "mc26.52-native": {
+      "exit": 0,
+      "capture": true
+    },
+    "mc26.60-levilamina": {
+      "exit": 0,
+      "capture": true
+    },
+    "mc26.60-native-preview": {
+      "exit": 0,
+      "capture": true
+    }
+  },
+  "manualMinecraftRunThisPublication": false,
+  "automaticInstallation": false,
+  "userReportedBaselineRuns": [
+    "1.26.45.01 native",
+    "1.26.51.01 native",
+    "1.26.52.03 native",
+    "1.26.60.05 LeviLamina"
+  ],
+  "native2660Preview": "exact-profile candidate, this DLL pairing not manually accepted on native 26.60",
+  "fontChange": "only four existing font entries replaced with unmodified OFL Noto fonts; OFL/provenance entries added",
+  "packages": {
+    "mc26.45-26.51-native": {
+      "edition": "0.12.0-public1",
+      "baselineVersion": "0.12.0-test2-mc2645-2651",
+      "minecraft": [
+        "1.26.45.01",
+        "1.26.51.01"
+      ],
+      "loader": "preload-native",
+      "baselineUserReportedRuns": true,
+      "newFontResourcesManualMinecraftTest": false,
+      "nativeDllUnchanged": true,
+      "dllSha256": "ACFFBF31ED4C53F652727DEF9137C56D90EDFB5DAE15784EA94EDB419812D152",
+      "baselineHostJarSha256": "D5CAAA39BBDD545A9B57BDAE17148EF87CDE09468166592FCD66CE8FC1801A10",
+      "publicHostJarSha256": "BC16A69F3FAC8AB49EC28209EC7960A55C8058340C9D4561DA9B60090CB481F0",
+      "fontResourceDelta": {
+        "changedExistingEntries": [
+          "muonium/fonts/pf_middleblack.ttf",
+          "muonium/fonts/pf_normal.ttf",
+          "muonium/fonts/sfbold.otf",
+          "muonium/fonts/sfregular.otf"
+        ],
+        "productionClassesUnchanged": true
+      },
+      "requiresModMenu": "matching ModMenuBedrock; LeviLamina uses ModMenuBedrockLL",
+      "defaultHotkeys": "unbound",
+      "sourceFamily": "current-native"
+    },
+    "mc26.52-native": {
+      "edition": "0.12.0-public1",
+      "baselineVersion": "0.10.0-test5-camera-trace",
+      "minecraft": [
+        "1.26.52.03"
+      ],
+      "loader": "preload-native",
+      "baselineUserReportedRuns": true,
+      "newFontResourcesManualMinecraftTest": false,
+      "nativeDllUnchanged": true,
+      "dllSha256": "949AABABEB0BD8C149CBFD9D6BAE2CAF79B41B428F3980A5BA2F7B5F087E6191",
+      "baselineHostJarSha256": "3FE3E4A75E420840655DC1E75E58C189925C7322BEAD87AEF5CFC8BFA02B9A51",
+      "publicHostJarSha256": "E80764D353D6EBE7F47B17B3DCE45831B1CC0E6BE048C1BB1DE25A795BA8C288",
+      "fontResourceDelta": {
+        "changedExistingEntries": [
+          "muonium/fonts/pf_middleblack.ttf",
+          "muonium/fonts/pf_normal.ttf",
+          "muonium/fonts/sfbold.otf",
+          "muonium/fonts/sfregular.otf"
+        ],
+        "productionClassesUnchanged": true
+      },
+      "requiresModMenu": "matching ModMenuBedrock; LeviLamina uses ModMenuBedrockLL",
+      "defaultHotkeys": "unbound",
+      "sourceFamily": "mc26.52-baseline"
+    },
+    "mc26.60-levilamina": {
+      "edition": "0.12.0-public1",
+      "baselineVersion": "0.11.0-test7-mc2660",
+      "minecraft": [
+        "1.26.60.05"
+      ],
+      "loader": "LeviLamina-26.60.7",
+      "baselineUserReportedRuns": true,
+      "newFontResourcesManualMinecraftTest": false,
+      "nativeDllUnchanged": true,
+      "dllSha256": "EA36EC131338E9B0C50BAA71EEFA2B453339DFAB04F76C60AB6E507C38D57F9C",
+      "baselineHostJarSha256": "2BB9DDBB57AE52E91D887E94B8753D0F05016891ED7E2FE0A2B975E40C5987F8",
+      "publicHostJarSha256": "56EEF9A9212A82D1F0340D7EEF618CA2D8C895EB6A400191867239C61B17C9F8",
+      "fontResourceDelta": {
+        "changedExistingEntries": [
+          "muonium/fonts/pf_middleblack.ttf",
+          "muonium/fonts/pf_normal.ttf",
+          "muonium/fonts/sfbold.otf",
+          "muonium/fonts/sfregular.otf"
+        ],
+        "productionClassesUnchanged": true
+      },
+      "requiresModMenu": "matching ModMenuBedrock; LeviLamina uses ModMenuBedrockLL",
+      "defaultHotkeys": "unbound",
+      "sourceFamily": "mc26.60-ll-baseline"
+    },
+    "mc26.60-native-preview": {
+      "edition": "0.12.0-public1",
+      "baselineVersion": "0.12.0-test2-mc2645-2651",
+      "minecraft": [
+        "1.26.60.05"
+      ],
+      "loader": "preload-native",
+      "baselineUserReportedRuns": false,
+      "newFontResourcesManualMinecraftTest": false,
+      "nativeDllUnchanged": true,
+      "dllSha256": "ACFFBF31ED4C53F652727DEF9137C56D90EDFB5DAE15784EA94EDB419812D152",
+      "baselineHostJarSha256": "D5CAAA39BBDD545A9B57BDAE17148EF87CDE09468166592FCD66CE8FC1801A10",
+      "publicHostJarSha256": "85E4006CD6CFB425FEFED1198F36DE74CBBF674810752DAD082A0020A8A2144C",
+      "fontResourceDelta": {
+        "changedExistingEntries": [
+          "muonium/fonts/pf_middleblack.ttf",
+          "muonium/fonts/pf_normal.ttf",
+          "muonium/fonts/sfbold.otf",
+          "muonium/fonts/sfregular.otf"
+        ],
+        "productionClassesUnchanged": true
+      },
+      "requiresModMenu": "matching ModMenuBedrock; LeviLamina uses ModMenuBedrockLL",
+      "defaultHotkeys": "unbound",
+      "sourceFamily": "current-native"
+    }
+  }
+}
