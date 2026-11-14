@@ -1,88 +1,203 @@
 {
-  "edition": "0.12.0-public2",
+  "edition": "0.12.0-public3",
   "date": "2026-11-15",
   "upstream": "9b4cc7e7bd143315da716075a6d024a0d4c0c81b",
-  "productionSourceComparison": {
-    "src": "byte-identical to frozen candidate inputs",
-    "include": "byte-identical to frozen candidate inputs",
-    "jvm/src/main": "byte-identical to frozen candidate inputs"
-  },
-  "javaTests": {
-    "test": {
-      "tests": 529,
-      "failures": 0,
-      "errors": 0,
-      "skipped": 0
+  "priorPublicEdition": "v0.12.0-public2",
+  "freshNativeChecks": {
+    "debug": {
+      "Native60ConsoleAdmissionTests": {
+        "exit": 0,
+        "output": "Native60 console exact-identity, mutation and loader checks=221 passed\n",
+        "stderr": ""
+      },
+      "Native51VanillaAdmissionTests": {
+        "exit": 0,
+        "output": "Native51 vanilla exact-identity, mutation and loader checks=113 passed\n",
+        "stderr": ""
+      },
+      "NativeContractTests": {
+        "exit": 0,
+        "output": "Version-isolated contracts, exact loaded-header admission and unknown host refusal passed\n",
+        "stderr": ""
+      },
+      "LoaderPolicyTests": {
+        "exit": 0,
+        "output": "Wrong-loader refusal, exact LL admission and concurrent one-start/restart passed\n",
+        "stderr": ""
+      },
+      "OlderVersionTests": {
+        "exit": 0,
+        "output": "Older originals/loaders, version-isolated camera/RTT contracts, cross-version and LL refusal passed\n",
+        "stderr": ""
+      },
+      "OlderSceneFixtureTests": {
+        "exit": 0,
+        "output": "Four production cinematic scene layouts and validity revocation passed\n",
+        "stderr": ""
+      },
+      "MenuInteropLL": {
+        "exit": 0,
+        "output": "Real ModMenu v5 parser, eight chord bindings and current-manifest Workspace register/publish/command/ack/disable interop passed\n",
+        "stderr": ""
+      },
+      "MenuLiveInterop-vanilla": {
+        "exit": 0,
+        "output": "Real frozen LL Workspace API: delayed readiness, five actions, passive polling, disable/recovery, duplicate refusal and cleanup passed\n",
+        "stderr": ""
+      },
+      "MenuLiveInterop-LL": {
+        "exit": 0,
+        "output": "Real frozen LL Workspace API: delayed readiness, five actions, passive polling, disable/recovery, duplicate refusal and cleanup passed\n",
+        "stderr": ""
+      }
     },
-    "worldSpeakerTest": {
-      "tests": 11,
-      "failures": 0,
-      "errors": 0,
-      "skipped": 0
+    "release": {
+      "Native60ConsoleAdmissionTests": {
+        "exit": 0,
+        "output": "Native60 console exact-identity, mutation and loader checks=221 passed\n",
+        "stderr": ""
+      },
+      "Native51VanillaAdmissionTests": {
+        "exit": 0,
+        "output": "Native51 vanilla exact-identity, mutation and loader checks=113 passed\n",
+        "stderr": ""
+      },
+      "NativeContractTests": {
+        "exit": 0,
+        "output": "Version-isolated contracts, exact loaded-header admission and unknown host refusal passed\n",
+        "stderr": ""
+      },
+      "LoaderPolicyTests": {
+        "exit": 0,
+        "output": "Wrong-loader refusal, exact LL admission and concurrent one-start/restart passed\n",
+        "stderr": ""
+      },
+      "OlderVersionTests": {
+        "exit": 0,
+        "output": "Older originals/loaders, version-isolated camera/RTT contracts, cross-version and LL refusal passed\n",
+        "stderr": ""
+      },
+      "OlderSceneFixtureTests": {
+        "exit": 0,
+        "output": "Four production cinematic scene layouts and validity revocation passed\n",
+        "stderr": ""
+      },
+      "MenuInteropLL": {
+        "exit": 0,
+        "output": "Real ModMenu v5 parser, eight chord bindings and current-manifest Workspace register/publish/command/ack/disable interop passed\n",
+        "stderr": ""
+      },
+      "MenuLiveInterop-vanilla": {
+        "exit": 0,
+        "output": "Real frozen LL Workspace API: delayed readiness, five actions, passive polling, disable/recovery, duplicate refusal and cleanup passed\n",
+        "stderr": ""
+      },
+      "MenuLiveInterop-LL": {
+        "exit": 0,
+        "output": "Real frozen LL Workspace API: delayed readiness, five actions, passive polling, disable/recovery, duplicate refusal and cleanup passed\n",
+        "stderr": ""
+      }
     },
-    "playbackRecoveryTest": {
-      "tests": 6,
-      "failures": 0,
-      "errors": 0,
-      "skipped": 0
-    },
-    "stageRenderTest": {
-      "tests": 35,
-      "failures": 0,
-      "errors": 0,
-      "skipped": 0
-    },
-    "nativeD3D12RenderTest": {
-      "tests": 1,
-      "failures": 0,
-      "errors": 0,
-      "skipped": 0
-    },
-    "alphaBoundsRenderTest": {
-      "tests": 1,
-      "failures": 0,
-      "errors": 0,
-      "skipped": 0
-    },
-    "uiPresentationRenderTest": {
-      "tests": 1,
-      "failures": 0,
-      "errors": 0,
-      "skipped": 0
+    "unsupportedHost": {
+      "exit": 0,
+      "output": "Production DLL load/export/unsupported-host refusal passed; no game process used\n",
+      "stderr": ""
     }
   },
-  "testInvocations": 584,
-  "nativeSourceBuild": "clean public source release DLL build passed; rebuild not substituted into frozen packages",
-  "packagedPlayerSmoke": {
-    "mc26.45-26.51-native": {
-      "exit": 0,
-      "capture": true
+  "freshReadOnlyImageReview": {
+    "gameSections": {
+      ".data": {
+        "sha256": "144C4327C671F71F0453C64E134CDDBF8D896248DFA27CC9830820C72F134332",
+        "headerIdentical": true
+      },
+      ".pdata": {
+        "sha256": "268E91D53EC8BF495C8F00FAB4821860699E7EE2BE0FC02E38BC1668DEFB1435",
+        "headerIdentical": true
+      },
+      ".rdata": {
+        "sha256": "ACB23423E58C8E538CCCC9042BF2E0EE61910B851DA97A7025E1BA3999F3F49F",
+        "headerIdentical": true
+      },
+      ".reloc": {
+        "sha256": "B8C9ED6C4AF9540B62491FF089C851A0C6486B869D974E9E5691BFB45FB8D8D8",
+        "headerIdentical": true
+      },
+      ".rsrc": {
+        "sha256": "4FF4FB9873028CFCF7EBDC2890C20E47AB8E9666463C86D14D711FEF02C22B74",
+        "headerIdentical": true
+      },
+      ".text": {
+        "sha256": "7CA5D1BAEF049979E9785D5BBAFE7100A829E1107A3D374975962CC64ECC76FE",
+        "headerIdentical": true
+      },
+      ".tls": {
+        "sha256": "D28CF4FDF1182D55F199CF0491014D3A33C4B7B8511498E84E6B867E22440DA3",
+        "headerIdentical": true
+      },
+      ".xbld": {
+        "sha256": "CF3C900CC77849BC8E71C5CA8D133BB96AA049BB413B268450357E0CC213CA15",
+        "headerIdentical": true
+      }
     },
-    "mc26.52-native": {
-      "exit": 0,
-      "capture": true
+    "originalEntrypointIdentical": true,
+    "forms": [
+      {
+        "sha256": "988F6A61403B4381AA41E6C66D64CCE441B14E561A9B10F647C2758EF3F2672A",
+        "bytes": 323819336,
+        "subsystem": 2,
+        "checksum": "0x134d2def"
+      },
+      {
+        "sha256": "E34D9DBB574790CAB5293E8B2C9C31A696CD58287281C8424255C6CF5045C40B",
+        "bytes": 323819336,
+        "subsystem": 3,
+        "checksum": "0x134d2def"
+      },
+      {
+        "sha256": "019F4EE7C82DB0E0C187653BC76C61CF75502FF6866A5CC6603FA0C909A386A2",
+        "bytes": 323821384,
+        "subsystem": 2,
+        "checksum": "0x134d3cba"
+      },
+      {
+        "sha256": "DA6C84C32681A7CD7F82CF3573B08E23D629BB2E6E6EC73AD44DE098248FCE63",
+        "bytes": 323821384,
+        "subsystem": 3,
+        "checksum": "0x134d3cba"
+      },
+      {
+        "sha256": "537A7BD5AB1BEB109BD9D2E5206B6DF35BF273D01717EF9C5B20EC4B68CC3017",
+        "bytes": 323821384,
+        "subsystem": 2,
+        "checksum": "0x134d3cbb"
+      },
+      {
+        "sha256": "68B38A0B3FD2A57C4538DBFAC5BEACE14AFD774513E2CBF1BE4443E9DE010768",
+        "bytes": 323821384,
+        "subsystem": 3,
+        "checksum": "0x134d3cbb"
+      }
+    ],
+    "nativeGuards": 61,
+    "fullNativeBodies": 48,
+    "test11WorkspaceFixtureIdentical": {
+      "src/Workspace.cpp": "3D79389D0C443505C03EC534A49CDBE319D39688F92B43BEE106CE7DB853F8C2",
+      "src/WorkspaceApi.cpp": "27555ADF9DF7949AE18BE4834E14F99A39A5C2A07E8173C2BF52C987A7BD9C7D",
+      "include/ModMenu/Workspace.h": "A1572792F6E51B1150431EDB1158B61E06E9A5F8CCE6EFDA304DEB774E852233"
     },
-    "mc26.60-levilamina": {
-      "exit": 0,
-      "capture": true
-    },
-    "mc26.60-native-preview": {
-      "exit": 0,
-      "capture": true
-    }
+    "gameModified": false,
+    "gameLaunched": false,
+    "manualMinecraftAcceptance": false
   },
-  "manualMinecraftRunThisPublication": false,
-  "automaticInstallation": false,
-  "userReportedBaselineRuns": [
-    "1.26.45.01 native",
-    "1.26.51.01 native",
-    "1.26.52.03 native",
-    "1.26.60.05 LeviLamina"
-  ],
-  "fontChange": "only four existing font entries replaced with unmodified OFL Noto fonts; OFL/provenance entries added",
+  "redGreenObserved": true,
+  "previousJavaTestInvocations": 584,
+  "javaCampaignRerun": false,
+  "javaEngineAndPublicFontsUnchanged": true,
+  "leviLaminaDllUnchanged": true,
+  "nativeRvasGuardsAndContractsUnchanged": true,
   "packages": {
     "vanilla-mc26.45-26.51-26.52-26.60": {
-      "edition": "0.12.0-public2",
+      "edition": "0.12.0-public3",
       "baselineVersion": "0.12.0-test2-mc2645-2651",
       "minecraft": [
         "1.26.45.01",
@@ -93,8 +208,8 @@
       "loader": "preload-native",
       "baselineUserReportedRuns": false,
       "newFontResourcesManualMinecraftTest": false,
-      "nativeDllUnchanged": true,
-      "dllSha256": "ACFFBF31ED4C53F652727DEF9137C56D90EDFB5DAE15784EA94EDB419812D152",
+      "nativeDllUnchanged": false,
+      "dllSha256": "4B7A074552DB9D2FA6C457719BA380945EF0F9411B5C6C655790C511D6A15FA0",
       "baselineHostJarSha256": "D5CAAA39BBDD545A9B57BDAE17148EF87CDE09468166592FCD66CE8FC1801A10",
       "publicHostJarSha256": "BC16A69F3FAC8AB49EC28209EC7960A55C8058340C9D4561DA9B60090CB481F0",
       "fontResourceDelta": {
@@ -106,7 +221,7 @@
         ],
         "productionClassesUnchanged": true
       },
-      "requiresModMenu": "matching ModMenuBedrock; LeviLamina uses ModMenuBedrockLL",
+      "requiresModMenu": "ModMenuBedrock 0.6.0-test11 reviewed; Workspace V1 unchanged",
       "defaultHotkeys": "unbound",
       "sourceFamily": "current-native",
       "baselineUserReportedGameVersions": [
@@ -114,13 +229,18 @@
         "1.26.51.01"
       ],
       "unifiedDllManualAcceptancePending": [
+        "1.26.45.01",
+        "1.26.51.01",
         "1.26.52.03",
         "1.26.60.05"
       ],
-      "exactProfileSelection": "one existing native DLL; independent per-version contracts; guards unchanged"
+      "exactProfileSelection": "full-file SHA-256 and size; independent unchanged native contracts; no runtime normalization",
+      "nativeVersion": "0.12.0-test3-mc2660-console",
+      "nativeChange": "Four reviewed 26.60 console/launcher full identities; all previous identities and native contracts/guards retained",
+      "javaEngineUnchanged": true
     },
     "levilamina-mc26.60": {
-      "edition": "0.12.0-public2",
+      "edition": "0.12.0-public3",
       "baselineVersion": "0.11.0-test7-mc2660",
       "minecraft": [
         "1.26.60.05"
@@ -150,19 +270,12 @@
     "vanilla-four-versions",
     "LeviLamina-26.60"
   ],
-  "unifiedNativeExactFileAdmission": {
-    "versions": [
-      "1.26.45.01",
-      "1.26.51.01",
-      "1.26.52.03",
-      "1.26.60.05"
-    ],
-    "fourActualOriginalImagesVerified": true,
-    "vanilla51MutationAndLoaderChecks": 113,
-    "guardsAndAddressesUnchanged": true
-  },
-  "unifiedNativeManualAcceptancePending": [
+  "newNativeDllManualAcceptancePending": [
+    "1.26.45.01",
+    "1.26.51.01",
     "1.26.52.03",
     "1.26.60.05"
-  ]
+  ],
+  "manualMinecraftRunThisPublication": false,
+  "automaticInstallation": false
 }

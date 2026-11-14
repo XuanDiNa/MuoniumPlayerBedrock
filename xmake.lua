@@ -21,6 +21,12 @@ target("Native51VanillaAdmissionTests")
     add_syslinks("user32", "bcrypt")
 target_end()
 
+target("Native60ConsoleAdmissionTests")
+    set_kind("binary")
+    add_files("tests/Native60ConsoleAdmissionTests.cpp", "src/Host.cpp")
+    add_syslinks("user32", "bcrypt")
+target_end()
+
 target("OlderSceneFixtureTests")
     set_kind("binary")
     add_files("tests/OlderSceneFixtureTests.cpp", "src/CinematicProtocol.cpp", "src/CinematicRegistry.cpp", "src/EnvironmentRead.cpp", "src/Host.cpp")

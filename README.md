@@ -13,7 +13,7 @@
 | 原版 1.26.45.01 / 1.26.51.01 / 1.26.52.03 / 1.26.60.05 | `vanilla-mc26.45-26.51-26.52-26.60` | 同一份原生預載 DLL，依精確遊戲身分自動選擇對應實作 |
 | 1.26.60.05，LeviLamina 26.60.7 | `levilamina-mc26.60` | 獨立 DLL，搭配 ModMenuBedrockLL |
 
-原版統一包沿用目前 `0.12.0-test2` DLL 內既有的四版本實作及嚴格身分檢查，不新增掛鉤或放寬保護。這份 DLL 已在 26.45／26.51 回報可執行；它在 26.52／26.60 的精確版本選擇已離線驗證，統一包仍待這兩版的人工遊戲驗收。先前各自的穩定基準版保留在本機。LeviLamina 沿用已回報可執行的 `0.11.0-test7` DLL。
+原版 `0.12.0-public3` 使用 `0.12.0-test3-mc2660-console` DLL，補齊 26.60 控制台與啟動器重建順序產生的四個精確映像身分，修復搭配 ModMenu `0.6.0-test11` 時播放器工作頁缺失。原有四版本實作、位址與掛鉤檢查保留。新 DLL 已離線驗證，仍待人工遊戲驗收；先前基準版保留在本機。LeviLamina 沿用已回報可執行的 `0.11.0-test7` DLL。[修正與驗證說明](docs/native60-console-test3.md)
 
 公開包四個文字字型換成 Noto，加入 OFL 授權；正式 Java 類別保持各自基準位元組不變。新字型已做離線介面檢查，未重新人工進遊戲驗收。身分檢查包含執行檔雜湊，其他同名或修改過的遊戲可能被拒絕。
 
@@ -49,4 +49,4 @@
 
 ## English
 
-A Windows x64 client-side Bedrock port of MuoniumPlayer. Choose one of two loader families: one native-preload DLL handles all four exact vanilla versions, while LeviLamina has a separate DLL/package. Public fonts are OFL Noto. The unified native DLL is gameplay-reported on 26.45/26.51; its 26.52/26.60 pairing has offline verification and awaits manual acceptance. The prior baselines remain preserved locally.
+A Windows x64 client-side Bedrock port of MuoniumPlayer. One native-preload DLL handles all four exact vanilla versions; LeviLamina has a separate DLL/package. Public3 fixes missing Workspace registration on reviewed 26.60 console/launcher images with ModMenu test11. Native addresses/guards are unchanged. The replacement native DLL is offline-verified and awaits manual gameplay acceptance; the LL DLL and both Java engines are preserved.
