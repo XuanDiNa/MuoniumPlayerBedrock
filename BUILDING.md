@@ -24,7 +24,7 @@ The LL package renames its DLL to `MuoniumPlayerBedrock.dll` and uses `type: nat
 
 The curated original snapshot is pinned in `vendor/MuoniumPlayer-2.5.2/SOURCE-MANIFEST.json`. `tools/prepare_jvm_sources.py` generates Bedrock overlays; unchanged applicable sources compile directly. Public font substitutions are recorded explicitly in the manifest. Four legacy aliases contain unmodified Noto fonts. Ordinary Gradle builds include the fonts/OFL notices without a private init script.
 
-This repository holds the latest native-family source. Older 26.52 and LL baselines have separate corresponding source ZIPs in the Release. Use matching source to rebuild them. A rebuild has a new binary hash and does not inherit manual acceptance.
+This repository holds the unified four-version native-family source. The separate LL baseline has a corresponding source ZIP in the Release. Use matching source to rebuild it. A rebuild has a new binary hash and does not inherit manual acceptance.
 
 ## Verification
 

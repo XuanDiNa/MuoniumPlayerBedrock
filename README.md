@@ -8,14 +8,14 @@
 
 ## 選擇版本
 
-| Minecraft | 套件名稱包含 | 基準 DLL | 狀態 |
-| --- | --- | --- | --- |
-| 1.26.45.01 / 1.26.51.01 | `mc26.45-26.51-native` | 0.12.0-test2 | 使用者已回報可執行 |
-| 1.26.52.03 | `mc26.52-native` | 0.10.0-test5 | 使用者已回報可執行 |
-| 1.26.60.05，LeviLamina 26.60.7 | `mc26.60-levilamina` | 0.11.0-test7 | 使用者已回報可執行；獨立載入入口 |
-| 1.26.60.05，原生預載 | `mc26.60-native-preview` | 0.12.0-test2 | 精確合約與離線驗證；此 DLL 組合待遊戲驗收 |
+| 環境 | 套件名稱包含 | 使用方式 |
+| --- | --- | --- |
+| 原版 1.26.45.01 / 1.26.51.01 / 1.26.52.03 / 1.26.60.05 | `vanilla-mc26.45-26.51-26.52-26.60` | 同一份原生預載 DLL，依精確遊戲身分自動選擇對應實作 |
+| 1.26.60.05，LeviLamina 26.60.7 | `levilamina-mc26.60` | 獨立 DLL，搭配 ModMenuBedrockLL |
 
-以上回報來自公開版之前的基準套件。公開版只替換四個字型資源並加入 OFL 授權，原生 DLL 和正式 Java 類別保持不變。新資源已做離線字型／介面檢查，尚未重新人工進遊戲驗收。判斷包含遊戲執行檔雜湊，其他同名或修改過的執行檔可能被拒絕。
+原版統一包沿用目前 `0.12.0-test2` DLL 內既有的四版本實作及嚴格身分檢查，不新增掛鉤或放寬保護。這份 DLL 已在 26.45／26.51 回報可執行；它在 26.52／26.60 的精確版本選擇已離線驗證，統一包仍待這兩版的人工遊戲驗收。先前各自的穩定基準版保留在本機。LeviLamina 沿用已回報可執行的 `0.11.0-test7` DLL。
+
+公開包四個文字字型換成 Noto，加入 OFL 授權；正式 Java 類別保持各自基準位元組不變。新字型已做離線介面檢查，未重新人工進遊戲驗收。身分檢查包含執行檔雜湊，其他同名或修改過的遊戲可能被拒絕。
 
 首次安裝用 **full.zip**，不要只下載 DLL。`update.zip` 供已有完整執行環境的人更新，保留設定、帳號與歌單。LeviLamina 和原生 DLL 不可互換，也不要同時載入。
 
@@ -45,8 +45,8 @@
 
 公開版使用 **Noto Sans / Noto Sans CJK（SIL OFL 1.1）** 取代 SF Pro / PingFang；資源別名保留，內容已替換。圖示保留原作來源及公告。主專案採 Apache-2.0；第三方元件保留各自授權，見 [LICENSE](LICENSE)、[第三方元件](docs/DEPENDENCIES.md) 與 `licenses/`。
 
-提供來源及建置工具，舊版 DLL 對應來源另附於 Release。沒有遊戲執行檔、私人帳號或 IDA 資料庫。
+提供來源及建置工具，LeviLamina 基準 DLL 的對應來源另附於 Release。沒有遊戲執行檔、私人帳號或 IDA 資料庫。
 
 ## English
 
-A Windows x64 client-side Bedrock port of MuoniumPlayer. The original Java/Skija player runs in an owned companion JVM; a native DLL integrates lifecycle, ModMenu and D3D11/D3D12 composition. Choose the exact game/loader package above. Public editions preserve native DLLs and production Java classes while replacing four text fonts with OFL Noto fonts. Runtime feedback applies to prior baselines; the native 26.60 preview and new font resources have separately stated acceptance limits.
+A Windows x64 client-side Bedrock port of MuoniumPlayer. Choose one of two loader families: one native-preload DLL handles all four exact vanilla versions, while LeviLamina has a separate DLL/package. Public fonts are OFL Noto. The unified native DLL is gameplay-reported on 26.45/26.51; its 26.52/26.60 pairing has offline verification and awaits manual acceptance. The prior baselines remain preserved locally.

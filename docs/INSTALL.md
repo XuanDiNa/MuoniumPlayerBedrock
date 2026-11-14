@@ -2,11 +2,13 @@
 
 **配套需求：對應版本的 ModMenuBedrock；LeviLamina 使用 ModMenuBedrockLL。** 播放器入口及 HUD 編輯位於 ModMenu 的工作頁，快捷鍵預設無綁定。兩者需分別安裝。
 
-1. 完全退出 Minecraft，下載對應遊戲版本及載入器的 `full.zip`。
+1. 完全退出 Minecraft，只需選擇「原版四版本統一包」或「LeviLamina 26.60 包」的 `full.zip`。
 2. 解壓到實例根目錄，得到 `mods/MuoniumPlayerBedrock/`；若啟動器使用其他插件位置，放入對應目錄。
 3. 原生版需要支援 preload-native 的載入器。LeviLamina 版需要 26.60.7；入口不同，不要混用或同時啟用。
 4. 安裝對應版本的 [ModMenuBedrock](https://github.com/XuanDiNa/ModMenuBedrock)；LeviLamina 使用對應 ModMenuBedrockLL。播放器不附帶或替換 ModMenu／Arke。
 5. 在工作頁點「開啟播放器」／「HUD 編輯」，或自行綁定快捷鍵；預設無綁定。
+
+原版包使用同一份 DLL，自動辨識 1.26.45.01／1.26.51.01／1.26.52.03／1.26.60.05，無須自行選擇版本資料夾。它在 26.52／26.60 的人工遊戲驗收仍待補齊；離線檢查已確認各版本獨立選擇，不共用錯誤的位址。
 
 完整包包含 Java 執行環境及 JAR 依賴。可選音源／分析元件按需要安裝。
 

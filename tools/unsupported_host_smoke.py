@@ -8,8 +8,8 @@ path = Path(sys.argv[1]).resolve()
 dll = ctypes.CDLL(str(path))
 dll.MPB_GetStatus.restype = ctypes.c_int
 dll.MPB_GetVersion.restype = ctypes.c_char_p
-from verify_direct_artifact import VERSION
-expected = sys.argv[2] if len(sys.argv) > 2 else VERSION
+version_header = Path(__file__).resolve().parents[1]/'include/Version.h'
+expected = sys.argv[2] if len(sys.argv) > 2 else version_header.read_text().split('PluginVersion[]="',1)[1].split('"',1)[0]
 assert dll.MPB_GetVersion() == expected.encode('ascii')
 deadline = time.monotonic()+5
 while dll.MPB_GetStatus() == 0 and time.monotonic() < deadline:
