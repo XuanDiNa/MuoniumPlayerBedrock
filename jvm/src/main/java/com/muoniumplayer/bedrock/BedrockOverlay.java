@@ -34,7 +34,7 @@ public final class BedrockOverlay {
     }
     private static void run(String[] args,HostWatchdog health) throws Exception {
         appliedSettings = null;
-        System.out.println("OVERLAY_COMPAT patch=sparse-ulw-20261113 version=0.13.0-test6-esc presentation=auto-native-d3d12 fallback=layered-window gameBackend=D3D11,D3D12 arke=exact-adapter legacyD3D11Hooks=disabled render=hidden-fbo display=layered-NO_API framePacing=world-camera-signal,fallback-game-fps,ui-60 alphaCrop=max-reduction-bands4");
+        System.out.println("OVERLAY_COMPAT patch=sparse-ulw-20261113 version=0.13.0 presentation=auto-native-d3d12 fallback=layered-window gameBackend=D3D11,D3D12 arke=exact-adapter legacyD3D11Hooks=disabled render=hidden-fbo display=layered-NO_API framePacing=world-camera-signal,fallback-game-fps,ui-60 alphaCrop=max-reduction-bands4");
         long parent = Long.parseLong(option(args, "--parent-pid"));
         var process = ProcessHandle.of(parent).orElseThrow();
         var owner = new WinDef.HWND(Pointer.createConstant(Long.parseUnsignedLong(option(args, "--owner"))));

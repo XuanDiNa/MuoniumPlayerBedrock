@@ -4,7 +4,7 @@
     "id": "MuoniumPlayerBedrock",
     "entry": "MuoniumPlayerBedrock.dll",
     "versions": [
-      "0.13.0-test6-esc"
+      "0.13.0"
     ]
   },
   "config": {

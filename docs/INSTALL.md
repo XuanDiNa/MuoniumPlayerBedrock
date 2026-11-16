@@ -1,6 +1,6 @@
 # 安裝與更新
 
-測試更新 **0.13.0-test6-esc**，提供完整包及更新包，不包含 ModMenuBE。
+測試更新 **0.13.0**，提供完整包及更新包，不包含 ModMenuBE。
 
 1. 完全退出 Minecraft。原版四版本使用同一個 vanilla 更新包；LeviLamina
    26.60.7 使用獨立 LL 包。首次安裝 full.zip，已含 Java21／播放器依賴；

@@ -4,7 +4,7 @@
 
 **[下載](https://github.com/XuanDiNa/MuoniumPlayerBedrock/releases)** · [安裝](docs/INSTALL.md) · [建置](BUILDING.md) · [授權與來源](docs/DEPENDENCIES.md)
 
-**[0.13.0-test6-esc 測試更新](https://github.com/XuanDiNa/MuoniumPlayerBedrock/releases/tag/v0.13.0-test6-esc)** 遷移至 [ModMenuBE](https://github.com/AFAlimru/ModMenuBE)：local4 的 Configure 保留普通設定，獨立工作頁開啟播放器、HUD 編輯、預設、迷你播放器及已啟用的島內搜尋。**Esc 逐層返回**，最外層退場完成後恢復工作頁，移除額外的返回工作頁浮層及按鈕。local3 沿用 Configure 工具按鈕頁。[遷移及驗收說明](docs/modmenube-migration.md)
+**[0.13.0 測試更新](https://github.com/XuanDiNa/MuoniumPlayerBedrock/releases/tag/v0.13.0)** 遷移至 [ModMenuBE](https://github.com/AFAlimru/ModMenuBE)：local4 的 Configure 保留普通設定，獨立工作頁開啟播放器、HUD 編輯、預設、迷你播放器及已啟用的島內搜尋。**Esc 逐層返回**，最外層退場完成後恢復工作頁，移除額外的返回工作頁浮層及按鈕。local3 沿用 Configure 工具按鈕頁。[遷移及驗收說明](docs/modmenube-migration.md)
 
 **ModMenuBE 需另外安裝**，本包不包含選單或載入器。工作頁依據 `0.2.0-local4` API 驗證，`local3` 使用 Configure 備援；其他 ModMenuBE 版本尚未驗收。舊 public2 使用 ModMenuBedrock／ModMenuBedrockLL，保留供回退，不可混用不同版本 DLL／JAR。
 
@@ -51,6 +51,6 @@
 
 ## English
 
-A Windows x64 client-side Bedrock port of MuoniumPlayer. **0.13.0-test6-esc** adds ModMenuBE integration: local4 has ordinary Configure plus separate Workspace buttons; local3 retains the owned Configure fallback. Esc dismisses one layer and returns to Workspace after the outermost exit finishes. No extra return banner is added, and focus loss does not stop background work.
+A Windows x64 client-side Bedrock port of MuoniumPlayer. **0.13.0** adds ModMenuBE integration: local4 has ordinary Configure plus separate Workspace buttons; local3 retains the owned Configure fallback. Esc dismisses one layer and returns to Workspace after the outermost exit finishes. No extra return banner is added, and focus loss does not stop background work.
 
 Install compatible ModMenuBE separately. Four exact vanilla game versions share one package; LeviLamina 26.60.7 uses a separate package. Full ZIPs include Java 21 and all player dependencies; update ZIPs require an existing complete runtime. Both preserve settings. Native guards remain unchanged. Recorded offline verification is 40 suites per native build mode and 25 Java tests; WGL rendering was unavailable and manual Minecraft acceptance remains pending. Historical public2 stays available for rollback.

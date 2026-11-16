@@ -1,4 +1,4 @@
-# ModMenuBE Esc-back candidate: 0.13.0-test6-esc
+# ModMenuBE Esc-back candidate: 0.13.0
 
 Update only the player. ModMenuBE is not included, modified or installed.
 Use your existing complete player runtime and select the correct loader edition.

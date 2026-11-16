@@ -4,7 +4,7 @@ import argparse, hashlib, json, subprocess, sys, zipfile
 import xml.etree.ElementTree as ET
 
 ROOT=Path(__file__).resolve().parents[1]
-VERSION='0.13.0-test6-esc'
+VERSION='0.13.0'
 PREFIX='mods/MuoniumPlayerBedrock/'
 
 def sha(data): return hashlib.sha256(data).hexdigest().upper()

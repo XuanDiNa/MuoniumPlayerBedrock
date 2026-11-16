@@ -1,7 +1,7 @@
 {
   "id": "muonium-player-bedrock",
   "name": "MuoniumPlayerBedrock",
-  "version": "0.13.0-test6-esc",
+  "version": "0.13.0",
   "author": "XuanDiNa; based on MuoniumPlayer by MuoniumPlayer Team",
   "description": "Original MuoniumPlayer Java UI and music engine hosted by a Bedrock native DLL, with client-only perspective lyrics.",
   "platform": "windows-x64",

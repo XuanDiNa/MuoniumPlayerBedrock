@@ -1,4 +1,4 @@
-# ModMenuBE integration: 0.13.0-test6-esc
+# ModMenuBE integration: 0.13.0
 
 The local4 adapter uses the frozen 0.2.0-local4 public workspace API version 1.
 See vendor/modmenube-local4-workspace/PROVENANCE.json for source/hash provenance.
