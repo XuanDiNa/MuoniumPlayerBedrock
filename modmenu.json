@@ -1,0 +1,82 @@
+{
+  "workspace": {
+    "version": 1,
+    "label": {
+      "en_US": "Workspace",
+      "zh_TW": "工作頁",
+      "zh_CN": "工作頁"
+    },
+    "entries": [
+      {
+        "id": "status",
+        "type": "page",
+        "target": "status",
+        "label": {
+          "en_US": "Player status",
+          "zh_TW": "播放器狀態",
+          "zh_CN": "播放器狀態"
+        }
+      },
+      {
+        "id": "help",
+        "type": "page",
+        "target": "help",
+        "label": {
+          "en_US": "Help",
+          "zh_TW": "使用說明",
+          "zh_CN": "使用說明"
+        }
+      },
+      {
+        "id": "player",
+        "type": "external",
+        "target": "player",
+        "label": {
+          "en_US": "Open player",
+          "zh_TW": "開啟播放器",
+          "zh_CN": "開啟播放器"
+        }
+      },
+      {
+        "id": "hud",
+        "type": "external",
+        "target": "hud",
+        "label": {
+          "en_US": "Edit HUD",
+          "zh_TW": "HUD 編輯",
+          "zh_CN": "HUD 編輯"
+        }
+      },
+      {
+        "id": "presets",
+        "type": "external",
+        "target": "presets",
+        "label": {
+          "en_US": "Presets",
+          "zh_TW": "預設管理",
+          "zh_CN": "預設管理"
+        }
+      },
+      {
+        "id": "mini",
+        "type": "external",
+        "target": "mini",
+        "label": {
+          "en_US": "Mini player",
+          "zh_TW": "迷你播放器",
+          "zh_CN": "迷你播放器"
+        }
+      },
+      {
+        "id": "island",
+        "type": "external",
+        "target": "island",
+        "label": {
+          "en_US": "Island search",
+          "zh_TW": "島內搜尋",
+          "zh_CN": "島內搜尋"
+        }
+      }
+    ]
+  }
+}

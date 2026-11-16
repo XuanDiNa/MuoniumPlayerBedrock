@@ -12,11 +12,15 @@ public abstract class GuiScreen {
     public int width, height;
     public void initGui() {}
     public void onGuiClosed() {}
+    /** Cancel gesture state without closing the page or synthesizing a click. */
+    public void suspendHostInput() { mouseReleased(-1_000_000, -1_000_000, -1); }
     public void updateScreen() {}
     public void onClose() { closeScreen(); }
     public void closeScreen() { mc.gui.setScreen(null); }
     public boolean doesGuiPauseGame() { return false; }
     public boolean transparentHost() { return false; }
+    /** True only while this page's outermost close animation is retiring. */
+    public boolean hostBackClosing() { return false; }
     public void resize(int w, int h) { width = w; height = h; buttonList.clear(); initGui(); }
     public void drawScreen(int x, int y, float partial) { for (var b : buttonList) b.drawButton(x, y); }
     public final void drawHostFrame(float partial) {
@@ -30,8 +34,14 @@ public abstract class GuiScreen {
     }
     protected void mouseReleased(int x, int y, int button) {}
     protected void actionPerformed(GuiButton button) throws IOException {}
-    public final void keyEvent(char ch, int code) throws IOException { keyTyped(ch, code); }
-    public final void clickEvent(int x, int y, int button) throws IOException { mouseClicked(x, y, button); }
+    public final void keyEvent(char ch, int code) throws IOException {
+        boolean wasClosing=hostBackClosing();
+        keyTyped(ch, code);
+        com.muoniumplayer.bedrock.HostBackNavigation.afterKey(this,code,wasClosing);
+    }
+    public final void clickEvent(int x, int y, int button) throws IOException {
+        mouseClicked(x, y, button);
+    }
     public final void releaseEvent(int x, int y, int button) { mouseReleased(x, y, button); }
     public void handleMouseInput() throws IOException {}
     public void drawDefaultBackground() { Gui.drawRect(0, 0, width, height, 0x90000000); }

@@ -52,6 +52,15 @@ The binding header and license are retained in sources under include/sdk/.
 MinHook 1.3.4 — Copyright (C) 2009-2017 Tsuda Kageyu, BSD-2-Clause.
 Full texts are retained in licenses/.
 
+ModMenuBE public C API and frozen local3 passive settings consumer — MIT.
+Copyright notices and unmodified source are retained under
+licenses/ModMenuBE-LICENSE.txt and vendor/modmenube-local3-passive/.
+Source provenance/checksums: vendor/modmenube-local3-passive/SOURCE.json.
+Local4 optional workspace API and frozen test-only consumer retain their original
+MIT notices under vendor/modmenube-local4-workspace/ and include/sdk/.
+Frozen package provenance/checksums: vendor/modmenube-local4-workspace/PROVENANCE.json.
+https://github.com/AFAlimru/ModMenuBE
+
 Music belongs to its rights holders. Login does not grant extra playback rights.
 Minecraft is a trademark of Mojang AB.
 

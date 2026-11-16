@@ -1,3 +1,5 @@
+Local4 update: see modmenube-migration.md for separate Workspace/Configure and local3 fallback.
+
 # Dependencies and corresponding source
 
 The active player is based on MuoniumPlayer 2.5.2 at commit
@@ -14,7 +16,7 @@ and collected under `licenses/dependencies/` with provenance.
 | Original icon fonts / artwork | Retained from MuoniumPlayer with source and attribution. Platform names/logos identify supported services; trademarks belong to their owners. |
 | MinHook 1.3.4 | BSD-2-Clause; https://github.com/TsudaKageyu/minhook/tree/v1.3.4 |
 | nlohmann/json 3.11.3 | MIT; https://github.com/nlohmann/json/tree/v3.11.3 |
-| ModMenu Workspace / keyboard SDK | MIT; supplied headers/notices in `include/sdk/` and `licenses/` |
+| ModMenuBE public C API / keyboard SDK | MIT; public API from https://github.com/AFAlimru/ModMenuBE ; supplied header and notices in `include/sdk/` and `licenses/`; frozen local3 passive settings consumer under `vendor/modmenube-local3-passive/`; local4 workspace API/service/identity fixtures under `vendor/modmenube-local4-workspace/`, each with source hashes. Frozen menu implementation is test-only and is not linked into shipped DLLs. |
 | Skija / HumbleUI Types | Apache-2.0; https://github.com/HumbleUI/Skija and https://github.com/HumbleUI/Types |
 | Skia | BSD-3-Clause; https://skia.googlesource.com/skia/ |
 | LWJGL 3.3.6 | BSD-3-Clause; https://github.com/LWJGL/lwjgl3/tree/3.3.6 |

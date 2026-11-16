@@ -73,6 +73,35 @@ class QueueInputRenderTest {
             assertEquals(500,CloudMusic.getQueuedNextSongs().get(16).getId());
             assertEquals(1,CloudMusic.getQueuedNextSongs().stream().filter(s->s.getId()==500).count());
             assertEquals(current,CloudMusic.currentlyPlaying,"Queue edits must not replace the current song");
+            // Alt-Tab must cancel the original drawer's independent drag,
+            // rather than presenting a release/room reorder when focus returns.
+            var queueField=NCMScreen.class.getDeclaredField("playQueuePanel");queueField.setAccessible(true);queueField.set(screen,q);
+            var dragging=field(q,"rows");var dragRow=((List<?>)dragging).getFirst();
+            var begin=Arrays.stream(PlayQueuePanel.class.getDeclaredMethods()).filter(m->m.getName().equals("beginDrag")).findFirst().orElseThrow();
+            begin.setAccessible(true);begin.invoke(q,dragRow,0d);assertNotNull(field(q,"draggingRow"));
+            var pending=NCMScreen.class.getDeclaredField("pendingClickActive");pending.setAccessible(true);pending.setBoolean(screen,true);
+            screen.suspendHostInput();
+            assertNull(field(q,"draggingRow"),"Focus loss must cancel the queue drag before its next polling frame");
+            assertFalse(pending.getBoolean(screen),"Focus loss cannot release a deferred action");
+            screen.openAnnouncements();
+            assertEquals("HostToolsScreen",c.gui.screen().getClass().getSimpleName(),"The player toolbar must expose the migrated Workspace actions");
+            assertEquals(current,CloudMusic.currentlyPlaying,"Opening tools cannot change playback");
+            assertEquals(18,CloudMusic.getQueuedNextSongs().size(),"Opening tools cannot change the queue");
+            var tools=c.gui.screen();
+            for(int i=0;i<20;i++){frame(()->tools.drawScreen(0,0,0));Thread.sleep(16);}
+            java.nio.file.Files.createDirectories(java.nio.file.Path.of("../stage-captures"));
+            SkijaHost.savePng(java.nio.file.Path.of("../stage-captures/modmenube-player-tools.png"),true);
+            var toolsImage=javax.imageio.ImageIO.read(java.nio.file.Path.of("../stage-captures/modmenube-player-tools.png").toFile());
+            long textPixels=0;
+            for(int yy=0;yy<toolsImage.getHeight();yy++)for(int xx=0;xx<toolsImage.getWidth();xx++){
+                int pixel=toolsImage.getRGB(xx,yy);
+                if((pixel&0xFF0000)>0xA00000&&(pixel&0xFF00)>0xA000&&(pixel&255)>160)textPixels++;
+            }
+            assertTrue(textPixels>100,"Tool labels must render readable glyphs, not blank button rectangles");
+            var buttonsField=com.muoniumplayer.compat.mc.GuiScreen.class.getDeclaredField("buttonList");buttonsField.setAccessible(true);
+            var buttons=(List<?>)buttonsField.get(tools);assertEquals(7,buttons.size(),"All old Workspace operations need an explicit local entry");
+            var hud=(com.muoniumplayer.compat.mc.GuiButton)buttons.stream().filter(b->((com.muoniumplayer.compat.mc.GuiButton)b).displayString.contains("HUD")).findFirst().orElseThrow();tools.clickEvent(hud.xPosition+2,hud.yPosition+2,0);
+            assertInstanceOf(HostHudEditor.class,c.gui.screen(),"HUD editor must be reachable without assigning a default hotkey");
         }finally{CloudMusic.clearQueuedNextSongs();SkijaHost.shutdown();if(window!=0)GLFW.glfwDestroyWindow(window);GLFW.glfwTerminate();SessionMedia.close();}
     }
 }

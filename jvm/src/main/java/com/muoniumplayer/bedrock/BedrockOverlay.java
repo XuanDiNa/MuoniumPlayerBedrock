@@ -34,20 +34,21 @@ public final class BedrockOverlay {
     }
     private static void run(String[] args,HostWatchdog health) throws Exception {
         appliedSettings = null;
-        System.out.println("OVERLAY_COMPAT patch=sparse-ulw-20261113 version=0.12.0-test2-mc2645-2651 presentation=auto-native-d3d12 fallback=layered-window gameBackend=D3D11,D3D12 arke=exact-adapter legacyD3D11Hooks=disabled render=hidden-fbo display=layered-NO_API framePacing=world-camera-signal,fallback-game-fps,ui-60 alphaCrop=max-reduction-bands4");
+        System.out.println("OVERLAY_COMPAT patch=sparse-ulw-20261113 version=0.13.0-test6-esc presentation=auto-native-d3d12 fallback=layered-window gameBackend=D3D11,D3D12 arke=exact-adapter legacyD3D11Hooks=disabled render=hidden-fbo display=layered-NO_API framePacing=world-camera-signal,fallback-game-fps,ui-60 alphaCrop=max-reduction-bands4");
         long parent = Long.parseLong(option(args, "--parent-pid"));
         var process = ProcessHandle.of(parent).orElseThrow();
         var owner = new WinDef.HWND(Pointer.createConstant(Long.parseUnsignedLong(option(args, "--owner"))));
         String prefix = option(args, "--control-prefix");
         if (!prefix.matches("Local\\\\MuoniumBedrock-[0-9a-f]{32}")) throw new IllegalArgumentException("Control identity");
-        var controls = new WinNT.HANDLE[11];
+        var controls = new WinNT.HANDLE[14];
         long window = 0;
         OverlayWindows windows=null;
         LayeredPresenter presenter=null;
+        HostWorkspace workspace=null;
         var errors = GLFWErrorCallback.createPrint(System.err); errors.set();
         try {
             for (int i = 0; i < controls.length; i++) {
-                controls[i] = Kernel32.INSTANCE.OpenEvent(i == 5 ? 0x0002 : 0x00100000, false, prefix + "-" + i);
+                controls[i] = Kernel32.INSTANCE.OpenEvent(i == 5 || i == 13 ? 0x0002 : 0x00100000, false, prefix + "-" + i);
                 if (controls[i] == null) throw new IllegalStateException("Native control unavailable");
             }
             if (!GLFW.glfwInit()) throw new IllegalStateException("GLFW unavailable");
@@ -66,6 +67,8 @@ public final class BedrockOverlay {
             Path config = Path.of(option(args, "--config"));
             HostHudSync.bind(config);
             var panel = new OverlaySession(client, NCMScreen::getInstance);
+            workspace=new HostWorkspace(prefix);
+            HostToolsScreen.ordinarySettings(()->{panel.close();Kernel32.INSTANCE.SetEvent(controls[13]);});
             boolean shown = false;
             long lastReload = 0, lastTick = 0,lastDepthLog=0;
             WorldFrame lastPresentedCamera=null;
@@ -109,6 +112,7 @@ public final class BedrockOverlay {
                     var foreground = User32.INSTANCE.GetForegroundWindow();
                     boolean gameFocused = owner.equals(foreground);
                     boolean playerFocused = overlay.equals(foreground);
+                    HostInputState.update(window,playerFocused);
                     health.phase(HostWatchdog.Stage.ENVIRONMENT);
                     long environmentStarted=System.nanoTime();
                     WorldFrame frame=worldReader.read();
@@ -130,7 +134,13 @@ public final class BedrockOverlay {
                     var depthFrame=depthReader.read();lyrics.updateDepth(depthFrame,depthReader.now());
                     long environmentNanos=System.nanoTime()-environmentStarted;
                     health.phase(HostWatchdog.Stage.CONTROLS);
-                    boolean requestFocus=false;
+                    boolean requestFocus=workspace.update(panel,settings.enabled());
+                    if(Kernel32.INSTANCE.WaitForSingleObject(controls[12],0)==0&&settings.enabled()){
+                        panel.open(HostToolsScreen.entry());requestFocus=true;
+                    }
+                    if(Kernel32.INSTANCE.WaitForSingleObject(controls[11],0)==0&&settings.enabled()){
+                        panel.show();requestFocus=true;
+                    }
                     if(settings.enabled())for(int action=7;action<=10;action++)if(Kernel32.INSTANCE.WaitForSingleObject(controls[action],0)==0) {
                         if(action==7)panel.open(new HostHudEditor());
                         else if(action==8)panel.open(new com.muoniumplayer.core.screens.hud.GuiPresetSettings(
@@ -258,6 +268,8 @@ public final class BedrockOverlay {
                 }
             }
         } finally {
+            if(workspace!=null)workspace.close();
+            HostToolsScreen.ordinarySettings(null);
             health.phase(HostWatchdog.Stage.CLEANUP);
             // On presentation failure, remove the owned layer before cleanup.
             if(windows!=null&&windows.display()!=0)User32.INSTANCE.ShowWindow(windows.handle(),0);
@@ -332,16 +344,21 @@ public final class BedrockOverlay {
     }
     private static void installInput(long window) {
         var client = BedrockClient.getInstance();
+        GLFW.glfwSetWindowFocusCallback(window,(w,focused)->{
+            if(!focused){HostInputState.suspend();if(client.gui.screen()!=null)client.gui.screen().suspendHostInput();}
+        });
         GLFW.glfwSetCursorPosCallback(window, (w, x, y) -> Mouse.position(x, y));
         GLFW.glfwSetScrollCallback(window, (w, x, y) -> Mouse.pushScrollNotches(y));
         GLFW.glfwSetKeyCallback(window, (w, key, scan, action, mods) -> {
-            if (action != GLFW.GLFW_RELEASE && client.gui.screen() != null) dispatch(() -> client.gui.screen().keyEvent('\0', Keyboard.fromGlfw(key)));
+            if (HostInputState.allowed() && action != GLFW.GLFW_RELEASE && client.gui.screen() != null
+                    && (key != GLFW.GLFW_KEY_ESCAPE || action == GLFW.GLFW_PRESS))
+                dispatch(() -> client.gui.screen().keyEvent('\0', Keyboard.fromGlfw(key)));
         });
         GLFW.glfwSetCharCallback(window, (w, codepoint) -> {
-            if (client.gui.screen() != null) for (char ch : Character.toChars(codepoint)) dispatch(() -> client.gui.screen().keyEvent(ch, 0));
+            if (HostInputState.allowed() && client.gui.screen() != null) for (char ch : Character.toChars(codepoint)) dispatch(() -> client.gui.screen().keyEvent(ch, 0));
         });
         GLFW.glfwSetMouseButtonCallback(window, (w, button, action, mods) -> {
-            var screen = client.gui.screen(); if (screen == null) return;
+            var screen = client.gui.screen(); if (screen == null || !HostInputState.allowed()) return;
             double scale = client.getWindow().getGuiScale();
             int x = (int) (Mouse.getX() / scale), y = (int) ((client.getWindow().getHeight() - Mouse.getY() - 1) / scale);
             if (action == GLFW.GLFW_PRESS) dispatch(() -> screen.clickEvent(x, y, button));

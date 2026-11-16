@@ -4,7 +4,7 @@
     "id": "MuoniumPlayerBedrock",
     "entry": "MuoniumPlayerBedrock.dll",
     "versions": [
-      "0.12.0-test3-mc2660-console"
+      "0.13.0-test6-esc"
     ]
   },
   "config": {
@@ -27,9 +27,9 @@
         "zh_CN": "显示原作 HUD，包括灵动岛、频谱及歌曲卡。关闭后仍可播放音乐、打开播放器及使用独立歌词浮层。"
       },
       "category": {
-        "en_US": "HUD overview",
-        "zh_TW": "HUD 總覽",
-        "zh_CN": "HUD 总览"
+        "en_US": "HUD",
+        "zh_TW": "HUD",
+        "zh_CN": "HUD"
       }
     },
     {
@@ -47,9 +47,9 @@
         "zh_CN": "独立世界 HUD 组件，需要开启「播放器 HUD 组件」，不影响音乐播放。"
       },
       "category": {
-        "en_US": "Song card",
-        "zh_TW": "歌曲資訊卡",
-        "zh_CN": "歌曲信息卡"
+        "en_US": "HUD",
+        "zh_TW": "HUD",
+        "zh_CN": "HUD"
       }
     },
     {
@@ -67,9 +67,9 @@
         "zh_CN": "歌曲卡：水平位置"
       },
       "category": {
-        "en_US": "Song card",
-        "zh_TW": "歌曲資訊卡",
-        "zh_CN": "歌曲信息卡"
+        "en_US": "HUD",
+        "zh_TW": "HUD",
+        "zh_CN": "HUD"
       }
     },
     {
@@ -87,9 +87,9 @@
         "zh_CN": "歌曲卡：垂直位置"
       },
       "category": {
-        "en_US": "Song card",
-        "zh_TW": "歌曲資訊卡",
-        "zh_CN": "歌曲信息卡"
+        "en_US": "HUD",
+        "zh_TW": "HUD",
+        "zh_CN": "HUD"
       }
     },
     {
@@ -107,9 +107,9 @@
         "zh_CN": "歌曲卡：大小"
       },
       "category": {
-        "en_US": "Song card",
-        "zh_TW": "歌曲資訊卡",
-        "zh_CN": "歌曲信息卡"
+        "en_US": "HUD",
+        "zh_TW": "HUD",
+        "zh_CN": "HUD"
       }
     },
     {
@@ -127,9 +127,9 @@
         "zh_CN": "独立世界 HUD 组件，需要开启「播放器 HUD 组件」，不影响音乐播放。"
       },
       "category": {
-        "en_US": "Desktop lyrics",
-        "zh_TW": "桌面歌詞",
-        "zh_CN": "桌面歌词"
+        "en_US": "HUD",
+        "zh_TW": "HUD",
+        "zh_CN": "HUD"
       }
     },
     {
@@ -147,9 +147,9 @@
         "zh_CN": "桌面歌词：水平位置"
       },
       "category": {
-        "en_US": "Desktop lyrics",
-        "zh_TW": "桌面歌詞",
-        "zh_CN": "桌面歌词"
+        "en_US": "HUD",
+        "zh_TW": "HUD",
+        "zh_CN": "HUD"
       }
     },
     {
@@ -167,9 +167,9 @@
         "zh_CN": "桌面歌词：垂直位置"
       },
       "category": {
-        "en_US": "Desktop lyrics",
-        "zh_TW": "桌面歌詞",
-        "zh_CN": "桌面歌词"
+        "en_US": "HUD",
+        "zh_TW": "HUD",
+        "zh_CN": "HUD"
       }
     },
     {
@@ -187,9 +187,9 @@
         "zh_CN": "桌面歌词：大小"
       },
       "category": {
-        "en_US": "Desktop lyrics",
-        "zh_TW": "桌面歌詞",
-        "zh_CN": "桌面歌词"
+        "en_US": "HUD",
+        "zh_TW": "HUD",
+        "zh_CN": "HUD"
       }
     },
     {
@@ -207,9 +207,9 @@
         "zh_CN": "单独开关原作灵动岛，需要启用「播放器 HUD 组件」。其他原作组件保留各自设置。"
       },
       "category": {
-        "en_US": "Dynamic island",
-        "zh_TW": "靈動島",
-        "zh_CN": "灵动岛"
+        "en_US": "HUD",
+        "zh_TW": "HUD",
+        "zh_CN": "HUD"
       }
     },
     {
@@ -232,9 +232,9 @@
         "zh_CN": "相对原位置的 GUI 像素偏移，负值往左／上；超出画面时重置为 0。"
       },
       "category": {
-        "en_US": "Dynamic island",
-        "zh_TW": "靈動島",
-        "zh_CN": "灵动岛"
+        "en_US": "HUD",
+        "zh_TW": "HUD",
+        "zh_CN": "HUD"
       }
     },
     {
@@ -257,9 +257,9 @@
         "zh_CN": "相对原位置的 GUI 像素偏移，负值往左／上；超出画面时重置为 0。"
       },
       "category": {
-        "en_US": "Dynamic island",
-        "zh_TW": "靈動島",
-        "zh_CN": "灵动岛"
+        "en_US": "HUD",
+        "zh_TW": "HUD",
+        "zh_CN": "HUD"
       }
     },
     {
@@ -277,9 +277,9 @@
         "zh_CN": "灵动岛：大小"
       },
       "category": {
-        "en_US": "Dynamic island",
-        "zh_TW": "靈動島",
-        "zh_CN": "灵动岛"
+        "en_US": "HUD",
+        "zh_TW": "HUD",
+        "zh_CN": "HUD"
       }
     },
     {
@@ -297,9 +297,9 @@
         "zh_CN": "独立世界 HUD 组件，需要开启「播放器 HUD 组件」，不影响音乐播放。"
       },
       "category": {
-        "en_US": "Spectrum",
-        "zh_TW": "頻譜",
-        "zh_CN": "频谱"
+        "en_US": "HUD",
+        "zh_TW": "HUD",
+        "zh_CN": "HUD"
       }
     },
     {
@@ -322,9 +322,9 @@
         "zh_CN": "相对原位置的 GUI 像素偏移，负值往左／上；超出画面时重置为 0。"
       },
       "category": {
-        "en_US": "Spectrum",
-        "zh_TW": "頻譜",
-        "zh_CN": "频谱"
+        "en_US": "HUD",
+        "zh_TW": "HUD",
+        "zh_CN": "HUD"
       }
     },
     {
@@ -347,9 +347,9 @@
         "zh_CN": "相对原位置的 GUI 像素偏移，负值往左／上；超出画面时重置为 0。"
       },
       "category": {
-        "en_US": "Spectrum",
-        "zh_TW": "頻譜",
-        "zh_CN": "频谱"
+        "en_US": "HUD",
+        "zh_TW": "HUD",
+        "zh_CN": "HUD"
       }
     },
     {
@@ -367,9 +367,9 @@
         "zh_CN": "频谱：大小"
       },
       "category": {
-        "en_US": "Spectrum",
-        "zh_TW": "頻譜",
-        "zh_CN": "频谱"
+        "en_US": "HUD",
+        "zh_TW": "HUD",
+        "zh_CN": "HUD"
       }
     },
     {
@@ -387,9 +387,9 @@
         "zh_CN": "单独控制普通／视角跟随／世界定位字幕，与桌面歌词及播放器 HUD 分开。"
       },
       "category": {
-        "en_US": "Independent subtitles",
-        "zh_TW": "獨立字幕",
-        "zh_CN": "独立字幕"
+        "en_US": "Subtitles",
+        "zh_TW": "字幕",
+        "zh_CN": "字幕"
       }
     },
     {
@@ -424,9 +424,9 @@
         "zh_CN": "选择平面歌词、跟随视角舞台或世界定位歌词。世界模式离开有效世界画面即隐藏；下方可启用近似方块遮挡。"
       },
       "category": {
-        "en_US": "Independent subtitles",
-        "zh_TW": "獨立字幕",
-        "zh_CN": "独立字幕"
+        "en_US": "Subtitles",
+        "zh_TW": "字幕",
+        "zh_CN": "字幕"
       }
     },
     {
@@ -456,9 +456,9 @@
         }
       ],
       "category": {
-        "en_US": "Independent subtitles",
-        "zh_TW": "獨立字幕",
-        "zh_CN": "独立字幕"
+        "en_US": "Subtitles",
+        "zh_TW": "字幕",
+        "zh_CN": "字幕"
       }
     },
     {
@@ -476,9 +476,9 @@
         "zh_CN": "3D 歌词大小"
       },
       "category": {
-        "en_US": "Independent subtitles",
-        "zh_TW": "獨立字幕",
-        "zh_CN": "独立字幕"
+        "en_US": "Subtitles",
+        "zh_TW": "字幕",
+        "zh_CN": "字幕"
       }
     },
     {
@@ -496,9 +496,9 @@
         "zh_CN": "3D 歌词展开角度"
       },
       "category": {
-        "en_US": "Independent subtitles",
-        "zh_TW": "獨立字幕",
-        "zh_CN": "独立字幕"
+        "en_US": "Subtitles",
+        "zh_TW": "字幕",
+        "zh_CN": "字幕"
       }
     },
     {
@@ -515,9 +515,9 @@
         "zh_CN": "普通 HUD 文字大小"
       },
       "category": {
-        "en_US": "Independent subtitles",
-        "zh_TW": "獨立字幕",
-        "zh_CN": "独立字幕"
+        "en_US": "Subtitles",
+        "zh_TW": "字幕",
+        "zh_CN": "字幕"
       }
     },
     {
@@ -540,9 +540,9 @@
         "zh_CN": "相对原位置的 GUI 像素偏移，负值往左／上；超出画面时重置为 0。"
       },
       "category": {
-        "en_US": "Independent subtitles",
-        "zh_TW": "獨立字幕",
-        "zh_CN": "独立字幕"
+        "en_US": "Subtitles",
+        "zh_TW": "字幕",
+        "zh_CN": "字幕"
       }
     },
     {
@@ -560,9 +560,9 @@
         "zh_CN": "使用 RGB 滑动条设置桌面歌词及三种独立字幕模式颜色，关闭恢复原配色；3D 特效保留明暗变化。"
       },
       "category": {
-        "en_US": "Subtitle colors",
-        "zh_TW": "字幕顏色",
-        "zh_CN": "字幕颜色"
+        "en_US": "Subtitles",
+        "zh_TW": "字幕",
+        "zh_CN": "字幕"
       }
     },
     {
@@ -579,9 +579,9 @@
         "zh_CN": "字幕颜色：红"
       },
       "category": {
-        "en_US": "Subtitle colors",
-        "zh_TW": "字幕顏色",
-        "zh_CN": "字幕颜色"
+        "en_US": "Subtitles",
+        "zh_TW": "字幕",
+        "zh_CN": "字幕"
       }
     },
     {
@@ -598,9 +598,9 @@
         "zh_CN": "字幕颜色：绿"
       },
       "category": {
-        "en_US": "Subtitle colors",
-        "zh_TW": "字幕顏色",
-        "zh_CN": "字幕颜色"
+        "en_US": "Subtitles",
+        "zh_TW": "字幕",
+        "zh_CN": "字幕"
       }
     },
     {
@@ -617,9 +617,9 @@
         "zh_CN": "字幕颜色：蓝"
       },
       "category": {
-        "en_US": "Subtitle colors",
-        "zh_TW": "字幕顏色",
-        "zh_CN": "字幕颜色"
+        "en_US": "Subtitles",
+        "zh_TW": "字幕",
+        "zh_CN": "字幕"
       }
     },
     {
@@ -632,9 +632,9 @@
         "zh_CN": "启用"
       },
       "category": {
-        "en_US": "Playback and shortcuts",
-        "zh_TW": "播放與快捷鍵",
-        "zh_CN": "播放与快捷键"
+        "en_US": "Playback",
+        "zh_TW": "播放",
+        "zh_CN": "播放"
       }
     },
     {
@@ -652,9 +652,9 @@
         "zh_CN": "音乐音量"
       },
       "category": {
-        "en_US": "Playback and shortcuts",
-        "zh_TW": "播放與快捷鍵",
-        "zh_CN": "播放与快捷键"
+        "en_US": "Playback",
+        "zh_TW": "播放",
+        "zh_CN": "播放"
       }
     },
     {
@@ -684,9 +684,9 @@
         }
       ],
       "category": {
-        "en_US": "Playback and shortcuts",
-        "zh_TW": "播放與快捷鍵",
-        "zh_CN": "播放与快捷键"
+        "en_US": "Playback",
+        "zh_TW": "播放",
+        "zh_CN": "播放"
       }
     },
     {
@@ -699,9 +699,9 @@
         "zh_CN": "随机播放本机／流媒体队列"
       },
       "category": {
-        "en_US": "Playback and shortcuts",
-        "zh_TW": "播放與快捷鍵",
-        "zh_CN": "播放与快捷键"
+        "en_US": "Playback",
+        "zh_TW": "播放",
+        "zh_CN": "播放"
       }
     },
     {
@@ -724,9 +724,9 @@
         "zh_CN": "正值让歌词提前显示；仅用于可用的播放时间轴。"
       },
       "category": {
-        "en_US": "Independent subtitles",
-        "zh_TW": "獨立字幕",
-        "zh_CN": "独立字幕"
+        "en_US": "Subtitles",
+        "zh_TW": "字幕",
+        "zh_CN": "字幕"
       }
     },
     {
@@ -739,14 +739,14 @@
         "zh_CN": "打开播放器"
       },
       "description": {
-        "en_US": "Unbound by default. Use Workspace > Player > Open player, or assign an unused key. Duplicate player bindings are refused.",
-        "zh_TW": "預設無綁定。可使用工作頁的「開啟播放器」，或設定未使用的按鍵。播放器內重複綁鍵會被拒絕。",
-        "zh_CN": "默认无绑定。可使用工作页的「打开播放器」，或设置未使用的按键。播放器内重复绑键会被拒绝。"
+        "en_US": "Optional shortcut; Unbound by default. Direct page buttons are available from Configure.",
+        "zh_TW": "選用快捷鍵，預設無綁定；也能從 Configure 的按鈕頁直接開啟。",
+        "zh_CN": "可选快捷键，默认无绑定；也能从 Configure 的按钮页直接打开。"
       },
       "category": {
-        "en_US": "Playback and shortcuts",
-        "zh_TW": "播放與快捷鍵",
-        "zh_CN": "播放与快捷键"
+        "en_US": "Playback",
+        "zh_TW": "播放",
+        "zh_CN": "播放"
       }
     },
     {
@@ -759,9 +759,14 @@
         "zh_CN": "播放／暂停快捷键"
       },
       "category": {
-        "en_US": "Playback and shortcuts",
-        "zh_TW": "播放與快捷鍵",
-        "zh_CN": "播放与快捷键"
+        "en_US": "Playback",
+        "zh_TW": "播放",
+        "zh_CN": "播放"
+      },
+      "description": {
+        "en_US": "Optional shortcut; Unbound by default. Direct page buttons are available from Configure.",
+        "zh_TW": "選用快捷鍵，預設無綁定；也能從 Configure 的按鈕頁直接開啟。",
+        "zh_CN": "可选快捷键，默认无绑定；也能从 Configure 的按钮页直接打开。"
       }
     },
     {
@@ -774,9 +779,14 @@
         "zh_CN": "下一首快捷键"
       },
       "category": {
-        "en_US": "Playback and shortcuts",
-        "zh_TW": "播放與快捷鍵",
-        "zh_CN": "播放与快捷键"
+        "en_US": "Playback",
+        "zh_TW": "播放",
+        "zh_CN": "播放"
+      },
+      "description": {
+        "en_US": "Optional shortcut; Unbound by default. Direct page buttons are available from Configure.",
+        "zh_TW": "選用快捷鍵，預設無綁定；也能從 Configure 的按鈕頁直接開啟。",
+        "zh_CN": "可选快捷键，默认无绑定；也能从 Configure 的按钮页直接打开。"
       }
     },
     {
@@ -789,9 +799,14 @@
         "zh_CN": "上一首快捷键"
       },
       "category": {
-        "en_US": "Playback and shortcuts",
-        "zh_TW": "播放與快捷鍵",
-        "zh_CN": "播放与快捷键"
+        "en_US": "Playback",
+        "zh_TW": "播放",
+        "zh_CN": "播放"
+      },
+      "description": {
+        "en_US": "Optional shortcut; Unbound by default. Direct page buttons are available from Configure.",
+        "zh_TW": "選用快捷鍵，預設無綁定；也能從 Configure 的按鈕頁直接開啟。",
+        "zh_CN": "可选快捷键，默认无绑定；也能从 Configure 的按钮页直接打开。"
       }
     },
     {
@@ -809,9 +824,9 @@
         "zh_CN": "纯客户端虚拟音源，不建立方块或实体、不改服务器。场景声学只处理 Muonium 播放；几何限于当前33格立方体，缺少数据会淡出。"
       },
       "category": {
-        "en_US": "World speaker",
-        "zh_TW": "世界固定音源",
-        "zh_CN": "世界固定音源"
+        "en_US": "Integration",
+        "zh_TW": "整合",
+        "zh_CN": "集成"
       }
     },
     {
@@ -824,14 +839,14 @@
         "zh_CN": "放置／移除音源"
       },
       "category": {
-        "en_US": "World speaker",
-        "zh_TW": "世界固定音源",
-        "zh_CN": "世界固定音源"
+        "en_US": "Integration",
+        "zh_TW": "整合",
+        "zh_CN": "集成"
       },
       "description": {
-        "en_US": "No default key. In first person aim at a known block within 6 blocks; aim near the existing source to remove it, elsewhere to move. Requires scene acoustics. Vanilla menus or world/dimension changes clear it.",
-        "zh_TW": "預設無綁定。第一人稱對準六格內已知方塊放置；對準原音源附近移除，對準別處移動。需開啟場景聲學；原版選單、世界或維度變更會清除。",
-        "zh_CN": "默认无绑定。第一人称对准六格内已知方块放置；对准原音源附近移除，对准别处移动。需开启场景声学；原版菜单、世界或维度变化会清除。"
+        "en_US": "Optional shortcut; Unbound by default. Direct page buttons are available from Configure.",
+        "zh_TW": "選用快捷鍵，預設無綁定；也能從 Configure 的按鈕頁直接開啟。",
+        "zh_CN": "可选快捷键，默认无绑定；也能从 Configure 的按钮页直接打开。"
       }
     },
     {
@@ -844,14 +859,14 @@
         "zh_CN": "打开迷你播放器"
       },
       "description": {
-        "en_US": "Optional shortcut. Default is Unbound; also available on the Workspace page.",
-        "zh_TW": "選用快捷鍵，預設無綁定；也能從工作頁開啟。",
-        "zh_CN": "可选快捷键，默认无绑定；也能从工作页打开。"
+        "en_US": "Optional shortcut; Unbound by default. Direct page buttons are available from Configure.",
+        "zh_TW": "選用快捷鍵，預設無綁定；也能從 Configure 的按鈕頁直接開啟。",
+        "zh_CN": "可选快捷键，默认无绑定；也能从 Configure 的按钮页直接打开。"
       },
       "category": {
-        "en_US": "Playback and shortcuts",
-        "zh_TW": "播放與快捷鍵",
-        "zh_CN": "播放与快捷键"
+        "en_US": "Playback",
+        "zh_TW": "播放",
+        "zh_CN": "播放"
       }
     },
     {
@@ -864,14 +879,14 @@
         "zh_CN": "打开 HUD 编辑器"
       },
       "description": {
-        "en_US": "Optional shortcut. Default is Unbound; also available on the Workspace page.",
-        "zh_TW": "選用快捷鍵，預設無綁定；也能從工作頁開啟。",
-        "zh_CN": "可选快捷键，默认无绑定；也能从工作页打开。"
+        "en_US": "Optional shortcut; Unbound by default. Direct page buttons are available from Configure.",
+        "zh_TW": "選用快捷鍵，預設無綁定；也能從 Configure 的按鈕頁直接開啟。",
+        "zh_CN": "可选快捷键，默认无绑定；也能从 Configure 的按钮页直接打开。"
       },
       "category": {
-        "en_US": "Playback and shortcuts",
-        "zh_TW": "播放與快捷鍵",
-        "zh_CN": "播放与快捷键"
+        "en_US": "Playback",
+        "zh_TW": "播放",
+        "zh_CN": "播放"
       }
     },
     {
@@ -924,14 +939,14 @@
         "zh_CN": "岛内搜索"
       },
       "description": {
-        "en_US": "Optional shortcut. Default is Unbound; also available on the Workspace page.",
-        "zh_TW": "選用快捷鍵，預設無綁定；也能從工作頁開啟。",
-        "zh_CN": "可选快捷键，默认无绑定；也能从工作页打开。"
+        "en_US": "Optional shortcut; Unbound by default. Direct page buttons are available from Configure.",
+        "zh_TW": "選用快捷鍵，預設無綁定；也能從 Configure 的按鈕頁直接開啟。",
+        "zh_CN": "可选快捷键，默认无绑定；也能从 Configure 的按钮页直接打开。"
       },
       "category": {
-        "en_US": "Playback and shortcuts",
-        "zh_TW": "播放與快捷鍵",
-        "zh_CN": "播放与快捷键"
+        "en_US": "Playback",
+        "zh_TW": "播放",
+        "zh_CN": "播放"
       }
     }
   ]

@@ -1,0 +1,67 @@
+{
+  "source": "ModMenuBE 0.2.0-local3 released source snapshot",
+  "upstream": "https://github.com/AFAlimru/ModMenuBE",
+  "sourceZipSha256": "D9ABD1521ACD7A0DC6EA755871CFDCF84D408257D193EDFD88D38057956ACF9D",
+  "files": {
+    "LICENSE": {
+      "source": "LICENSE",
+      "sha256": "D9F1455047D1902D2ACF95526716928D74BED82152BEC004B7B88A957FECBB03"
+    },
+    "modmenu/ModMenuBinding.h": {
+      "source": "include/modmenu/ModMenuBinding.h",
+      "sha256": "274247E68F001DA550BCAE9DB5F0F10896CE9A9FB6B0D623A8DF368502B6EDDA"
+    },
+    "Utf8.cpp": {
+      "source": "src/compat/Utf8.cpp",
+      "sha256": "3769839A36F688BDFF430DB84DE9EC35EC632CA7FB04787E9AA2E48E848D2AAE"
+    },
+    "Slider.cpp": {
+      "source": "src/compat/Slider.cpp",
+      "sha256": "69EF96DE16B610CED1464C2A18260F9A84D359A75521CB26AA55E3DA5D86B5B7"
+    },
+    "TextEditor.cpp": {
+      "source": "src/compat/TextEditor.cpp",
+      "sha256": "7C8C4B4E20AA25C4BA1234360D513779AEA500E2D663EAD3C2DE36634A0AC90D"
+    },
+    "SettingsInput.cpp": {
+      "source": "src/compat/SettingsInput.cpp",
+      "sha256": "53F203005EB3803DA66CC0723A1DA1D54BA71581FAEAE1A2B1DDDBA5AED39ACA"
+    },
+    "Settings.cpp": {
+      "source": "src/compat/Settings.cpp",
+      "sha256": "6E530470B489576B68ABFD82F1925650B83554F00A0EE6E1577FB1DE44C9BE04"
+    },
+    "SettingsSchema.cpp": {
+      "source": "src/compat/SettingsSchema.cpp",
+      "sha256": "213EBB4A7A4DDD6D88A95EE642A9EB0352825C07A84728F87DA3228562BC0F2B"
+    },
+    "SettingsDescription.cpp": {
+      "source": "src/compat/SettingsDescription.cpp",
+      "sha256": "98E0420DEC6FC07FCC43D3697E54E98D3FFF125597D13231F512FD0F161ECEFB"
+    },
+    "ModMenu/Definition.h": {
+      "source": "src/compat/ModMenu/Definition.h",
+      "sha256": "203F16A5739CD96ED2401D29DB4E461E5A391CF2BC5327B85D188EB36E93D69F"
+    },
+    "ModMenu/NativeProfile.h": {
+      "source": "src/compat/ModMenu/NativeProfile.h",
+      "sha256": "9BCE22BB69FFFD583115C5635D264ABD5AE62E8E7CC9DC56CA04D97E8A89C9A6"
+    },
+    "ModMenu/Settings.h": {
+      "source": "src/compat/ModMenu/Settings.h",
+      "sha256": "1419704003714717A54F899B84B2078ACB2DB5FCDC857050DA7DFCD5AE7020A4"
+    },
+    "ModMenu/Slider.h": {
+      "source": "src/compat/ModMenu/Slider.h",
+      "sha256": "A766C4E42D3C789417C4D1E9D938B9A5EACBCDB02EAF5C33A164051347A4097B"
+    },
+    "ModMenu/Storage.h": {
+      "source": "src/compat/ModMenu/Storage.h",
+      "sha256": "7F3B9668BBB05FBA71FDD9A9D52CB6F56C2B0878D0A2FF80C2C0A8560B67A2AA"
+    },
+    "ModMenu/TextEditor.h": {
+      "source": "src/compat/ModMenu/TextEditor.h",
+      "sha256": "240D71EF5008EFD634D4D36BE0870FFCB0F868DFC465B32F7FCBCBAA331F412C"
+    }
+  }
+}

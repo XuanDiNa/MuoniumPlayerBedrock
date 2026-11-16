@@ -234,6 +234,7 @@ tasks.register('stageRenderTest', Test) {
     include '**/HudLayoutSettingsTest.class'
     include '**/CoverRenderTest.class'
     include '**/ScrollInputRenderTest.class'
+    include '**/HostToolsRenderTest.class'
     include '**/InstallNoticeLifecycleTest.class'
     include '**/OverlayCloseRenderTest.class'
     include '**/OverlayModalInputTest.class'

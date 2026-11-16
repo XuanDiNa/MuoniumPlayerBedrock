@@ -4,6 +4,7 @@
 #include "WorldBridge.h"
 #include "CinematicBridge.h"
 #include "CompositionBridge.h"
+#include "WorkspaceTransport.h"
 #include <bcrypt.h>
 #include <array>
 #include <fstream>
@@ -31,8 +32,10 @@ struct JvmApp {
     Config config;
     std::wstring lastConfig;
     std::unique_ptr<Jobs> menu;
-    std::array<Handle,11> controls;
+    std::array<Handle,14> controls;
     Handle job, child;
+    WorkspaceTransport workspace;
+    WorkspaceRequest workspaceIssued;
     std::array<modmenu::binding::Tracker,8> bindings{};
     bool ready{}, smoke{};
     int result{};
@@ -66,6 +69,7 @@ struct JvmApp {
             controls[i].reset(CreateEventW(nullptr,FALSE,FALSE,name.c_str()));
             if(!controls[i].get()||GetLastError()==ERROR_ALREADY_EXISTS)return false;
         }
+        if(!workspace.Open(prefix)){Log(folder,"JVM REFUSED private workspace transport unavailable");return false;}
         if(!OpenWorldBridge(prefix,folder,smoke)){Log(folder,"JVM REFUSED private world transport unavailable");return false;}
         SetCinematicOwner(owner);
         if(!OpenCompositionBridge(prefix,folder,owner,smoke))Log(folder,"COMPOSITION transport unavailable; external renderer retained");
@@ -124,6 +128,7 @@ struct JvmApp {
             job.reset();child.reset();
         }
         CloseWorldBridge();
+        workspace.Close();
     }
     void Tick(){
         if(stopRequested&&stopRequested->load()){DestroyWindow(window);return;}
@@ -140,6 +145,17 @@ struct JvmApp {
                 child.reset();job.reset();CloseWorldBridge();if(smoke){DestroyWindow(window);return;}
             }else if(!ready&&now-started>60000){result=1;Stop();Log(folder,"JVM REFUSED initialization timeout");if(smoke)DestroyWindow(window);}
             else if(smoke&&ready&&now-readyAt>750)SetEvent(controls[4].get());
+        }
+        if(menu&&controls[13].get()&&WaitForSingleObject(controls[13].get(),0)==WAIT_OBJECT_0)menu->OpenSettings();
+        if(menu){
+            auto r=menu->Workspace().Read();
+            if(r.phase==WorkspacePhase::Requested){
+                bool issued=workspaceIssued.session==r.session&&workspaceIssued.request==r.request;
+                if(!config.enabled||now>=r.deadline||(issued&&!child.get())||(!issued&&!Start(false)))menu->Workspace().Transition(r,r.phase,WorkspacePhase::Failed);
+                workspaceIssued=r;
+            }
+            if(child.get())workspace.Exchange(menu->Workspace());
+            else if(r.phase==WorkspacePhase::Accepted)menu->Workspace().Transition(r,r.phase,WorkspacePhase::Cancelled);
         }
         if(smoke)return;
         bool eligible=GetForegroundWindow()==owner;
@@ -158,7 +174,7 @@ struct JvmApp {
         if(message==WM_NCCREATE){self=static_cast<JvmApp*>(reinterpret_cast<CREATESTRUCTW*>(l)->lpCreateParams);SetWindowLongPtrW(window,GWLP_USERDATA,reinterpret_cast<LONG_PTR>(self));self->window=window;}
         if(self)try{
             if(message==WM_TIMER){self->Tick();return 0;}
-            if(message==OpenPlayerMessage){if(self->config.enabled){if(w>=7&&w<=10){if(self->Start(false))SetEvent(self->controls[w].get());}else self->Start(true);}return 0;}
+            if(message==OpenPlayerMessage){if(self->config.enabled){if(w>=7&&w<=12){if(self->Start(false))SetEvent(self->controls[w].get());}else self->Start(true);}return 0;}
             if(message==WM_DESTROY){KillTimer(window,1);PostQuitMessage(0);return 0;}
         }catch(...){Log(self->folder,"JVM action refused after exception");}
         return DefWindowProcW(window,message,w,l);

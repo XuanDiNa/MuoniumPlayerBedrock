@@ -103,6 +103,83 @@ class UiPresentationRenderTest {
                 assertEquals(1,(double)field(screen,"pageFade"),1e-5);
                 Path png=Path.of("../stage-captures/ui-"+modern+"-"+preference.snapshot().motion()+".png");
                 Files.createDirectories(png.getParent());SkijaHost.savePng(png,true);
+                // The last settings category exposes real owned-screen actions in
+                // both presentations; reading it must not start an operation.
+                var categories=com.muoniumplayer.core.screens.hud.HudSettingsModel.categories();
+                int operations=categories.length-1;
+                assertEquals("host-tools",categories[operations].id);
+                set(screen,"categoryIndex",operations);
+                for(int i=0;i<35;i++)frame(screen);
+                int[] navArea=bounds(screen);
+                Mouse.position(navArea[0]+20,navArea[1]+navArea[3]/2);
+                for(int i=0;i<20;i++){Mouse.pushScrollNotches(-1);frame(screen);}
+                assertSame(screen,client.gui.screen());
+                Path toolsPng=Path.of("../stage-captures/settings-tools-"+modern+"-"+preference.snapshot().motion()+".png");
+                SkijaHost.savePng(toolsPng,true);
+                var image=javax.imageio.ImageIO.read(toolsPng.toFile());
+                var geom=GuiHudEditorPro.class.getDeclaredMethod("panelBounds");geom.setAccessible(true);
+                var navHeight=GuiHudEditorPro.class.getDeclaredMethod("navRowHeight",int.class,int.class);navHeight.setAccessible(true);
+                var navWidth=GuiHudEditorPro.class.getDeclaredMethod("navWidth",int.class);navWidth.setAccessible(true);
+                // Use the original drawing geometry, then convert to framebuffer pixels.
+                var begin=GuiHudEditorPro.class.getDeclaredMethod("beginAdaptiveLayout");begin.setAccessible(true);
+                var end=GuiHudEditorPro.class.getDeclaredMethod("restoreAdaptiveLayout",boolean.class);end.setAccessible(true);
+                boolean navLayout=(boolean)begin.invoke(screen);int[] navStart,navEnd;
+                try {
+                    int[] g=(int[])geom.invoke(screen);int nw=(int)navWidth.invoke(screen,g[2]);
+                    int rh=(int)navHeight.invoke(null,g[3]-86,categories.length);
+                    int ry=g[1]+58-(int)field(screen,"navScroll")+operations*rh;
+                    double sx=com.muoniumplayer.core.screens.ncm.WindowAdaptiveScale.correctionX();
+                    double sy=com.muoniumplayer.core.screens.ncm.WindowAdaptiveScale.correctionY();
+                    navStart=new int[]{(int)((g[0]+(nw<100?10:36))*sx),(int)((ry+4)*sy)};
+                    navEnd=new int[]{(int)((g[0]+nw-8)*sx),(int)((ry+rh-6)*sy)};
+                }finally{end.invoke(screen,navLayout);}
+                long glyphPixels=0;
+                for(int yy=Math.max(0,navStart[1]);yy<Math.min(image.getHeight(),navEnd[1]);yy++)
+                    for(int xx=Math.max(0,navStart[0]);xx<Math.min(image.getWidth(),navEnd[0]);xx++) {
+                        int pixel=image.getRGB(xx,yy);if(((pixel>>8)&255)>150&&(pixel&255)>150)glyphPixels++;
+                    }
+                assertTrue(glyphPixels>5,"Last category must actually draw after sidebar scrolling, not just accept an invisible click");
+                for(String label:List.of("打开播放器","HUD 编辑","预设管理","迷你播放器","岛内搜索")) {
+                    client.gui.setScreen(screen);set(screen,"categoryIndex",operations);
+                    var scroll=(int[])field(screen,"scrollByCategory");scroll[operations]=0;
+                    set(screen,"displayScroll",0f);Mouse.pushScrollNotches(0);
+                    for(int i=0;i<30;i++)frame(screen);
+                    if(label.equals("岛内搜索")) {
+                        int[] area=bounds(screen);Mouse.position(area[0]+area[2]-50,area[1]+area[3]/2);
+                        Mouse.pushScrollNotches(-8);for(int i=0;i<30;i++)frame(screen);
+                    }
+                    Object target=null;
+                    for(var row:(List<?>)field(screen,"rows"))
+                        if(rowEntry(row) instanceof com.muoniumplayer.core.screens.hud.HudSettingsModel.Entry e
+                                &&e.getLabel().equals(label)){target=row;break;}
+                    assertNotNull(target,label);
+                    if(label.equals("岛内搜索"))HudConfig.islandSearchEnabled=true;
+                    int[] actionPoint=physicalPoint(screen,rowNumber(target,"x")+rowNumber(target,"w")-35,
+                            rowNumber(target,"y")+rowNumber(target,"h")/2);
+                    screen.clickEvent(actionPoint[0],actionPoint[1],0);
+                    if(label.equals("打开播放器"))assertInstanceOf(com.muoniumplayer.core.screens.ncm.NCMScreen.class,client.gui.screen());
+                    if(label.equals("HUD 编辑"))assertInstanceOf(HostHudEditor.class,client.gui.screen());
+                    if(label.equals("迷你播放器"))assertInstanceOf(HostMiniPlayer.class,client.gui.screen());
+                    if(label.equals("岛内搜索"))assertInstanceOf(com.muoniumplayer.core.screens.ncm.IslandSearchOverlay.class,client.gui.screen());
+                    if(label.equals("预设管理")) {
+                        assertInstanceOf(com.muoniumplayer.core.screens.hud.GuiPresetSettings.class,client.gui.screen());
+                        client.gui.screen().keyEvent('\0',Keyboard.KEY_ESCAPE);
+                        for(int i=0;i<40&&client.gui.screen()!=screen;i++) {
+                            var active=client.gui.screen();SkijaHost.beginFrame(0);
+                            try{active.drawHostFrame(0);}finally{SkijaHost.endFrame();}Thread.sleep(16);client.drainTasks();
+                        }
+                        assertSame(screen,client.gui.screen(),"Presets returns to the same settings page");
+                    }
+                    assertSame(decoder,CloudMusic.player);assertSame(queue,CloudMusic.playList);
+                    if(label.equals("岛内搜索")) {
+                        client.gui.screen().keyEvent('\0',Keyboard.KEY_ESCAPE);
+                        for(int i=0;i<40&&client.gui.screen()!=null;i++) {
+                            var active=client.gui.screen();SkijaHost.beginFrame(0);
+                            try{active.drawHostFrame(0);}finally{SkijaHost.endFrame();}Thread.sleep(16);
+                        }
+                    }
+                }
+                client.gui.setScreen(screen);
                 screen.keyEvent('\0',Keyboard.KEY_ESCAPE);
                 for(int i=0;i<55&&client.gui.screen()==screen;i++)frame(screen);
                 assertNull(client.gui.screen(),"Escape must close without an orphan input layer");

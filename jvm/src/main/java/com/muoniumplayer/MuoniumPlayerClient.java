@@ -10,7 +10,7 @@ import com.muoniumplayer.core.MuoniumPlayerExtension;
 public final class MuoniumPlayerClient {
     public static final String MOD_ID = "muonium";
     public static final String MOD_NAME = "MuoniumPlayer Bedrock";
-    public static final String MOD_VERSION = "2.5.2-bedrock-0.12.0-test2-mc2645-2651";
+    public static final String MOD_VERSION = "2.5.2-bedrock-0.13.0-test4-buttons";
     public static final String MC_VERSION = "1.26.52.03";
     private static final MuoniumPlayerClient INSTANCE = new MuoniumPlayerClient();
     private OpenAPIImpl api;

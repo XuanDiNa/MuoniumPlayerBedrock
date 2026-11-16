@@ -24,7 +24,7 @@ public final class BedrockClient {
     public boolean atMainMenu() { return !scene.inWorld() && !scene.hudHidden(); }
     public boolean isSameThread() { return Thread.currentThread() == renderThread; }
     public void execute(Runnable task) { pending.add(task); }
-    public void bindWindow(long handle) { renderThread = Thread.currentThread(); window.handle = handle; }
+    public void bindWindow(long handle) { renderThread = Thread.currentThread(); window.handle = handle; HostInputState.bind(); }
     public void drainTasks() { TaskPump.drain(pending, 8, 1_000_000L, System::nanoTime); }
     public void printMessage(String message) { System.out.println("[Muonium/Bedrock] " + message); }
     public User getUser() { return new User("Player"); }
@@ -35,9 +35,11 @@ public final class BedrockClient {
         public void setScreen(GuiScreen next) {
             if (!isSameThread()) { execute(() -> setScreen(next)); return; }
             if (screen == next) return;
+            var previous=screen;
             if (screen != null) screen.onGuiClosed();
             screen = next;
             if (next != null) next.resize(window.getGuiScaledWidth(), window.getGuiScaledHeight());
+            HostBackNavigation.screenChanged(previous,next);
         }
     }
     public final class KeyboardHandler {

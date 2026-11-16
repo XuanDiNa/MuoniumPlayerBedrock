@@ -4,20 +4,22 @@
 
 **[下載](https://github.com/XuanDiNa/MuoniumPlayerBedrock/releases)** · [安裝](docs/INSTALL.md) · [建置](BUILDING.md) · [授權與來源](docs/DEPENDENCIES.md)
 
-**需要搭配對應遊戲版本的 [ModMenuBedrock](https://github.com/XuanDiNa/ModMenuBedrock)。LeviLamina 環境使用 ModMenuBedrockLL。** 安裝後從播放器的 ModMenu「工作頁」開啟播放器／HUD 編輯；快捷鍵預設無綁定，可自行設定。下載包不包含 ModMenu。
+**[0.13.0-test6-esc 測試更新](https://github.com/XuanDiNa/MuoniumPlayerBedrock/releases/tag/v0.13.0-test6-esc)** 遷移至 [ModMenuBE](https://github.com/AFAlimru/ModMenuBE)：local4 的 Configure 保留普通設定，獨立工作頁開啟播放器、HUD 編輯、預設、迷你播放器及已啟用的島內搜尋。**Esc 逐層返回**，最外層退場完成後恢復工作頁，移除額外的返回工作頁浮層及按鈕。local3 沿用 Configure 工具按鈕頁。[遷移及驗收說明](docs/modmenube-migration.md)
+
+**ModMenuBE 需另外安裝**，本包不包含選單或載入器。工作頁依據 `0.2.0-local4` API 驗證，`local3` 使用 Configure 備援；其他 ModMenuBE 版本尚未驗收。舊 public2 使用 ModMenuBedrock／ModMenuBedrockLL，保留供回退，不可混用不同版本 DLL／JAR。
 
 ## 選擇版本
 
 | 環境 | 套件名稱包含 | 使用方式 |
 | --- | --- | --- |
 | 原版 1.26.45.01 / 1.26.51.01 / 1.26.52.03 / 1.26.60.05 | `vanilla-mc26.45-26.51-26.52-26.60` | 同一份原生預載 DLL，依精確遊戲身分自動選擇對應實作 |
-| 1.26.60.05，LeviLamina 26.60.7 | `levilamina-mc26.60` | 獨立 DLL，搭配 ModMenuBedrockLL |
+| 1.26.60.05，LeviLamina 26.60.7 | `levilamina-mc26.60` | 獨立 LL DLL，使用相容的 ModMenuBE |
 
-原版 `0.12.0-public2` 重新發布，使用 `0.12.0-test3-mc2660-console` DLL，補齊 26.60 控制台與啟動器重建順序產生的四個精確映像身分，修復搭配 ModMenu `0.6.0-test11` 時播放器工作頁缺失。原有四版本實作、位址與掛鉤檢查保留。新 DLL 已離線驗證，仍待人工遊戲驗收；先前基準版保留在本機。LeviLamina 沿用已回報可執行的 `0.11.0-test7` DLL。[修正與驗證說明](docs/native60-console-test3.md)
+首次安裝用 **full.zip**：包含 Java 21、46 個播放器／依賴 JAR、可選房間穿透輔助程式及授權來源。已有完整環境用 **update.zip**。兩者均保留現有設定、帳號、歌單及快取；不存在的預設設定由模組在首次啟動時建立。原版四版本共用一包，LeviLamina 分開；不可互換或同時載入。
 
-公開包四個文字字型換成 Noto，加入 OFL 授權；正式 Java 類別保持各自基準位元組不變。新字型已做離線介面檢查，未重新人工進遊戲驗收。身分檢查包含執行檔雜湊，其他同名或修改過的遊戲可能被拒絕。
+本版保留遊戲原生身分、位址與 Arke 防護。記錄的驗證為 Debug／Release 各 40 組、Java 25 項離線測試；完整包另核對執行環境及 DLL／JAR 雜湊。OpenGL 畫面測試受本機 WGL 環境限制，**本版仍待人工遊戲驗收**。執行檔身分不符的其他遊戲映像會被拒絕。
 
-首次安裝用 **full.zip**，不要只下載 DLL。`update.zip` 供已有完整執行環境的人更新，保留設定、帳號與歌單。LeviLamina 和原生 DLL 不可互換，也不要同時載入。
+退出遊戲後解壓到實例根目錄，一起替換 DLL、JAR、manifest 及設定描述檔。選用 AI 模型仍按原有流程明確安裝；開頁不會自動播放、登入、下載或停止背景工作。
 
 ## 功能
 
@@ -26,9 +28,9 @@
 - 新舊 UI／動畫、迷你播放器、靈動島與可獨立調整的 HUD。
 - 客戶端世界定位 3D 歌詞、顏色、更新幀率、方塊局部遮擋及運鏡。
 - 場景／材質聲學、固定音源、一起聽房間、可選 Quick Tunnel 輔助程式。
-- Windows 媒體控制與外部播放器同步、ModMenu 工作頁及組合快捷鍵。
+- Windows 媒體控制與外部播放器同步、ModMenuBE 設定／工作頁及組合快捷鍵。
 
-**快捷鍵預設無綁定。** 在對應 ModMenu 的工作頁開啟播放器／HUD 編輯，或自行綁定。
+**八項快捷鍵預設無綁定。** 使用 local4 工作頁或 local3 Configure 開啟介面，亦可自行綁定。
 
 ## 邊界與待完善
 
@@ -45,8 +47,10 @@
 
 公開版使用 **Noto Sans / Noto Sans CJK（SIL OFL 1.1）** 取代 SF Pro / PingFang；資源別名保留，內容已替換。圖示保留原作來源及公告。主專案採 Apache-2.0；第三方元件保留各自授權，見 [LICENSE](LICENSE)、[第三方元件](docs/DEPENDENCIES.md) 與 `licenses/`。
 
-提供來源及建置工具，LeviLamina 基準 DLL 的對應來源另附於 Release。沒有遊戲執行檔、私人帳號或 IDA 資料庫。
+提供來源及建置工具，本版來源同時包含原生與 LeviLamina 目標，完整包內也附上對應來源與授權。沒有遊戲執行檔、私人帳號或 IDA 資料庫。
 
 ## English
 
-A Windows x64 client-side Bedrock port of MuoniumPlayer. One native-preload DLL handles all four exact vanilla versions; LeviLamina has a separate DLL/package. Republished public2 fixes missing Workspace registration on reviewed 26.60 console/launcher images with ModMenu test11. Native addresses/guards are unchanged. The replacement native DLL is offline-verified and awaits manual gameplay acceptance; the LL DLL and both Java engines are preserved.
+A Windows x64 client-side Bedrock port of MuoniumPlayer. **0.13.0-test6-esc** adds ModMenuBE integration: local4 has ordinary Configure plus separate Workspace buttons; local3 retains the owned Configure fallback. Esc dismisses one layer and returns to Workspace after the outermost exit finishes. No extra return banner is added, and focus loss does not stop background work.
+
+Install compatible ModMenuBE separately. Four exact vanilla game versions share one package; LeviLamina 26.60.7 uses a separate package. Full ZIPs include Java 21 and all player dependencies; update ZIPs require an existing complete runtime. Both preserve settings. Native guards remain unchanged. Recorded offline verification is 40 suites per native build mode and 25 Java tests; WGL rendering was unavailable and manual Minecraft acceptance remains pending. Historical public2 stays available for rollback.

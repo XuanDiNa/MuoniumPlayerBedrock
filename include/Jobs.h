@@ -7,10 +7,10 @@
 #include <deque>
 #include <mutex>
 #include <thread>
+#include <atomic>
+#include "WorkspaceHandoff.h"
 namespace mp {
 constexpr UINT OpenPlayerMessage=WM_APP+42;
-std::string MenuDeclaration();
-std::string MenuSnapshot(bool enabled,std::uint64_t revision,std::uint64_t request=0,bool succeeded=true);
 enum class JobKind {Playback,Search,Playlist,Lyrics};
 struct Job {bool search{};std::uint64_t generation{};std::string query;std::int64_t id{};JobKind kind{JobKind::Playback};};
 struct JobResult {
@@ -24,10 +24,13 @@ public:
     void Submit(Job);
     std::deque<JobResult> Take();
     void Enabled(bool);
+    void OpenSettings(){settingsRequested_=true;cv_.notify_all();}
+    WorkspaceChannel& Workspace(){return workspace_;}
 private:
     void Run(std::stop_token);
     HWND hwnd_;std::filesystem::path folder_,cache_;
     std::mutex mutex_;std::condition_variable_any cv_;std::deque<Job> pending_;
-    std::deque<JobResult> results_;bool enabled_{true};std::jthread thread_,menuThread_;
+    std::atomic<bool> settingsRequested_{};
+    std::deque<JobResult> results_;bool enabled_{true};WorkspaceChannel workspace_;std::jthread thread_,menuThread_;
 };
 }

@@ -1,13 +1,58 @@
-# Public edition verification
+# ModMenuBE Esc-back candidate: 0.13.0-test6-esc
 
-1. Use the exact game/loader package and matching ModMenu. Keep your prior stable package.
-2. Check the Workspace buttons, player/HUD editor, playback and queue.
-3. Check Chinese/Latin labels, lyrics and both legacy/modern UI layouts; test scroll, click, Esc and focus return.
-4. Check 3D lyrics and cinematic camera separately, including block occlusion.
-5. When reporting, include package/game/loader versions and event time. Review logs for private data before sharing.
+Update only the player. ModMenuBE is not included, modified or installed.
+Use your existing complete player runtime and select the correct loader edition.
+Vanilla supports 1.26.45.01 / 1.26.51.01 / 1.26.52.03 / 1.26.60.05;
+LeviLamina supports 1.26.60.05 separately.
 
-Republished public2 additionally checks the six reviewed 26.60 GUI/console/launcher forms. With ModMenu 0.6.0-test11, check the player Workspace, Open player and Edit HUD after a full game restart; check the alternate console option if used. The native log should contain `START version=0.12.0-test3-mc2660-console`, `HOST VERIFIED profile=...` and `MODMENU workspace registered edition=vanilla ABI=WorkspaceV1`. Do not replace only the DLL: the matching manifest version is required by Workspace registration. Repeat a basic Workspace/open/playback check on any older supported version you use.
+## ModMenuBE 0.2.0-local4
 
-Public-font editions replace four text font resources and include their OFL notices. Republished public2 changes the native DLL's exact image allowlist/version; Java classes and the separate LL DLL are preserved. Automated checks do not establish manual Minecraft acceptance. See README and PUBLIC-EDITION.json for each baseline's acceptance boundary.
+1. Exit Minecraft. Extract the matching update into the instance root, replacing
+   the player DLL, manifest, modmenu.json, root/interface settings descriptors and
+   MuoniumBedrockHost.jar together. Preserve config, accounts, playlists and runtime.
+2. F10 → MuoniumPlayerBedrock → Configure: confirm ordinary settings and Apply/Cancel.
+   Workspace should be a separate entry, with Player status and Help tabs plus
+   direct buttons for Player / HUD editor / Presets / Mini player / Island search.
+   Island search requires its existing option enabled in HUD editing.
+3. Open each interface from Workspace. It must open without selecting an enum or
+   pressing Apply. Merely browsing or switching tabs must not start playback,
+   authentication, searches or downloads. Nothing should open automatically.
+4. Press Esc to go back one layer. An open modal/search/editor selection closes
+   first; a child page returns to its parent. At the outermost Player / HUD editor /
+   Presets / Mini player / Island search page, Esc finishes the existing exit
+   animation and restores the original workspace. No extra Workspace banner or
+   button remains. Hold Esc briefly: it must not unwind several layers at once.
+   F10 can abandon an old handoff. Window close and focus loss do not imply Back.
+5. Start playback or another explicit background operation. Close the page, switch
+   focus and return: work must continue. Old pressed/dragged state must clear.
+6. Check ordinary player shortcuts (defaults remain NONE), normal playback, lyrics,
+   cinematic camera and existing D3D11/D3D12 presentation.
 
-繁體中文：先檢查工作頁、播放／切歌／佇列，再測新舊 UI、中文及歌詞、滾輪、Esc、切出返回；3D 歌詞與運鏡另外確認。保留原穩定版。日誌分享前請檢查私人資料。
+## Existing ModMenuBE local3 fallback
+
+local3 does not gain a workspace. Configure still opens the player-owned button
+page. Ordinary settings temporarily restores the known sidecar for Apply/Cancel;
+closing settings restores direct button entry. Only exact known player descriptor
+hashes are routed, backed up and verified. User config is never moved or reset.
+An absent or invalid workspace API cannot impersonate a legacy Workspace API.
+No installed ModMenuBE is automatically upgraded.
+
+## Evidence and limits
+
+The new workspace adapter is tested against the frozen local4 API/service and real
+owner/manifest/folder checks. Native and Java tests remain separate from gameplay.
+Creation acknowledgement is sent only after Java creates the requested screen,
+with exact uint64 session/request identity and a deadline. The shared-memory
+mailbox uses a private random name and mutex; it contains no credentials/media.
+No automatic retry occurs after expiration or failure. Page close/focus loss never
+stops background work. Native world/image/Arke guards are unchanged.
+
+Manual Minecraft acceptance is pending. Current hardware OpenGL rendering tests
+were unavailable (WGL driver reports OpenGL unavailable); compilation and the
+non-GL real page/input/shared-memory tests are recorded separately. The delivery
+report must not count unavailable pixel/render tests as passing.
+
+繁體中文：local4 的 Configure 保留普通設定，工作頁提供直接操作按鈕。
+按 Esc 逐層返回：先關閉彈窗／搜尋／編輯選取，再退出子頁；在最外層退場
+動畫完成後恢復原工作頁。不再新增「返回工作頁」浮層或按鈕。長按 Esc 不會
+連退數層。失焦只暫停互動，不停止播放或背景任務。local3 沿用工具按鈕頁。

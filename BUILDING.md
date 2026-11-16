@@ -1,3 +1,5 @@
+Local4 update: see modmenube-migration.md for separate Workspace/Configure and local3 fallback.
+
 # Building on Windows x64
 
 Requirements: VS2022 C++/Windows SDK, xmake, Python3 (`py`), JDK21 and Gradle8.10.2 on PATH. Use an x64 VS developer shell. Dependency downloads need network access.
@@ -33,10 +35,20 @@ gradle -p jvm --no-daemon test worldSpeakerTest playbackRecoveryTest stageRender
 py tools/verify_public_assets.py .
 ```
 
-Before the render tests, build `D3D12DisplayFixture`; `check` also needs `D3D12NativeTests`. These test hardware/WARP composition in an owned Windows graphics session. Singleton audio fixtures use a separate JVM to avoid other playback-worker state. Optional ModMenu tests need the reviewed sibling source (`--menu_fixture=y`), not required for production.
+Before the render tests, build `D3D12DisplayFixture`; `check` also needs `D3D12NativeTests`. These test hardware/WARP composition in an owned Windows graphics session. Singleton audio fixtures use a separate JVM to avoid other playback-worker state. Optional API fixture tests use the reviewed sibling ModMenuBE registry (`--menu_fixture=y`). Passive settings tests use the supplied frozen local3 consumer in `vendor/modmenube-local3-passive/`, with source checksums and MIT license; the sibling menu is not a production build dependency. The production adapter uses the versioned API and its own descriptor routing. MenuBEInterop, Local3RouteTests and MenuSettingsInterop replace historical Workspace pairing fixtures; no legacy exports are required.
 
 Exact-image checks need legally obtained game images. No game executables, IDA databases or private extracted datasets are supplied. Historical investigation scripts/results are not required to build. Tests do not start Minecraft or install plugins.
 
 Optional room helper: `py tools/prepare_tunnel.py` fetches a pinned cloudflared binary. Keep licenses/source/build access described in `docs/DEPENDENCIES.md` when redistributing.
 
 繁體中文：使用 VS2022 x64、xmake、Python、JDK21、Gradle8.10.2。原生及 LL 分開建置。公開字型已在來源內；舊 DLL 用對應來源 ZIP。離線驗證不等同遊戲人工驗收。
+
+
+Local4 workspace verification builds `MenuBEWorkspaceTests` and
+`WorkspaceTransportTests` using the frozen local4 SDK/service/identity sources.
+The fixture provider is a distinct sibling DLL with a real manifest and opt-in
+`modmenu.json`. Test both module load orders, invalid table ownership/version,
+not-ready state, request creation/failure/explicit return and deadline refusal.
+`HostWorkspaceTest` checks the actual Win32 mapping and real owned mini/tools UI
+without a GPU. Hardware rendering tests remain a separate requirement; do not
+count WGL-unavailable failures as passing or reuse earlier render XMLs.

@@ -38,5 +38,6 @@ public final class HostMiniPlayer extends GuiScreen {
     }
     private void seek(int mx){MusicCapsuleCard.INSTANCE.seekToFraction(((mx-x)/scale-MusicCapsuleCard.PROGRESS_X)/(MusicCapsuleCard.CARD_WIDTH-2*MusicCapsuleCard.PROGRESS_X));}
     protected void mouseReleased(int x,int y,int button){if(button==0)seeking=false;}
+    public void suspendHostInput(){seeking=false;super.suspendHostInput();}
     public void onGuiClosed(){seeking=false;}
 }

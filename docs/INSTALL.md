@@ -1,27 +1,28 @@
 # 安裝與更新
 
-**配套需求：對應版本的 ModMenuBedrock；LeviLamina 使用 ModMenuBedrockLL。** 播放器入口及 HUD 編輯位於 ModMenu 的工作頁，快捷鍵預設無綁定。兩者需分別安裝。
+測試更新 **0.13.0-test6-esc**，提供完整包及更新包，不包含 ModMenuBE。
 
-1. 完全退出 Minecraft，只需選擇「原版四版本統一包」或「LeviLamina 26.60 包」的 `full.zip`。
-2. 解壓到實例根目錄，得到 `mods/MuoniumPlayerBedrock/`；若啟動器使用其他插件位置，放入對應目錄。
-3. 原生版需要支援 preload-native 的載入器。LeviLamina 版需要 26.60.7；入口不同，不要混用或同時啟用。
-4. 安裝對應版本的 [ModMenuBedrock](https://github.com/XuanDiNa/ModMenuBedrock)；LeviLamina 使用對應 ModMenuBedrockLL。播放器不附帶或替換 ModMenu／Arke。
-5. 在工作頁點「開啟播放器」／「HUD 編輯」，或自行綁定快捷鍵；預設無綁定。
+1. 完全退出 Minecraft。原版四版本使用同一個 vanilla 更新包；LeviLamina
+   26.60.7 使用獨立 LL 包。首次安裝 full.zip，已含 Java21／播放器依賴；
+   已有完整環境才用 update.zip。ModMenuBE 與載入器需另外安裝。
+2. 解壓所選 ZIP 至實例根目錄，替換 mods/MuoniumPlayerBedrock/ 的 DLL、
+   manifest、modmenu.json、根目錄及 interface 的設定描述檔與 host JAR。
+3. 已用 ModMenuBE local4：Configure 保留普通設定；工作頁提供五個直接開頁
+   按鈕。按 Esc 逐層返回，最外層退場後恢復工作頁；失焦不會停止背景工作。
+4. 仍用 local3：Configure 直接開工具按鈕頁，「普通設定」暫時返回選單設定。
+   只處理已知描述檔，不必手動移除。無須更新選單。
+5. 保留現有 MuoniumPlayerBedrock.json、帳號、歌單、快取及 runtime。更新包
+   及完整包都不包含會覆寫的初始設定；首次啟動由模組建立缺少的設定。
+   八項快捷鍵預設仍未綁定。舊套件保留供回退。
 
-原版包使用同一份 DLL，自動辨識 1.26.45.01／1.26.51.01／1.26.52.03／1.26.60.05，無須自行選擇版本資料夾。重新發布的 Public2 補齊 26.60 控制台／啟動器身分，配套 ModMenu 0.6.0-test11。新 DLL 待人工遊戲驗收；離線檢查已確認各版本獨立選擇，不共用錯誤的位址。必須同時替換 DLL 與套件內 manifest，勿單獨混用不同版檔案。
+不修改選單 DLL、遊戲 EXE 或 Arke。自訂、唯讀、重新解析或多重連結描述檔
+會保留。請勿混用不同版本 DLL 與 JAR；保留舊完整套件後再更新。
 
-完整包包含 Java 執行環境及 JAR 依賴。可選音源／分析元件按需要安裝。
+[遷移說明](modmenube-migration.md) · [測試步驟](../TESTING.md)
 
-## 保留資料更新
-
-`update.zip` 適用已裝好 0.7.0-test1 或更新完整執行環境的使用者。它更新 DLL、manifest、設定描述檔、JAR 及授權文件，不覆寫 `MuoniumPlayerBedrock.json`、帳號、歌單或自訂快取。若安裝不完整，先保留設定及私人資料，再使用 full 包。
-
-`PUBLIC-EDITION.json` 記錄基準版本、DLL/JAR 身分及驗收邊界。用 Release 的 `SHA256SUMS.txt` 核對下載。不要混用不同包的 DLL／JAR。
-
-## 檢查與回報
-
-確認工作頁、播放、切歌、佇列、歌詞，再確認新舊 UI、Esc、切出返回及使用中的 D3D 模式。3D 歌詞與運鏡另外檢查。保留穩定版供回退。
-
-回報提供遊戲版本、載入器、套件名稱、出問題時間及相關日誌。分享前檢查私人資訊，不附 cookie、憑證或完整私人設定。
-
-English: Exit Minecraft and extract the matching full ZIP into the instance root. Native preload and LeviLamina DLLs are not interchangeable. Updates require a complete existing runtime, preserve user data, and include public notices. Hotkeys start unbound.
+English: Choose the matching full edition for a first installation; it includes
+Java21 and player dependencies. The update edition needs an existing full runtime.
+Install compatible ModMenuBE/the loader separately. local4 has separate ordinary
+Configure and Workspace buttons; local3 retains owned Configure buttons. Both ZIP
+types preserve settings, accounts and playlists. No game is bundled or installed.
+Manual gameplay acceptance remains pending.

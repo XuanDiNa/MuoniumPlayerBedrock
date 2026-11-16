@@ -1,0 +1,18 @@
+{
+  "source": "ModMenuBE-0.2.0-local4-source.zip",
+  "sha256": "d1bec766efe2b271305e93d9a00ff2204d42e3e99c4270338a14aac9e1f813bc",
+  "files": {
+    "include/modmenu/ModMenuWorkspace.h": "3e842f784cd33c08fa36e673602993bc1571e7f18d55a4388863bd33e4e042f2",
+    "integration/WORKSPACES.md": "c8f6bc25ad809ad52913d85dd9c02fc2f0b13def274e4867c99f8756e6f01a58",
+    "src/workspace/Api.cpp": "5d3b85af54023e50bd1835284c3541088f96daf2a61a086b45c8e19240aed096",
+    "src/workspace/Runtime.cpp": "f1adc3124a1ec7974036defc922ff6b50d5a3ff23f9ac7e8dd61c7622f36960d",
+    "src/workspace/Runtime.h": "9c5fc0d139234d8d1ae8d1429c8d709b036cc2f238ddd5a4e9a6cddaafca688a",
+    "src/workspace/Service.cpp": "7bfaa4c78bb28d9a248b4f833a08efdf724fc4a7ac8cc4ca57ae3415a527c3e0",
+    "src/workspace/Service.h": "043bd78906b07aafdde662b03612601613e34331b53d58e9f16d7b9bdf00d439",
+    "src/workspace/Entry.cpp": "78368f123dc3ae68c8e0baf38695f6dd84ce5ab8fcabe7b0cda12d9d5c8e64ab",
+    "src/workspace/Entry.h": "e183c115bf99e147dc0766c6b0ce135a6f291b183dcdb51796b65220dbd93f9c",
+    "src/workspace/Protocol.cpp": "3d79389d0c443505c03ec534a49cdbe319d39688f92b43bee106ce7db853f8c2",
+    "src/compat/ModMenu/Workspace.h": "7e56ffbaff21edea17011a148f179a934f2506dcc074668054882ee938cf9de7"
+  },
+  "purpose": "Frozen SDK evidence and test-only API service; never linked into production player DLL"
+}

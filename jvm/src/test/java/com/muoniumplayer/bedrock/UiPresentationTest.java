@@ -36,6 +36,18 @@ class UiPresentationTest {
         assertTrue(entries.stream().anyMatch(e->e.getLabel().equals("设置界面样式")));
         assertTrue(entries.stream().anyMatch(e->e.getLabel().equals("设置界面动画")));
     }
+    @Test void explicitScreenActionsAreLastAndBuildingSettingsIsPassive() {
+        var client=BedrockClient.getInstance();
+        var before=client.gui.screen();
+        var categories=HudSettingsModel.categories();
+        var last=categories[categories.length-1];
+        assertEquals("host-tools",last.id,"Operation entries must follow every settings category");
+        var entries=Arrays.stream(last.groups).flatMap(g->Arrays.stream(g.entries)).toList();
+        assertEquals(java.util.List.of("打开播放器","HUD 编辑","预设管理","迷你播放器","岛内搜索"),
+                entries.stream().map(HudSettingsModel.Entry::getLabel).toList());
+        assertTrue(entries.stream().allMatch(e->e.kind==HudSettingsModel.Kind.ACTION));
+        assertSame(before,client.gui.screen(),"Opening settings must not execute any entry");
+    }
     @Test void modernAndReducedMotionHaveBoundedDeterministicEndpoints() {
         var original=new UiPresentation.Selection(0,0);var modern=new UiPresentation.Selection(1,1);
         assertEquals(.5,original.progress(.5),1e-6);

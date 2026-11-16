@@ -51,6 +51,8 @@ class OverlayModalInputTest {
                 assertTrue((presenter.pixel(954,594)>>>24)<=2,"Input shield must remain visually transparent");
                 assertFalse(mode.state().attributes(),"Must retain per-pixel ULW, without constant-alpha APIs");
                 // Deliver Escape through the real HWND input callback, not keyEvent.
+                HostInputState.update(windows.display(),true);
+                assertTrue(HostInputState.allowed(),"Released input must be accepted after focus recovery");
                 User32.INSTANCE.PostMessage(target,0x100,new WinDef.WPARAM(27),new WinDef.LPARAM(1));
                 User32.INSTANCE.PostMessage(target,0x101,new WinDef.WPARAM(27),new WinDef.LPARAM(0xC0000001L));
                 GLFW.glfwPollEvents();session.finishScreenClose();
@@ -73,6 +75,7 @@ class OverlayModalInputTest {
             BedrockOverlay.drawFrame(session,()->{});presenter.present(30,30);
             var outside=hit(984,624);
             assertEquals(windows.handle(),outside);
+            HostInputState.update(windows.display(),true);
             User32.INSTANCE.PostMessage(outside,0x200,new WinDef.WPARAM(0),new WinDef.LPARAM(954|(594<<16)));
             User32.INSTANCE.PostMessage(outside,0x201,new WinDef.WPARAM(1),new WinDef.LPARAM(954|(594<<16)));
             User32.INSTANCE.PostMessage(outside,0x202,new WinDef.WPARAM(0),new WinDef.LPARAM(954|(594<<16)));

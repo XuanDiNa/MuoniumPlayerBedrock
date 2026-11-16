@@ -8,6 +8,7 @@ def apply(source):
     private final com.muoniumplayer.bedrock.UiPresentation.Selection bedrockUi =
             com.muoniumplayer.bedrock.UiPresentation.global().snapshot();
     public boolean transparentHost(){return true;}
+    public boolean hostBackClosing(){return page.isDismissing();}
     // Modern panel geometry is independent; never overwrite legacy placement.
     private float modernPanelX=-1,modernPanelY=-1,modernScaleW=-1,modernScaleH=-1;
 ''')
@@ -75,4 +76,13 @@ def apply(source):
             float at = y + 4 + (track - thumb) * choiceScroll / (choices.length - visible);
             drawRoundedRect(x + w - 5, y + 4, 2, track, 1, 0x22FFFFFF);
             drawRoundedRect(x + w - 5, at, 2, thumb, 1, 0x88FFFFFF);''')
+    # Cull against the stationary sidebar viewport, not its scrolled content
+    # origin. Otherwise the last categories stay invisible at every offset.
+    source=once(source,
+        'if (rowY + rowH < navTop - 4 || rowY > navTop + navH + 4) return;',
+        'int viewportTop = navTop + navScroll - 6;\n        if (rowY + rowH < viewportTop || rowY > viewportTop + navH) return;')
+    source=once(source,'        drawNav(fr, panelX, bodyY, navW, bodyH, categories, mouseX, mouseY);',
+        '''        beginScissor(panelX, bodyY, navW, bodyH);
+        try { drawNav(fr, panelX, bodyY, navW, bodyH, categories, mouseX, mouseY); }
+        finally { endScissor(); }''')
     return source

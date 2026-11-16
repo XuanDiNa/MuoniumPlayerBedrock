@@ -63,6 +63,20 @@ for tree, names in SOURCES.items():
             new = cine_schedule_overlay(new)
         elif name == 'core/screens/hud/GuiHudEditorPro.java':
             new = ui_presentation_overlay(new)
+            marker='    @Override\n    protected void mouseReleased(int mouseX, int mouseY, int state) {'
+            assert new.count(marker)==1
+            new=new.replace(marker,'''    @Override
+    public void suspendHostInput() {
+        draggingPanel=false;
+        resizingPanel=false;
+        draggingSaturationBrightness=false;
+        draggingHue=false;
+        draggingSlider=null;
+        draggingPopoverScale=false;
+        stage.clearSelection();
+        super.suspendHostInput();
+    }
+''' + marker)
         elif name.endswith('PlaylistCreateSheet.java'):
             new=method_body(new,'private void openLocalFolderImport()', '''        if(com.muoniumplayer.bedrock.HostFileDialogs.active())return;
         String initial=LocalMusicLibrary.directories().isEmpty()
@@ -86,11 +100,16 @@ for tree, names in SOURCES.items():
         if name.endswith('NavigateBar.java'):
             before='quickActionsSurface.addChild(btnTheme, btnFont, btnPlayerSize, btnRefresh, btnAnnouncement);'
             assert new.count(before)==1
-            new=new.replace(before,'quickActionsSurface.addChild(btnTheme, btnFont, btnPlayerSize, btnRefresh);')
-            new=method_body(new,'private static int railSlotCount(', '        return 4;')
-            new=method_body(new,'private static boolean railFitsAnnouncement(', '        return false;')
+            new=new.replace('btnAnnouncement.setUnreadBadge(() -> AnnouncementChecker.hasUnread());','// Bedrock player tools have no remote announcement feed.')
+            new=new.replace('return "查看公告";', 'return "播放器工具 / Player tools";')
+            new=method_body(new,'private static int railSlotCount(', '        return 5;')
+            new=method_body(new,'private static boolean railFitsAnnouncement(', '        return true;')
         if name.endswith('IslandSearchOverlay.java'):
             new = new.replace('private IslandSearchOverlay() {', 'public boolean transparentHost(){return true;}\n    private IslandSearchOverlay() {')
+            new=new.replace('private IslandSearchOverlay() {',
+                'private boolean hostClosing;\n    public boolean hostBackClosing(){return hostClosing;}\n    private IslandSearchOverlay() {')
+            new=new.replace('private void closeAndRestore() {','private void closeAndRestore() {\n        hostClosing=true;')
+            new=new.replace('api.displayScreen(overlay);','overlay.hostClosing=false;\n        api.displayScreen(overlay);')
             # Both original GLStateManager and Skija now share one canvas. The
             # original extra Skija correction would apply the layout scale twice.
             assert new.count('SkijaGfx.scale(skijaExtraX, skijaExtraY);')==1
@@ -99,7 +118,7 @@ for tree, names in SOURCES.items():
             assert new.count(before)==1
             new=new.replace(before,before+'\n        this.resultsPanel.setBeforeRenderCallback(()->this.resultsPanel.setMargin(0));')
         if name.endswith('HudSettingsModel.java'):
-            new = new.replace('游戏里按 Ctrl+F 直接搜歌，按键可以在键位设置里改。','从 ModMenu 工作页打开，或在 Configure 自定义快捷键；默认无绑定。')
+            new = new.replace('游戏里按 Ctrl+F 直接搜歌，按键可以在键位设置里改。','从 ModMenuBE Configure 打开，或在设置中自定义快捷键；默认无绑定。')
         if name == 'core/ncm/music/acoustics/SceneAcoustics.java':
             # A real stereo-side fixture proves the upstream fallback leaves
             # S audible even when the fixed source's direct path is muted.
@@ -510,6 +529,15 @@ for tree, names in SOURCES.items():
             assert new.count('MusicSpectrumRenderer.renderHud();')==1 and new.count('DownloadDynamicIsland.render();')==1
             new = new.replace('MusicSpectrumRenderer.renderHud();','com.muoniumplayer.bedrock.HudElements.renderSpectrum(MusicSpectrumRenderer::renderHud);')
             new = new.replace('DownloadDynamicIsland.render();','com.muoniumplayer.bedrock.HudElements.renderIsland(DownloadDynamicIsland::render);')
+        if name.endswith('PlayQueuePanel.java'):
+            marker='    private void cancelDrag() {'
+            assert new.count(marker)==1
+            new=new.replace(marker,'''    public void suspendHostInput() {
+        // Focus loss is cancellation, never a release/room reorder commit.
+        this.cancelDrag();
+    }
+
+''' + marker)
         if name.endswith('ConfigPaths.java'):
             new = new.replace('new File(DATA_ROOT, "cache")', 'com.muoniumplayer.bedrock.SessionMedia.directory()')
             # Keep credential/config migrations; never migrate durable cache into
@@ -517,7 +545,19 @@ for tree, names in SOURCES.items():
             new = new.replace('migrateDirectory(new File("MusicCache"), MUSIC_CACHE);', '')
             new = new.replace('migrateDirectory(new File(configDir, "cache"), cacheDir);', '')
         elif name.endswith('NCMScreen.java'):
-            new=method_body(new,'public void openAnnouncements()', '        // Reserved for a future Bedrock-owned feed.')
+            marker='    @Override\n    public void onGuiClosed() {'
+            assert new.count(marker)==1
+            new=new.replace(marker,'''    @Override
+    public boolean hostBackClosing(){return closing;}
+    @Override
+    public void suspendHostInput() {
+        // Drop the deferred touch click before any release is dispatched.
+        this.pendingClickActive=false;
+        if(this.playQueuePanel!=null)this.playQueuePanel.suspendHostInput();
+        super.suspendHostInput();
+    }
+''' + marker)
+            new=method_body(new,'public void openAnnouncements()', '        com.muoniumplayer.bedrock.BedrockClient.getInstance().gui.setScreen(new com.muoniumplayer.bedrock.HostToolsScreen());')
             before='public void onGuiClosed() {'
             assert new.count(before)==1
             new=new.replace(before,before+'\n        com.muoniumplayer.bedrock.HostFileDialogs.cancel();')
@@ -651,6 +691,23 @@ for tree, names in SOURCES.items():
                                 action("清理保留的音乐缓存", "只清理本播放器保留的音乐，不删除账号、歌单、模型或正在播放的临时文件。",
                                         () -> com.muoniumplayer.core.utils.other.multithreading.BackgroundWork.submit(() -> com.muoniumplayer.bedrock.PlaybackFiles.global().clearRetained()))))''' + new[end:]
             new = new.replace('缓存与公告', '临时文件').replace('音乐缓存占多大盘、公告入口', '清理不再使用的临时播放文件')
+            # Keep explicit operations at the end of both owned settings layouts.
+            # Passive ModMenu sidecars cannot express callbacks; do not fake action fields.
+            anchor='        });\n    }\n\n    /**\n     * 标签栏的分类顺序。'
+            assert new.count(anchor)==1
+            new=new.replace(anchor,'''                ,new Category("host-tools", "打开界面", "仅点击后打开；不会自动播放、登录或下载", 0xFF6FA8FF, HudSettingsIcons.MOVE,
+                        new Group("播放器工具", HudSettingsIcons.MOVE,
+                                action("打开播放器", "返回歌曲与歌单页面，保留当前播放。",
+                                        com.muoniumplayer.bedrock.HostToolsScreen::openPlayer),
+                                action("HUD 编辑", "打开 HUD 编辑，可拖动和缩放各个界面。",
+                                        com.muoniumplayer.bedrock.HostToolsScreen::openHudEditor),
+                                action("预设管理", "打开模板预设管理；返回时回到此设置页。",
+                                        com.muoniumplayer.bedrock.HostToolsScreen::openPresets),
+                                action("迷你播放器", "打开迷你播放控制，不改变 HUD 开关。",
+                                        com.muoniumplayer.bedrock.HostToolsScreen::openMiniPlayer),
+                                action("岛内搜索", "打开搜索框；输入并提交后才搜索。需先启用岛内搜索。",
+                                        com.muoniumplayer.bedrock.HostToolsScreen::openIslandSearch)))
+'''+anchor)
         elif name.startswith('core/screens/Gui'):
             new = re.sub(r'\bMinecraft\b', 'BedrockClient', new)
             new = new.replace('import net.minecraft.client.gui.screens.TitleScreen;', '')
@@ -693,6 +750,10 @@ for source_rel in latest['java']:
     old=src.read_text(encoding='utf-8-sig')
     new=old.replace('net.minecraft.client.Minecraft',CLIENT)
     new=re.sub(r'\bMinecraft\b','BedrockClient',new)
+    if rel.endswith('/GuiPresetSettings.java'):
+        marker='public final class GuiPresetSettings extends GuiScreen {'
+        assert new.count(marker)==1
+        new=new.replace(marker,marker+'\n    public boolean hostBackClosing(){return !panel.isOpen();}')
     if rel.endswith('/MusicCapsuleCard.java'):
         # Keep the pinned card/click geometry, but use actual outline bounds.
         # Text advances were unscaled, queue used the wrong font, and mode icons
@@ -829,7 +890,7 @@ new = old.replace('net.minecraft.client.Minecraft', CLIENT)
 new = new.replace('import com.mojang.blaze3d.platform.InputConstants;', '')
 new = re.sub(r'\bMinecraft\b', 'BedrockClient', new)
 new = new.replace('InputConstants.isKeyDown(handle, glfw)',
-                  'GLFW.glfwGetKey(handle, glfw) == GLFW.GLFW_PRESS')
+                  'com.muoniumplayer.bedrock.HostInputState.allowed() && GLFW.glfwGetKey(handle, glfw) == GLFW.GLFW_PRESS')
 dst = OUT / 'com/muoniumplayer/compat/lwjgl2/Keyboard.java'
 dst.parent.mkdir(parents=True, exist_ok=True)
 dst.write_text(new, encoding='utf-8')

@@ -70,13 +70,13 @@ def review(original, launcher, menu_source, bodies_path):
         at, end = int(start, 16), int(row['end'], 16)
         assert sha(patched.read(at, end-at)).lower() == row['sha256']
     assert guards == 61 and len(records) == 48
-    workspace = {}
-    for rel in ['src/Workspace.cpp', 'src/WorkspaceApi.cpp', 'include/ModMenu/Workspace.h']:
-        current = (Path(menu_source)/rel).read_bytes()
-        assert current == (ROOT/'tests/vendor/modmenu-ll-test1'/rel).read_bytes(), rel
-        workspace[rel] = sha(current)
+    current = (Path(menu_source)/'include/modmenu/ModMenuApi.h').read_bytes()
+    assert current == (ROOT/'include/sdk/ModMenuApi.h').read_bytes(), 'ModMenuBE public API copy'
+    bridge = (ROOT/'src/MenuBEBridge.cpp').read_text()
+    assert 'ModMenu_GetApi' in bridge and 'setExternalScreen' in bridge
+    assert 'MMB_Workspace' not in bridge and 'ModMenuBedrock.dll' not in bridge
     return {'gameSections': sections, 'originalEntrypointIdentical': True, 'forms': forms,
-            'nativeGuards': guards, 'fullNativeBodies': len(records), 'test11WorkspaceFixtureIdentical': workspace,
+            'nativeGuards': guards, 'fullNativeBodies': len(records), 'ModMenuBESdkSha256': sha(current),
             'gameModified': False, 'gameLaunched': False, 'manualMinecraftAcceptance': False}
 
 if __name__ == '__main__':
@@ -85,4 +85,4 @@ if __name__ == '__main__':
     a = p.parse_args()
     result = review(a.original, a.launcher, a.menu_source, a.native_bodies)
     Path(a.output).write_text(json.dumps(result, indent=2)+'\n')
-    print('Eight original sections/headers, entrypoint, six exact forms, 61 guards, 48 native bodies and test11 Workspace API verified; gameplay pending')
+    print('Eight original sections/headers, entrypoint, six exact forms, 61 guards, 48 native bodies and ModMenuBE SDK verified; gameplay pending')
