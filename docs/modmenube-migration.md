@@ -1,4 +1,12 @@
-# ModMenuBE integration: 0.13.0
+# ModMenuBE integration
+
+## Current companion candidate — 2026-11-27
+
+Workspace requires a separately installed ModMenuBE with the **Workspace V1 API**. The complete integration candidate is the [review7 branch](https://github.com/XuanDiNa/ModMenuBE/tree/codex/review7-settings-fixes), commit `020adfdd3a43fd1abb3feba838925431baddfd3e`, including passive settings, optional native entry and Workspace. This branch is under upstream review; its manifest version remains `0.2.1`, and it is not an upstream release or merge. The ModMenuBE candidate has Windows Debug/Release and Android arm64 offline verification, but **in-game pairing of this new DLL with Muonium 0.20.2 is still pending**. Exit the game before updating and retain settings.
+
+工作頁需要另外安裝提供 **Workspace V1 API** 的 ModMenuBE。完整整合候選為 [review7 分支](https://github.com/XuanDiNa/ModMenuBE/tree/codex/review7-settings-fixes)，來源 commit `020adfdd3a43fd1abb3feba838925431baddfd3e`，包含被動設定頁、選用原生入口與工作頁。此分支仍在上游審查，manifest 版本為 `0.2.1`，不代表上游已正式發布或合併。ModMenuBE 側已完成 Windows Debug／Release 與 Android arm64 離線驗證；**這份新 DLL 與 Muonium 0.20.2 的遊戲內配對仍待驗收**。更新前請完全退出遊戲並保留設定。
+
+## Original 0.13.0 adapter design
 
 The local4 adapter uses the frozen 0.2.0-local4 public workspace API version 1.
 See vendor/modmenube-local4-workspace/PROVENANCE.json for source/hash provenance.
