@@ -10,6 +10,9 @@ import java.util.function.BooleanSupplier;
 /** Session-owned HTTP object. Range responses must describe the same object. */
 final class AudioRanges implements AutoCloseable {
     static final class Unsupported extends IOException {}
+    static final class HttpFailure extends IOException {
+        final int status;HttpFailure(int status){super("Audio HTTP status "+status);this.status=status;}
+    }
     private static final ScheduledThreadPoolExecutor cancellationTimer=new ScheduledThreadPoolExecutor(1,r->{var t=new Thread(r,"Muonium-stream-cancel");t.setDaemon(true);return t;});
     static { cancellationTimer.setRemoveOnCancelPolicy(true); }
     volatile ScheduledFuture<?> preparation;
@@ -18,13 +21,35 @@ final class AudioRanges implements AutoCloseable {
     private final org.apache.http.impl.client.CloseableHttpClient client=org.apache.http.impl.client.HttpClients.custom()
         .disableContentCompression().disableAutomaticRetries().disableRedirectHandling()
         .setDefaultRequestConfig(org.apache.http.client.config.RequestConfig.custom().setConnectTimeout(10000).setSocketTimeout(15000).build()).build();
-    volatile boolean closed;final InputStream initial;
+    volatile boolean closed;final InputStream initial;InputStream external;
+    AudioRanges(String url,InputStream stream,BooleanSupplier cancelled)throws IOException {
+        this.url=url;length=stream.available()>0?stream.available():-1;etag=null;modified=null;
+        external=stream;initial=stream;ProgressiveAudio.transports.add(this);
+        preparation=cancellationTimer.scheduleWithFixedDelay(()->{if(cancelled.getAsBoolean())close();},0,40,TimeUnit.MILLISECONDS);
+    }
     AudioRanges(String url,BooleanSupplier cancelled)throws IOException {
-        this.url=url;ProgressiveAudio.transports.add(this);
+        ProgressiveAudio.transports.add(this);
         preparation=cancellationTimer.scheduleWithFixedDelay(()->{if(cancelled.getAsBoolean())close();},0,40,TimeUnit.MILLISECONDS);
         Response response=null;
-        try{response=connect(0,false);long n=response.length();
-            if(n<=0||n>Integer.MAX_VALUE)throw new IOException("Unknown or excessive audio length");
+        try{
+            String selected=url;var candidates=com.muoniumplayer.core.ncm.music.BilibiliCdnRoutes.candidates(url);
+            for(int i=0;i<candidates.size();++i){
+                if(cancelled.getAsBoolean()||closed)throw new InterruptedIOException("Audio preparation cancelled");
+                selected=candidates.get(i);
+                try{response=connect(selected,0,false,false);break;}
+                catch(IOException failure){
+                    int status=failure instanceof HttpFailure http?http.status:0;
+                    boolean transientFailure=failure instanceof SocketException||failure instanceof SocketTimeoutException
+                        ||failure instanceof EOFException||failure instanceof org.apache.http.conn.ConnectTimeoutException
+                        ||failure instanceof HttpFailure&&(Set.of(403,404,408,410,429).contains(status)||status>=500);
+                    boolean retry=transientFailure&&i+1<candidates.size()&&!closed&&!cancelled.getAsBoolean();
+                    System.out.println("PROGRESSIVE_HTTP stage=open attempt="+(i+1)+" status="+status+" action="+(retry?"same-track-backup":"failed"));
+                    if(!retry)throw failure;
+                }
+            }
+            this.url=selected;
+            long n=response.length();
+            if(n==0||n>Integer.MAX_VALUE)throw new IOException("Empty or excessive audio length");
             length=n;etag=response.header("ETag");modified=response.header("Last-Modified");initial=sequential(body(response));
         }catch(IOException|RuntimeException e){if(response!=null)response.close();close();throw e;}
     }
@@ -39,13 +64,17 @@ final class AudioRanges implements AutoCloseable {
         return connect(start,range,false);
     }
     private Response connect(long start,boolean range,boolean sequential)throws IOException {
-        if(range&&((etag==null||etag.startsWith("W/"))&&modified==null))throw new Unsupported();
-        String address=url;
+        return connect(url,start,range,sequential);
+    }
+    private Response connect(String address,long start,boolean range,boolean sequential)throws IOException {
+        if(range&&!canSeek())throw new Unsupported();
         for(int hop=0;hop<8;hop++){
-            URI uri=URI.create(address);if(!Set.of("http","https").contains(uri.getScheme()))throw new IOException("Invalid audio protocol");
+            URI uri=URI.create(address);if(uri.getScheme()==null||!Set.of("http","https").contains(uri.getScheme().toLowerCase(Locale.ROOT)))throw new IOException("Invalid audio protocol");
             var request=new org.apache.http.client.methods.HttpGet(uri);requests.add(request);
             if(closed){requests.remove(request);request.abort();throw new InterruptedIOException("Audio released");}
             request.setHeader("User-Agent","Mozilla/5.0");request.setHeader("Accept-Encoding","identity");request.setHeader("Connection","close");
+            var headers=com.muoniumplayer.core.ncm.music.StreamingAudioRoute.headers(address);
+            if(headers!=null)headers.forEach(request::setHeader);
             if(range){request.setHeader("Range","bytes="+start+"-"+(sequential?"":Math.min(length-1,start+65535)));
                 if(etag!=null&&!etag.startsWith("W/"))request.setHeader("If-Range",etag);
                 else if(modified!=null)request.setHeader("If-Range",modified);}
@@ -54,7 +83,7 @@ final class AudioRanges implements AutoCloseable {
             int code=c.response.getStatusLine().getStatusCode();String location=c.header("Location");
             if(Set.of(301,302,303,307,308).contains(code)&&location!=null){address=uri.resolve(location).toString();c.close();continue;}
             try{
-                if(!range&&code!=200)throw new IOException("Audio response rejected");
+                if(!range&&code!=200)throw new HttpFailure(code);
                 if(range){
                     boolean strong=etag!=null&&!etag.startsWith("W/");
                     if(strong?!Objects.equals(etag,c.header("ETag")):!Objects.equals(modified,c.header("Last-Modified")))throw new IOException("Audio object changed");
@@ -84,10 +113,10 @@ final class AudioRanges implements AutoCloseable {
                 Objects.checkFromIndexSize(offset,count,bytes.length);if(count==0)return 0;
                 while(true) {
                     if(stopped||closed)throw new InterruptedIOException("Audio released");
-                    if(cursor==length)return -1;
+                    if(length>=0&&cursor==length)return -1;
                     try {
-                        int n=block.read(bytes,offset,(int)Math.min(count,length-cursor));
-                        if(n<0)throw new EOFException("Truncated sequential audio");
+                        int n=block.read(bytes,offset,length<0?count:(int)Math.min(count,length-cursor));
+                        if(n<0){if(length<0)return -1;throw new EOFException("Truncated sequential audio");}
                         cursor+=n;return n;
                     } catch(IOException failure) {
                         boolean transport=failure instanceof SocketException || failure instanceof SocketTimeoutException
@@ -115,6 +144,8 @@ final class AudioRanges implements AutoCloseable {
             public void close()throws IOException{stopped=true;if(block!=null)block.close();}
         };
     }
+    boolean canSeek(){return length>0&&(etag!=null&&!etag.startsWith("W/")||modified!=null);}
+    InputStream from(long position)throws IOException{return body(connect(position,true,true));}
     void prepared(){var task=preparation;if(task!=null)task.cancel(false);}
-    public void close(){closed=true;prepared();ProgressiveAudio.transports.remove(this);synchronized(requests){for(var q:requests)q.abort();requests.clear();}try{client.close();}catch(IOException ignored){}}
+    public void close(){closed=true;prepared();ProgressiveAudio.transports.remove(this);synchronized(requests){for(var q:requests)q.abort();requests.clear();}try{if(external!=null)external.close();}catch(IOException ignored){}try{client.close();}catch(IOException ignored){}}
 }

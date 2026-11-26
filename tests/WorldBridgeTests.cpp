@@ -8,7 +8,7 @@
 #include <array>
 #include <cstring>
 void Need(bool value){if(!value)throw std::runtime_error("World bridge assertion failed");}
-int main(){
+int main(){try{
     // Reproduce the exact ScreenContext -> Camera -> MatrixStack owned copy.
     std::array<std::byte,64> context{},stack{};
     float raw[16]{};raw[0]=raw[5]=raw[10]=raw[15]=1;raw[12]=.25f;
@@ -45,6 +45,11 @@ int main(){
     Need(WaitForSingleObject(request,0)==WAIT_TIMEOUT);
     SetEvent(request);Need(WaitForSingleObject(request,0)==WAIT_OBJECT_0);ResetEvent(request);
     UnmapViewOfFile(envView);CloseHandle(envMap);CloseHandle(request);
+    auto voiceMap=OpenFileMappingW(FILE_MAP_READ,FALSE,(std::wstring(prefix)+L"-voice-world").c_str());Need(voiceMap);
+    auto voiceView=static_cast<unsigned char const*>(MapViewOfFile(voiceMap,FILE_MAP_READ,0,0,96));Need(voiceView);
+    Need(*reinterpret_cast<std::uint32_t const*>(voiceView)==0x5657504d);
+    Need(*reinterpret_cast<std::uint32_t const*>(voiceView+32)==0);
+    UnmapViewOfFile(voiceView);CloseHandle(voiceMap);
     mp::EnableWorldBridge(true); // Offline fixtures must never hook their host.
     Need(view->valid==0);
     Need(!mp::OpenWorldBridge(prefix,L".",true));
@@ -53,5 +58,6 @@ int main(){
     UnmapViewOfFile(view);CloseHandle(map);
     Need(mp::OpenWorldBridge(prefix,L".",true));mp::CloseWorldBridge();
     std::cout<<"World protocol, validation, mapping, dormant offline hook and lifecycle passed\n";
+}catch(std::exception const& e){std::cerr<<e.what()<<"\n";return 1;}
 }
 

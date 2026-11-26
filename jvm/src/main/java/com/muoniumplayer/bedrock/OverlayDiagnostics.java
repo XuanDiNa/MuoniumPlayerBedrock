@@ -17,7 +17,7 @@ final class OverlayDiagnostics {
     void parts(long environment,long cinematic){environmentSum+=environment;cinematicSum+=cinematic;environmentMax=Math.max(environmentMax,environment);cinematicMax=Math.max(cinematicMax,cinematic);}
     OverlayDiagnostics(OverlayWindows windows,OverlayWindowMode mode) {
         this.mode=mode;
-        System.out.println("OVERLAY_RENDER version=0.12.0-test2-mc2645-2651 presentation=auto-native-d3d12 fallback=layered-window gameBackend=D3D11,D3D12 arke=exact-adapter legacyD3D11Hooks=disabled gl="+
+        System.out.println("OVERLAY_RENDER version="+com.muoniumplayer.MuoniumPlayerClient.MOD_VERSION+" presentation=auto-native-d3d12 fallback=layered-window gameBackend=D3D11,D3D12 arke=exact-adapter legacyD3D11Hooks=disabled gl="+
             GL11.glGetString(GL11.GL_VERSION)+" vendor="+GL11.glGetString(GL11.GL_VENDOR)+
             " renderer="+GL11.glGetString(GL11.GL_RENDERER)+
             " displayApi="+GLFW.glfwGetWindowAttrib(windows.display(),GLFW.GLFW_CLIENT_API)+
@@ -59,7 +59,8 @@ final class OverlayDiagnostics {
         }
     }
     void state(boolean interactive,boolean visible,boolean gameFocused,boolean playerFocused) {
-        String next="state interactive="+interactive+" visible="+visible+" gameFocus="+gameFocused+" playerFocus="+playerFocused;
+        String next="state interactive="+interactive+" visible="+visible+" gameFocus="+gameFocused+" playerFocus="+playerFocused
+            +" input="+HostInputState.snapshot();
         if(!next.equals(previous)){previous=next;log(next);}
     }
     void closed() { log("close presented=transparent focusReturn=after-ULW"); }

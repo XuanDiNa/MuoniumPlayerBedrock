@@ -10,9 +10,14 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BooleanSupplier;
 
-/** Incremental MP3/FLAC decode into owned, session-only PCM work files.
+/** Incremental clear-audio decode into owned, session-only PCM work files.
  * Original SoundFile/DSP consumes the sample; the audio thread never waits on HTTP. */
 public final class ProgressiveAudio {
+    /** A known HTTP rejection cannot be repaired by downloading the same URL again. */
+    public static final class SourceHttpException extends RuntimeException {
+        public final int status;
+        SourceHttpException(int status){super("Audio server HTTP "+status);this.status=status;}
+    }
     static final Set<AutoCloseable> transports=ConcurrentHashMap.newKeySet();
     private static final Map<String, Sample> pending=new ConcurrentHashMap<>();
     private ProgressiveAudio() {}
@@ -23,37 +28,59 @@ public final class ProgressiveAudio {
         return prepare(url,cancelled,null,false);
     }
     public static File prepare(String url,BooleanSupplier cancelled,String retentionKey,boolean downloadAll) {
-        InputStream stream=null;Sample sample=null;AudioRanges remote=null;
+        return prepare(url,cancelled,retentionKey,downloadAll,0,null);
+    }
+    public static File prepare(String url,BooleanSupplier cancelled,String retentionKey,boolean downloadAll,long duration,String videoId) {
+        return prepare(url,cancelled,retentionKey,downloadAll,duration,videoId,null);
+    }
+    public static File prepare(String url,BooleanSupplier cancelled,String retentionKey,boolean downloadAll,long duration,String videoId,String playAuth) {
+        InputStream stream=null;Sample sample=null;AudioRanges remote=null;FrameSource source=null;
+        long began=System.nanoTime();String stage="transport";
         try {
             if(url==null||!url.matches("(?i)^https?://.*"))return null;
-            remote=new AudioRanges(url,cancelled);stream=remote.initial;
+            if(cancelled.getAsBoolean())throw new java.util.concurrent.CancellationException();
+            remote=videoId==null?new AudioRanges(url,cancelled):new AudioRanges(url,new InterruptibleInput(com.muoniumplayer.core.ncm.music.YouTubeMusicService.openProgressiveStream(videoId,url)),cancelled);stream=remote.initial;
+            stage="container";
             int length=(int)remote.length;
             var sniff=new BufferedInputStream(stream,32768);stream=sniff;sniff.mark(64);
             byte[] prefix=sniff.readNBytes(42);sniff.reset();
+            if(prefix.length>=10&&prefix[0]=='I'&&prefix[1]=='D'&&prefix[2]=='3') {
+                int tag=0;for(int i=6;i<10;i++){if((prefix[i]&128)!=0)throw new IOException("Invalid ID3 size");tag=(tag<<7)|(prefix[i]&127);}
+                long skip=10L+tag+((prefix[5]&16)!=0?10:0);if(skip>1024*1024||remote.length>=0&&skip>=remote.length)throw new IOException("Excessive ID3 metadata");
+                sniff.skipNBytes(skip);sniff.mark(64);prefix=sniff.readNBytes(42);sniff.reset();if(length>0)length-=skip;
+            }
             byte[] head=Arrays.copyOf(prefix,Math.min(4,prefix.length));
-            FrameSource source;
             if(Arrays.equals(head,new byte[]{'f','L','a','C'}))source=new FlacSource(sniff);
+            else if(head.length==4&&(head[0]&255)==255&&(head[1]&246)==240)source=new StreamingFormats.Adts(sniff,duration);
+            else if(prefix.length>=8&&StreamingFormats.word(prefix,4).equals("ftyp"))source=new StreamingMp4(remote,sniff,duration,playAuth);
+            else if(head.length==4&&StreamingFormats.word(head,0).equals("RIFF"))source=new StreamingFormats.Wav(sniff);
+            else if(head.length==4&&StreamingFormats.word(head,0).equals("OggS"))source=new StreamingFormats.Vorbis(sniff,duration);
             else if(head.length==4&&((head[0]=='I'&&head[1]=='D'&&head[2]=='3')
-                ||(head[0]==(byte)255&&(head[1]&224)==224)))source=new Mp3Source(sniff,length);
+                ||(head[0]==(byte)255&&(head[1]&224)==224)))source=new Mp3Source(sniff,length,duration);
             else {stream.close();remote.close();return null;}
-            if(source.frames()<=source.rate()||(long)source.frames()*source.channels()>Integer.MAX_VALUE/8L){stream.close();remote.close();return null;}
+            if(source.frames()<=source.rate()||(long)source.frames()*source.channels()>Integer.MAX_VALUE/8L){source.close();stream.close();remote.close();return null;}
             byte[] flacHeader=null;
             if(source instanceof FlacSource){
                 if(prefix.length!=42||(prefix[4]&127)!=0||prefix[5]!=0||prefix[6]!=0||prefix[7]!=34)throw new IOException("Invalid FLAC metadata");
                 flacHeader=prefix.clone();flacHeader[4]=(byte)128;
             }
-            sample=new Sample(source,remote,flacHeader,retentionKey,downloadAll);
+            stage="prebuffer";sample=new Sample(source,remote,flacHeader,retentionKey,downloadAll);
             stream=null;sample.start();sample.awaitReady(cancelled);remote.prepared();
             pending.put(sample.token.getAbsolutePath(),sample);
-            System.out.println("PROGRESSIVE_AUDIO ready codec="+source.codec()+" storage=session-only prebufferMs=1000");
+            System.out.println("PROGRESSIVE_AUDIO ready codec="+source.codec()+" transport="+(videoId==null?"http":"youtube-windows")+" storage=session-only prebufferMs=1000 elapsedMs="+(System.nanoTime()-began)/1_000_000);
             return sample.token;
         } catch(Exception e) {
             if(sample!=null)sample.cleanUp();
+            else if(source!=null)try{source.close();}catch(IOException ignored){}
             if(stream!=null)try{stream.close();}catch(IOException ignored){}
             if(remote!=null)remote.close();
             if(cancelled.getAsBoolean()||Thread.currentThread().isInterrupted())throw new java.util.concurrent.CancellationException("Progressive audio cancelled");
+            if(e instanceof AudioRanges.HttpFailure http) {
+                System.out.println("PROGRESSIVE_AUDIO rejected stage="+stage+" httpStatus="+http.status+" action=stop-duplicate-download");
+                throw new SourceHttpException(http.status);
+            }
             // Safe fallback happens before SoundFile owns any sample. No signed URL.
-            System.out.println("PROGRESSIVE_AUDIO fallback reason="+e.getClass().getSimpleName());
+            System.out.println("PROGRESSIVE_AUDIO fallback reason="+e.getClass().getSimpleName()+" stage="+stage+" httpStatus="+(e instanceof AudioRanges.HttpFailure http?http.status:0)+" elapsedMs="+(System.nanoTime()-began)/1_000_000);
             return null;
         }
     }
@@ -61,10 +88,23 @@ public final class ProgressiveAudio {
         Sample sample=file==null?null:pending.get(file.getAbsolutePath());
         return sample!=null&&sample.claimed.compareAndSet(false,true)?sample:null;
     }
+    static File prepareSource(FrameSource source,BooleanSupplier cancelled,String retentionKey,boolean downloadAll)throws Exception {
+        AudioRanges remote=new AudioRanges("https://www.youtube.com/",InputStream.nullInputStream(),cancelled);
+        Sample sample=null;
+        try {
+            sample=new Sample(source,remote,null,retentionKey,downloadAll);sample.start();sample.awaitReady(cancelled);remote.prepared();
+            pending.put(sample.token.getAbsolutePath(),sample);
+            System.out.println("PROGRESSIVE_AUDIO ready codec=pcm transport=official-page storage=session-only");return sample.token;
+        }catch(Exception failure){if(sample!=null)sample.cleanUp();else{remote.close();source.close();}throw failure;}
+    }
     public static boolean isProgressive(File file) {return file!=null&&pending.containsKey(file.getAbsolutePath());}
+    public static float[] loudness(File file) {
+        Sample s=file==null?null:pending.get(file.getAbsolutePath());
+        return s==null||s.closed?null:s.loudness.measurement();
+    }
     public static File analysisFile(File file) {
         Sample s=file==null?null:pending.get(file.getAbsolutePath());
-        return s==null?file:s.eof&&s.failure==null&&!s.closed?s.pcm.toFile():null;
+        return s==null?file:s.eof&&s.contiguous()&&s.failure==null&&!s.closed?s.pcm.toFile():null;
     }
     /** Reversible completion of the existing decoder, never a second transfer. */
     public static boolean completeForAnalysis(File file,boolean enabled,long maxBytes) {
@@ -87,10 +127,14 @@ public final class ProgressiveAudio {
         long index=Math.max(0,(long)(millis*s.rate/1000)*s.channels);
         long end=(long)s.getNumFrames()*s.channels;
         s.requested=Math.min(index,end-1);
-        if(index>=end)return s.available(end-1)>0?2:1;
+        if(index>=end){
+            if(s.source instanceof PositionedSource positioned&&s.available(end-1)==0)positioned.request((end-1)/s.channels);
+            return s.available(end-1)>0?2:1;
+        }
         long ahead=s.available(index);
         long threshold=(long)s.rate*s.channels*(s.buffering?1000:350)/1000;
         threshold=Math.min(threshold,(long)s.getNumFrames()*s.channels-index);
+        if(s.source instanceof PositionedSource positioned&&ahead<threshold)positioned.request(index/s.channels);
         s.buffering=ahead<threshold;
         return s.buffering?1:0;
     }
@@ -106,18 +150,25 @@ public final class ProgressiveAudio {
 
     interface FrameSource extends AutoCloseable {
         int frames();int channels();int rate();String codec();float[] next()throws Exception;
+        default boolean exact(){return false;}
         void close()throws IOException;
+    }
+    interface PositionedSource extends FrameSource {
+        long position();void request(long frame);boolean seekPending();
     }
     static final class Mp3Source implements FrameSource {
         final Bitstream bits;final Decoder decoder=new Decoder();Header header;
         final int frames,channels,rate,samplesPerFrame;float[] first;
         Mp3Source(InputStream input,int length)throws Exception {
+            this(input,length,0);
+        }
+        Mp3Source(InputStream input,int length,long duration)throws Exception {
             bits=new Bitstream(input);header=bits.readFrame();
-            if(header==null||header.layer()!=3||length<=0)throw new IOException("MP3 length unavailable");
+            if(header==null||header.layer()!=3||length<=0&&duration<=0)throw new IOException("MP3 length unavailable");
             var b=(SampleBuffer)decoder.decodeFrame(header,bits);
             channels=b.getChannelCount();rate=b.getSampleFrequency();
             samplesPerFrame=header.version()==Header.MPEG1?1152:576;
-            frames=Math.multiplyExact(header.maxNumberOfFrames(length),samplesPerFrame);
+            frames=length>0?Math.multiplyExact(header.maxNumberOfFrames(length),samplesPerFrame):StreamingFormats.durationFrames(duration,rate);
             first=convert(b);bits.closeFrame();
         }
         float[] convert(SampleBuffer b){
@@ -153,6 +204,7 @@ public final class ProgressiveAudio {
             double scale=Math.scalb(1.0,1-info.getBitsPerSample());
             for(int i=0;i<n;i++)for(int c=0;c<channels();c++)out[i*channels()+c]=(float)(data[c].getOutput()[i]*scale);return out;}
         public int frames(){return (int)info.getTotalSamples();}public int channels(){return info.getChannels();}public int rate(){return info.getSampleRate();}public String codec(){return "flac";}
+        public boolean exact(){return true;}
         public void close()throws IOException {input.close();}
     }
 
@@ -160,6 +212,7 @@ public final class ProgressiveAudio {
         final File token;final Path pcm;final FrameSource source;final int rate,channels;
         final String retentionKey;final boolean downloadAll;
         final AudioRanges remote;final AudioSeek seek;final FileChannel output,input;
+        final com.muoniumplayer.core.ncm.music.StreamingTrackLoudness loudness;
         volatile boolean closed,eof,buffering,rangeUnsupported,analysisAll;volatile Throwable failure;
         final java.util.concurrent.atomic.AtomicBoolean claimed=new java.util.concurrent.atomic.AtomicBoolean();
         volatile long written,requested;volatile long[][] spans=new long[0][];
@@ -168,6 +221,7 @@ public final class ProgressiveAudio {
         Sample(FrameSource source,AudioRanges remote,byte[] header,String retentionKey,boolean downloadAll)throws IOException {
             this.retentionKey=retentionKey;this.downloadAll=downloadAll;
             this.source=source;this.remote=remote;this.seek=new AudioSeek(remote,header,source);channels=source.channels();rate=source.rate();
+            loudness=new com.muoniumplayer.core.ncm.music.StreamingTrackLoudness(rate,channels);
             numFrames=source.frames();maxFrames=numFrames;channelsPerFrame=channels;setFrameRate(rate);
             Path base=SessionMedia.directory().toPath();token=Files.createTempFile(base,"progressive-","."+source.codec()).toFile();
             Files.write(token.toPath(),new byte[]{(byte)255,(byte)251,(byte)144,0});pcm=Path.of(token.getAbsolutePath()+".pcm.wav");
@@ -187,6 +241,7 @@ public final class ProgressiveAudio {
             if(failure!=null||written==0)throw new IOException("Audio did not decode",failure);
         }
         long available(long index){for(long[] span:spans)if(index>=span[0]&&index<span[1])return span[1]-index;return 0;}
+        boolean contiguous(){return spans.length==1&&spans[0][0]==0&&spans[0][1]>=(long)numFrames*channels;}
         synchronized void store(long start,float[] data)throws IOException {
             if(closed)return;long end=start+data.length;
             if(start<0||end>(long)numFrames*channels+rate*channels)throw new IOException("Audio length exceeded encoded bound");
@@ -200,28 +255,41 @@ public final class ProgressiveAudio {
             // STREAMINFO is exact. Once every FLAC sample exists, an extra
             // frame/HTTP read can only wait for irrelevant trailing bytes.
             // MP3 length is estimated and must still be resolved by real EOF.
-            while(!closed&&(!(source instanceof FlacSource)||written<(long)source.frames()*channels)
-                    &&(data=source.next())!=null){
+            while(!closed&&(!source.exact()||written<(long)source.frames()*channels)){
+                data=source.next();
+                if(data==null){
+                    if(!(source instanceof PositionedSource positioned))break;
+                    // Sparse browser sources remain seekable after EOF. Keep
+                    // their owner alive until the deck closes or seeks again.
+                    if(written>rate*channels)numFrames=(int)(written/channels);
+                    writeHeader();if(retentionKey!=null&&contiguous()){output.force(false);PlaybackFiles.global().retain(retentionKey,pcm.toFile());}
+                    eof=true;synchronized(changed){changed.notifyAll();while(!closed&&!positioned.seekPending())changed.wait(50);}
+                    if(closed)break;eof=false;continue;
+                }
                 if(source instanceof FlacSource flac && flac.position!=written/channels)throw new IOException("Discontinuous FLAC frames");
-                store(written,data);written+=data.length;
-                synchronized(changed){changed.notifyAll();while(!closed&&!analysisAll&&((!downloadAll&&written-requested>(long)rate*channels*12)
+                long at=source instanceof PositionedSource positioned?positioned.position()*channels:written;
+                loudness.accept(data);store(at,data);written=at+data.length;
+                synchronized(changed){changed.notifyAll();while(!closed&&!analysisAll&&(!(source instanceof PositionedSource p)||!p.seekPending())&&((!downloadAll&&written-requested>(long)rate*channels*12)
                     ||(!rangeUnsupported&&requested-written>(long)rate*channels*2)))changed.wait(100);}}
-            if(!closed&&(source instanceof FlacSource ? written!=(long)numFrames*channels
-                    : written+2L*rate*channels<(long)numFrames*channels))
+            if(!closed&&(source.exact() ? written!=(long)numFrames*channels
+                    : source instanceof Mp3Source&&written+2L*rate*channels<(long)numFrames*channels))
                 throw new EOFException("Audio ended before its encoded length");
             // MPEG headers only estimate a CBR/VBR duration; final sequential
             // decode provides the exact frame count, never a sparse seek.
-            if(!closed){numFrames=(int)(written/channels);
-                ByteBuffer h=ByteBuffer.allocate(44).order(ByteOrder.LITTLE_ENDIAN);
-                h.put(new byte[]{'R','I','F','F'}).putInt((int)(36+written*4)).put(new byte[]{'W','A','V','E','f','m','t',' '}).putInt(16)
-                    .putShort((short)3).putShort((short)channels).putInt(rate).putInt(rate*channels*4).putShort((short)(channels*4)).putShort((short)32)
-                    .put(new byte[]{'d','a','t','a'}).putInt((int)(written*4)).flip();
-                long offset=0;while(h.hasRemaining())offset+=output.write(h,offset);
-                if(retentionKey!=null){output.force(false);PlaybackFiles.global().retain(retentionKey,pcm.toFile());}
+            if(!closed){numFrames=(int)(written/channels);writeHeader();
+                if(retentionKey!=null&&contiguous()){output.force(false);PlaybackFiles.global().retain(retentionKey,pcm.toFile());}
             }
         }catch(Throwable e){if(!closed)failure=e;}
         finally{eof=true;try{source.close();}catch(Exception ignored){}synchronized(changed){changed.notifyAll();}}}
-        void seekLoop(){while(!closed){try{
+        private void writeHeader()throws IOException {
+            long length=(long)numFrames*channels*4;
+            ByteBuffer h=ByteBuffer.allocate(44).order(ByteOrder.LITTLE_ENDIAN);
+            h.put(new byte[]{'R','I','F','F'}).putInt((int)(36+length)).put(new byte[]{'W','A','V','E','f','m','t',' '}).putInt(16)
+                .putShort((short)3).putShort((short)channels).putInt(rate).putInt(rate*channels*4).putShort((short)(channels*4)).putShort((short)32)
+                .put(new byte[]{'d','a','t','a'}).putInt((int)length).flip();
+            long offset=0;while(h.hasRemaining())offset+=output.write(h,offset);
+        }
+        void seekLoop(){if(source instanceof PositionedSource)return;while(!closed){try{
             long target=requested/channels;
             if(rangeUnsupported||requested>=(long)numFrames*channels||available(requested)>=Math.min((long)rate*channels,(long)numFrames*channels-requested)||target<written/channels+rate*2L){Thread.sleep(40);continue;}
             var located=seek.open(target);seekingSource=located.source();
@@ -253,5 +321,17 @@ public final class ProgressiveAudio {
             try{output.close();}catch(Exception ignored){}try{input.close();}catch(Exception ignored){}
             try{Files.deleteIfExists(pcm);}catch(IOException ignored){}token.delete();
         }
+    }
+    /** The upstream YouTube window fetcher honours interruption. close() must
+     * also stop a request which is currently obtaining its first window. */
+    static final class InterruptibleInput extends FilterInputStream {
+        volatile boolean stopped;volatile Thread reader;
+        InterruptibleInput(InputStream in){super(in);}
+        public int read()throws IOException{byte[] b=new byte[1];return read(b,0,1)<0?-1:b[0]&255;}
+        public int read(byte[] b,int o,int n)throws IOException {
+            if(stopped)throw new InterruptedIOException("Audio released");reader=Thread.currentThread();
+            try{int count=in.read(b,o,n);if(stopped)throw new InterruptedIOException("Audio released");return count;}finally{reader=null;}
+        }
+        public void close()throws IOException {stopped=true;Thread t=reader;if(t!=null&&t!=Thread.currentThread())t.interrupt();in.close();}
     }
 }

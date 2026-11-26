@@ -34,7 +34,7 @@ public final class BedrockOverlay {
     }
     private static void run(String[] args,HostWatchdog health) throws Exception {
         appliedSettings = null;
-        System.out.println("OVERLAY_COMPAT patch=sparse-ulw-20261113 version=0.13.0 presentation=auto-native-d3d12 fallback=layered-window gameBackend=D3D11,D3D12 arke=exact-adapter legacyD3D11Hooks=disabled render=hidden-fbo display=layered-NO_API framePacing=world-camera-signal,fallback-game-fps,ui-60 alphaCrop=max-reduction-bands4");
+        System.out.println("OVERLAY_COMPAT patch=sparse-ulw-20261113 version="+MuoniumPlayerClient.MOD_VERSION+" presentation=auto-native-d3d12 fallback=layered-window gameBackend=D3D11,D3D12 arke=exact-adapter legacyD3D11Hooks=disabled render=hidden-fbo display=layered-NO_API framePacing=world-camera-signal,fallback-game-fps,ui-60 alphaCrop=max-reduction-bands4");
         long parent = Long.parseLong(option(args, "--parent-pid"));
         var process = ProcessHandle.of(parent).orElseThrow();
         var owner = new WinDef.HWND(Pointer.createConstant(Long.parseUnsignedLong(option(args, "--owner"))));
@@ -70,7 +70,7 @@ public final class BedrockOverlay {
             workspace=new HostWorkspace(prefix);
             HostToolsScreen.ordinarySettings(()->{panel.close();Kernel32.INSTANCE.SetEvent(controls[13]);});
             boolean shown = false;
-            long lastReload = 0, lastTick = 0,lastDepthLog=0;
+            long lastReload = 0, lastTick = 0,lastDepthLog=0,lastVoiceTick=0;
             WorldFrame lastPresentedCamera=null;
             var lyricRefresh=LyricRefresh.global();var lyricGate=new LyricRefresh.Gate();int lastRefreshChoice=-1;
             presenter=new LayeredPresenter(overlay);
@@ -83,7 +83,8 @@ public final class BedrockOverlay {
             EnvironmentFrame environment=null;
             try (LyricOverlay lyrics = new LyricOverlay(); WorldReader worldReader=new WorldReader(prefix);
                  EnvironmentReader environmentReader=new EnvironmentReader(prefix);DepthReader depthReader=new DepthReader(prefix);
-                 CinematicReader cinematicReader=new CinematicReader(prefix);NativeComposition composition=new NativeComposition(prefix)) {
+                 CinematicReader cinematicReader=new CinematicReader(prefix);NativeComposition composition=new NativeComposition(prefix);
+                 RoomVoiceKeys voiceKeys=new RoomVoiceKeys(prefix);RoomVoiceWorldReader voiceWorldReader=new RoomVoiceWorldReader(prefix)) {
                 System.out.println("BEDROCK_HOST_READY source=upstream lyrics=hud,stage,world-camera keys=NONE");
                 Kernel32.INSTANCE.SetEvent(controls[5]);
                 while (process.isAlive() && User32.INSTANCE.IsWindow(owner) && !GLFW.glfwWindowShouldClose(window)) {
@@ -116,6 +117,7 @@ public final class BedrockOverlay {
                     health.phase(HostWatchdog.Stage.ENVIRONMENT);
                     long environmentStarted=System.nanoTime();
                     WorldFrame frame=worldReader.read();
+                    RoomVoiceWorld voiceWorld=voiceWorldReader.read();
                     // Keep the proven camera-projected lyric raster in the
                     // common alpha layer. Native atlas/depth admission has not
                     // been established by the game, so it cannot own visibility.
@@ -124,7 +126,7 @@ public final class BedrockOverlay {
                     if(now-lastTick>50_000_000L) {
                         boolean autoMusic=com.muoniumplayer.core.ncm.music.ambient.AmbientSettings.isEnabled();
                         boolean sceneSound=com.muoniumplayer.core.ncm.music.acoustics.AcousticsSettings.isEnabled();
-                        environmentReader.request(settings.enabled()&&frame!=null&&(autoMusic||sceneSound||settings.speakerEnabled()||settings.worldLyricsOcclusion()||cinematic.enabled()));
+                        environmentReader.request(settings.enabled()&&(frame!=null&&(autoMusic||sceneSound||settings.speakerEnabled()||settings.worldLyricsOcclusion()||cinematic.enabled())||voiceWorld!=null&&RoomVoice.global().needsGeometry()));
                         environment=environmentReader.read(frame);
                         environmentRuntime.tick(environment,settings.enabled(),autoMusic,sceneSound,speaker.anchor());
                     }
@@ -134,6 +136,7 @@ public final class BedrockOverlay {
                     var depthFrame=depthReader.read();lyrics.updateDepth(depthFrame,depthReader.now());
                     long environmentNanos=System.nanoTime()-environmentStarted;
                     health.phase(HostWatchdog.Stage.CONTROLS);
+                    voiceKeys.poll(settings.enabled());
                     boolean requestFocus=workspace.update(panel,settings.enabled());
                     if(Kernel32.INSTANCE.WaitForSingleObject(controls[12],0)==0&&settings.enabled()){
                         panel.open(HostToolsScreen.entry());requestFocus=true;
@@ -170,6 +173,7 @@ public final class BedrockOverlay {
                     long cinematicStarted=System.nanoTime();
                     cinematic.update(cinematicReader,environment,frame,settings.enabled()&&gameFocused&&!panel.isOpen()
                         &&!HostFileDialogs.active()&&!ExtraUser32.INSTANCE.IsIconic(owner),now);
+                    if(now-lastVoiceTick>50_000_000L){lastVoiceTick=now;RoomVoice.global().updatePose(settings.enabled()?voiceWorld:null,voiceWorld==null?null:environmentReader.readEpoch(voiceWorld.geometryEpoch()));}
                     diagnostics.parts(environmentNanos,System.nanoTime()-cinematicStarted);
                     if(windowMode.update(panel.isOpen()))diagnostics.mode(panel.isOpen());
                     if(!wantsVisible&&shown){presenter.visible(false);User32.INSTANCE.ShowWindow(overlay,0);shown=false;}
@@ -268,6 +272,7 @@ public final class BedrockOverlay {
                 }
             }
         } finally {
+            RoomVoice.global().close();
             if(workspace!=null)workspace.close();
             HostToolsScreen.ordinarySettings(null);
             health.phase(HostWatchdog.Stage.CLEANUP);
@@ -350,15 +355,16 @@ public final class BedrockOverlay {
         GLFW.glfwSetCursorPosCallback(window, (w, x, y) -> Mouse.position(x, y));
         GLFW.glfwSetScrollCallback(window, (w, x, y) -> Mouse.pushScrollNotches(y));
         GLFW.glfwSetKeyCallback(window, (w, key, scan, action, mods) -> {
-            if (HostInputState.allowed() && action != GLFW.GLFW_RELEASE && client.gui.screen() != null
+            if (HostInputState.keyEvent(key,action) && client.gui.screen() != null
                     && (key != GLFW.GLFW_KEY_ESCAPE || action == GLFW.GLFW_PRESS))
                 dispatch(() -> client.gui.screen().keyEvent('\0', Keyboard.fromGlfw(key)));
         });
         GLFW.glfwSetCharCallback(window, (w, codepoint) -> {
-            if (HostInputState.allowed() && client.gui.screen() != null) for (char ch : Character.toChars(codepoint)) dispatch(() -> client.gui.screen().keyEvent(ch, 0));
+            if (HostInputState.textAllowed() && client.gui.screen() != null) for (char ch : Character.toChars(codepoint)) dispatch(() -> client.gui.screen().keyEvent(ch, 0));
         });
         GLFW.glfwSetMouseButtonCallback(window, (w, button, action, mods) -> {
-            var screen = client.gui.screen(); if (screen == null || !HostInputState.allowed()) return;
+            boolean accepted=HostInputState.buttonEvent(button,action);
+            var screen = client.gui.screen(); if (screen == null || !accepted) return;
             double scale = client.getWindow().getGuiScale();
             int x = (int) (Mouse.getX() / scale), y = (int) ((client.getWindow().getHeight() - Mouse.getY() - 1) / scale);
             if (action == GLFW.GLFW_PRESS) dispatch(() -> screen.clickEvent(x, y, button));

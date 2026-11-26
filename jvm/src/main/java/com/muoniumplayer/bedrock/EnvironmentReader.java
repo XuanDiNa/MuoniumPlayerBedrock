@@ -31,14 +31,18 @@ public final class EnvironmentReader implements AutoCloseable {
         if(!value)cache.clear();
     }
     public EnvironmentFrame read(WorldFrame world) {
-        if(view==null||world==null||!requested){cache.clear();return null;}
+        return readEpoch(world==null?0:world.epoch());
+    }
+    EnvironmentFrame readEpoch(long epoch) {
+        if(view==null||epoch<=0||!requested){cache.clear();return null;}
         int status=Api.INSTANCE.WaitForSingleObject(lock,0);
         if(status==0||status==0x80)try{
             return cache.read(view.getLong(8),view.getLong(16),view.getLong(24),view.getInt(32),
-                Api.INSTANCE.GetTickCount64(),world.epoch(),()->view.getByteArray(0,EnvironmentFrame.BYTES));
+                Api.INSTANCE.GetTickCount64(),epoch,()->view.getByteArray(0,EnvironmentFrame.BYTES));
         }finally{Api.INSTANCE.ReleaseMutex(lock);}
-        // Never decode an old publication just because the producer is busy.
-        return null;
+        // A scan's short publication lock is not a scene transition. Reuse
+        // immutable values for at most 100ms; a successful invalid read revokes.
+        return cache.contended(Api.INSTANCE.GetTickCount64(),epoch);
     }
     public void close(){
         request(false);if(view!=null)Api.INSTANCE.UnmapViewOfFile(view);view=null;

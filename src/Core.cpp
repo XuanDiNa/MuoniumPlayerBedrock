@@ -54,7 +54,7 @@ Config ParseConfig(std::string_view raw){
     flag("worldLyricsOcclusion",c.worldLyricsOcclusion);
     flag("smtcPublishEnabled",c.smtcPublishEnabled);
     std::set<std::string> bindings;
-    for(auto const&[k,out]:std::vector<std::pair<char const*,std::string*>>{{"openKey",&c.openKey},{"playPauseKey",&c.playPauseKey},{"nextKey",&c.nextKey},{"previousKey",&c.previousKey},{"speakerKey",&c.speakerKey},{"miniPlayerKey",&c.miniPlayerKey},{"hudEditorKey",&c.hudEditorKey},{"islandSearchKey",&c.islandSearchKey}}){
+    for(auto const&[k,out]:std::vector<std::pair<char const*,std::string*>>{{"openKey",&c.openKey},{"playPauseKey",&c.playPauseKey},{"nextKey",&c.nextKey},{"previousKey",&c.previousKey},{"speakerKey",&c.speakerKey},{"miniPlayerKey",&c.miniPlayerKey},{"hudEditorKey",&c.hudEditorKey},{"islandSearchKey",&c.islandSearchKey},{"voiceMicrophoneKey",&c.voiceMicrophoneKey},{"voiceDeafenKey",&c.voiceDeafenKey}}){
         if(j.contains(k)){if(!j[k].is_string())throw std::runtime_error("Expected key token");*out=j[k].get<std::string>();}
         auto binding=modmenu::binding::ParseInput(*out);if(!binding)throw std::runtime_error("Unsupported key token");
         if(binding->key&&!bindings.insert(modmenu::binding::Token(*binding)).second)throw std::runtime_error("Player shortcuts must differ");

@@ -8,6 +8,25 @@ import com.muoniumplayer.core.ncm.music.acoustics.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class EnvironmentRuntimeTest {
+    @Test void acousticContextStaysStableUntilWorldOrSourceChanges() {
+        var input=new AtomicReference<AcousticsRuntime.ListenerSampler>();
+        var runtime=new EnvironmentRuntime(ignored->{},input::set);
+        var raw=EnvironmentFrameTest.packet();
+        runtime.tick(EnvironmentFrame.decode(raw,1001,7),true,false,true);
+        Object first=input.get().contextKey();assertNotNull(first);
+        runtime.tick(EnvironmentFrame.decode(raw,1001,7),true,false,true);
+        assertSame(first,input.get().contextKey(),"Fresh frame objects must not invalidate the same world");
+        ByteBuffer.wrap(raw).order(ByteOrder.LITTLE_ENDIAN).putLong(24,8);
+        runtime.tick(EnvironmentFrame.decode(raw,1001,8),true,false,true);
+        Object second=input.get().contextKey();assertNotSame(first,second);
+        var source=SpeakerState.place(.5,.5,.5,"0");
+        runtime.tick(EnvironmentFrame.decode(raw,1001,8),true,false,true,source);
+        Object fixed=input.get().contextKey();assertNotSame(second,fixed);
+        runtime.tick(EnvironmentFrame.decode(raw,1001,8),true,false,true,source);
+        assertSame(fixed,input.get().contextKey());
+        var sampler=input.get();runtime.tick(null,false,false,true);
+        assertNull(input.get());assertNull(sampler.contextKey());assertNull(sampler.capture());
+    }
     @Test void nearbyCountsReachOriginalCombatRuleAndClearWithoutStaleCombat() throws Exception {
         boolean before=AmbientSettings.isEnabled();
         var label=AmbientMusicController.class.getDeclaredField("lastSeenLabel");label.setAccessible(true);

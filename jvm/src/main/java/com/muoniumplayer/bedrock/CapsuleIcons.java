@@ -20,9 +20,13 @@ public final class CapsuleIcons {
     }
     public static void mode(double x,double y,double size,double box,float alpha) {
         var mode=CloudMusic.playMode;if(mode==null)return;
+        modeAt(mode,x+box*.5,y+box*.5,Math.min(size,box)*.58,alpha);
+    }
+    public static void modeAt(CloudMusic.PlayMode mode,double cx,double cy,double size,float alpha) {
+        if(mode==null)return;
         String glyph=switch(mode){case Random->"F";case LoopInList->"I";case LoopSingle->"L";case Sequential->"G";};
         int color=(Math.max(0,Math.min(255,Math.round(alpha*255)))<<24)|0xFFFFFF;
-        draw("icomoon",glyph,x+box*.5,y+box*.5,Math.min(size,box)*.58,color);
+        draw("icomoon",glyph,cx,cy,size,color);
     }
     private static void draw(String font,String glyph,double cx,double cy,double size,int color) {
         var canvas=SkijaGfx.canvas();if(canvas==null||!(size>0))return;

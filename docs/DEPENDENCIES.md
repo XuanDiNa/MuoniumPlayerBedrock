@@ -2,8 +2,8 @@ Local4 update: see modmenube-migration.md for separate Workspace/Configure and l
 
 # Dependencies and corresponding source
 
-The active player is based on MuoniumPlayer 2.5.2 at commit
-`9b4cc7e7bd143315da716075a6d024a0d4c0c81b` (Apache-2.0).
+The active player is based on MuoniumPlayer 2.6.1 release commit on main at
+`4011d03b535cc40fa54b2cb8324cd5405eb9d6e0` (Apache-2.0).
 Curated source, resource manifests, Bedrock adapters and build tools are supplied
 in this repository and matching Release source ZIPs. Versions are declared in
 `jvm/build.gradle`. Dependency JARs are unmodified, with embedded notices retained
@@ -69,3 +69,15 @@ they contain no SF Pro/PingFang font bytes.
 
 繁體中文：四個文字字型換為 OFL Noto，圖示保留原作來源。LGPL／MPL 元件保留
 原條款並提供對應來源、建置與替換方式；Java runtime 保留發行商 legal。
+
+YouTube 0.17.0 official-page PCM requires an installed Chrome or Edge (not bundled).
+Only the mod-owned dedicated login profile is copied into a disposable working session.
+Official advertising, account verification and regional restrictions remain applicable.
+
+The playback browser uses an owned hidden CDP target from startup, with an active
+media viewport and no OS focus changes. The interactive login browser stays visible.
+
+0.19.0 room voice uses independently authored Apache-2.0 Java/native adapters
+and statically linked Opus 1.5.2 via the xmake package build recipe (BSD-3-Clause). No BSChat plugin is
+bundled or invoked. The separate 0.18.0 BSChat candidate remains historical.
+Source/build/provenance: native/room-voice/README.md; license: licenses/Opus-COPYING.txt.

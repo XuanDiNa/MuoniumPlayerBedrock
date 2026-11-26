@@ -2,6 +2,7 @@
 #include "JvmHost.h"
 #include "Version.h"
 #include "LoaderPolicy.h"
+#include "HostEvidence.h"
 #include <atomic>
 #include <mutex>
 namespace {
@@ -14,7 +15,15 @@ constexpr auto loader=mp::LoaderKind::LeviLamina;
 constexpr auto loader=mp::LoaderKind::Preload;
 #endif
 bool CheckHost(std::filesystem::path const& exe,std::filesystem::path const& folder){
-    bool verified=mp::VerifyHost(exe);auto identity=mp::VerifiedHostIdentity.load();
+    mp::HostVerification verification;
+    bool verified=mp::VerifyHost(exe,&verification);auto identity=mp::VerifiedHostIdentity.load();
+    mp::Log(folder,mp::FormatHostVerification(verification));
+    if(!verified&&verification.peValid&&!verification.sha256.empty()){
+        auto evidence=mp::SaveHostEvidence(exe,folder,verification.sha256);
+        mp::Log(folder,"HOST_EVIDENCE revision=1 status="+evidence.reason+
+            " file="+(evidence.saved?evidence.filename:"none")+
+            " nativeEquivalent="+(evidence.nativeEquivalent?"yes":"no")+" nativeAuthorized=no");
+    }
     bool leviLoaded=GetModuleHandleW(L"LeviLamina.dll")!=nullptr;
     mp::Log(folder,std::string("HOST CHECK identity=")+(verified?"matched":"unrecognized")+
         " profile="+(identity?std::string(identity->name):"none")+" LeviLamina="+(leviLoaded?"loaded":"absent"));

@@ -22,6 +22,11 @@ public final class RoomTunnel {
     public static boolean busy(){return busy;}
     public static boolean ready(){return !invite.isEmpty();}
     public static String invitation(){return invite;}
+    /** Complete copy action: prefer the ready public invitation, never a hostless fragment. */
+    public static String completeInvitation(String host){
+        String publicInvite=invite;
+        return publicInvite.isEmpty()?MpDirect.inviteString(host):publicInvite;
+    }
     public static String buttonLabel(){return busy?"正在穿透 · 点击取消":ready()?"复制公网邀请":"一键公网穿透";}
     public static void cancel() {
         boolean joining;
@@ -69,29 +74,45 @@ public final class RoomTunnel {
     private static synchronized boolean current(long mine){return mine==generation;}
     private static synchronized void fail(long mine,String message){if(mine==generation){invite="";status=message;busy=false;}}
     public static String joinRoom(String value,Consumer<String> done) {
+        if(value!=null&&value.strip().matches("[0-9]{1,5}#[^#\\s]+(?:#[^#\\s]+)?"))
+            return "邀请缺少房主地址，请索取完整邀请或公网邀请";
         if(!TunnelInvite.isTunnel(value))return MpDirect.joinRoom(value,done);
         final TunnelInvite parsed;try{parsed=TunnelInvite.parse(value);}catch(IllegalArgumentException e){return "公网邀请格式不正确，请粘贴完整邀请";}
         final long mine;
         synchronized(RoomTunnel.class) {
             if(busy||member!=null||MpDirect.isActive()||MpDirect.isHosting()||MpDirect.isPendingJoin())return "请先退出当前房间或等待连接完成";
-            mine=++generation;busy=true;status="正在连接公网房间…";
+            mine=++generation;busy=true;status="正在读取公网房间代理设置…";
             worker=Thread.ofVirtual().name("muonium-room-connect").start(()->{
                 TunnelClientBridge bridge=null;
+                RoomProxySettings.Value proxy=null;
                 try {
-                    bridge=TunnelClientBridge.open(parsed.endpoint());
+                    proxy=RoomProxySettings.global().get();final var selected=proxy;
+                    synchronized(RoomTunnel.class){if(mine!=generation)return;status="正在连接公网房间 · "+proxy.mode().label+"…";}
+                    bridge=TunnelClientBridge.prepare(parsed.endpoint(),proxy);
+                    synchronized(RoomTunnel.class){if(mine!=generation){bridge.close();return;}member=bridge;}
+                    bridge.connect();
                     String error;
                     synchronized(RoomTunnel.class){
                       if(mine!=generation){bridge.close();return;}member=bridge;
                       error=MpDirect.joinRoom(parsed.localInvite(bridge.port()),err->{
                         synchronized(RoomTunnel.class) {
                             if(mine!=generation)return;
-                            if(err!=null){close();status="公网房间连接失败";}else{busy=false;status="已连接公网房间";}
+                            if(err!=null){close();status="公网房间连接失败";}else{busy=false;status="已连接公网房间 · "+selected.mode().label;}
                             if(done!=null)done.accept(err);
                         }
                       });
                     }
                     if(error!=null){close();status="公网房间连接失败";deliver(done,error);}
-                }catch(Exception e){if(current(mine)){close();status="公网房间不可达";deliver(done,"公网房间不可达，请让房主检查穿透状态或重建邀请");}}
+                }catch(Exception e){
+                    if(bridge!=null)bridge.close();
+                    if(current(mine)){
+                        close();boolean via=proxy==null||proxy.mode()!=RoomProxySettings.Mode.DIRECT;
+                        status=via?"代理房间连接失败 · 未改走直连":"公网房间不可达";
+                        String reason=RoomProxyTransport.failureMessage(e);
+                        deliver(done,proxy==null?"代理设置损坏，请打开连接代理并重新保存":via?reason+"。未改走直连。":"公网房间不可达，请让房主检查穿透状态或重建邀请");
+                        System.err.println("ROOM_PROXY failed mode="+(proxy==null?"CONFIG":proxy.mode())+" class="+e.getClass().getSimpleName()+" reason="+reason);
+                    }
+                }
             });
         }
         return null;

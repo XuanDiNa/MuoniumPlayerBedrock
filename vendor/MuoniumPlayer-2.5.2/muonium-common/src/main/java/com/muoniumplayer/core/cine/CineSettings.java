@@ -27,10 +27,13 @@ public final class CineSettings {
 
     /** 闲置秒数的合法区间。下限 5s 防误触（走路短暂停手不该进运镜）。 */
     public static final int IDLE_SECONDS_MIN = 5, IDLE_SECONDS_MAX = 3600;
+    /** 首次安装的默认闲置时长，与 HUD 首选项默认项一致。 */
+    public static final int IDLE_SECONDS_DEFAULT = 10;
     /** 镜头时长（拍数）的合法区间：1 拍 = 最快的 MV 快切，32 拍 ≈ 主歌长镜头。 */
     public static final int SHOT_BEATS_MIN = 1, SHOT_BEATS_MAX = 32;
-    /** 运镜速度乘数区间：0 = 镜头内静止（纯硬切），4 = 四倍角速度（对齐 cameraSpeed）。 */
+    /** 镜头运动速度乘数区间：0 = 镜头内静止，4 = 快速移动。 */
     public static final float SPEED_MIN = 0f, SPEED_MAX = 4f;
+    public static final int ENVIRONMENT_SHOT_PERCENT_MIN = 0, ENVIRONMENT_SHOT_PERCENT_MAX = 100;
     /** 生物搜索半径区间（格），对齐 Ambient Camera 的 mobFocusRange。 */
     public static final float MOB_RANGE_MIN = 6f, MOB_RANGE_MAX = 64f;
     /** 追踪软度区间（秒），对齐 Ambient Camera 的 transitionSeconds。 */
@@ -55,19 +58,13 @@ public final class CineSettings {
     /** 测试 IO 闸：置位后 load/save 全部旁路（测试 JVM 不许碰真实工作目录的 cine.json）。 */
     static boolean testIoHooked;
     private static boolean enabled;
-    /**
-     * 播放中持续多少秒无输入后进入运镜。默认 300s —— 对齐 Ambient Camera 的
-     * idleSeconds（5..3600）：那是「屏保」语义，我们继承同一口径（卡点运镜是
-     * 同场景替代品，不是常驻运镜）；调试时改 json 即可。
-     */
-    private static int idleSeconds = 300;
+    /** 播放中持续多少秒无输入后进入运镜。 */
+    private static int idleSeconds = IDLE_SECONDS_DEFAULT;
     /** 每个镜头的基准时长（拍数）。实际时长还会被段落能量调制（副歌更快）。 */
     private static int shotBeats = 4;
-    /**
-     * 镜头内运镜（环绕/推拉）的全局速度乘数。默认 0.7、区间 0..4 ——
-     * 对齐 Ambient Camera 的 cameraSpeed（0=冻结机位，2=双倍速）。
-     */
     private static float speedMultiplier = 0.7f;
+    /** 镜头运动中选择风景/环境构图的百分比。 */
+    private static int environmentShotPercent = 50;
     /** 鼓点 FOV 脉冲的最大幅度（度）。 */
     private static float fovPunchDegrees = 8f;
     /** 手持感噪声幅度（0..1）。 */
@@ -111,6 +108,24 @@ public final class CineSettings {
     private static final JsonObject DEFAULTS = toJsonLocked();
 
     private CineSettings() {
+    }
+
+    public record Snapshot(boolean enabled, int idleSeconds, int shotBeats, float speedMultiplier,
+                           int environmentShotPercent, float fovPunchDegrees, float handheldIntensity,
+                           boolean showCinematicBars, int cinematicBarPercent, int transitionMask,
+                           float transitionSeconds, boolean enableMobFocus, float mobFocusRange,
+                           float trackingSoftness, float minShotSeconds) {
+    }
+
+    /** 每 tick 原子捕获配置；镜头计算不再逐字段读锁或触发配置加载。 */
+    public static Snapshot snapshot() {
+        load();
+        synchronized (LOCK) {
+            return new Snapshot(enabled, idleSeconds, shotBeats, speedMultiplier,
+                    environmentShotPercent, fovPunchDegrees, handheldIntensity, showCinematicBars,
+                    cinematicBarPercent, transitionMask, transitionSeconds, enableMobFocus, mobFocusRange,
+                    trackingSoftness, minShotSeconds);
+        }
     }
 
     public static boolean isEnabled() {
@@ -172,6 +187,22 @@ public final class CineSettings {
         load();
         synchronized (LOCK) {
             speedMultiplier = v;
+            saveLocked();
+        }
+    }
+
+    public static int environmentShotPercent() {
+        load();
+        synchronized (LOCK) {
+            return environmentShotPercent;
+        }
+    }
+
+    public static void setEnvironmentShotPercent(int value) {
+        int v = clamp(value, ENVIRONMENT_SHOT_PERCENT_MIN, ENVIRONMENT_SHOT_PERCENT_MAX);
+        load();
+        synchronized (LOCK) {
+            environmentShotPercent = v;
             saveLocked();
         }
     }
@@ -347,11 +378,14 @@ public final class CineSettings {
         }
     }
 
-    public static float trackingSoftness() {
-        load();
-        synchronized (LOCK) {
-            return trackingSoftness;
-        }
+    /** Cine chase response softness in seconds, clamped to Ambient Camera's 0.1..8 range. */
+    public static float nextTrackingSoftness(float value) {
+        float current = clamp(value, SOFTNESS_MIN, SOFTNESS_MAX);
+        if (current < 0.4f) return 0.5f;
+        if (current < 0.65f) return 0.8f;
+        if (current < 1.0f) return 1.2f;
+        if (current < 1.6f) return 2f;
+        return 0.3f;
     }
 
     public static void setTrackingSoftness(float value) {
@@ -360,6 +394,13 @@ public final class CineSettings {
         synchronized (LOCK) {
             trackingSoftness = v;
             saveLocked();
+        }
+    }
+
+    public static float trackingSoftness() {
+        load();
+        synchronized (LOCK) {
+            return trackingSoftness;
         }
     }
 
@@ -400,9 +441,10 @@ public final class CineSettings {
             loaded = false;
             testIoHooked = true;
             enabled = false;
-            idleSeconds = 300;
+            idleSeconds = IDLE_SECONDS_DEFAULT;
             shotBeats = 4;
             speedMultiplier = 0.7f;
+            environmentShotPercent = 50;
             fovPunchDegrees = 8f;
             handheldIntensity = 0.4f;
             hideHud = true;
@@ -488,6 +530,8 @@ public final class CineSettings {
         idleSeconds = clamp(optInt(root, "idleSeconds", idleSeconds), IDLE_SECONDS_MIN, IDLE_SECONDS_MAX);
         shotBeats = clamp(optInt(root, "shotBeats", shotBeats), SHOT_BEATS_MIN, SHOT_BEATS_MAX);
         speedMultiplier = clamp(optFloat(root, "speedMultiplier", speedMultiplier), SPEED_MIN, SPEED_MAX);
+            environmentShotPercent = clamp(optInt(root, "environmentShotPercent", environmentShotPercent),
+                ENVIRONMENT_SHOT_PERCENT_MIN, ENVIRONMENT_SHOT_PERCENT_MAX);
         fovPunchDegrees = clamp(optFloat(root, "fovPunchDegrees", fovPunchDegrees), FOV_PUNCH_MIN, FOV_PUNCH_MAX);
         handheldIntensity = clamp(optFloat(root, "handheldIntensity", handheldIntensity), HANDHELD_MIN, HANDHELD_MAX);
         hideHud = optBool(root, "hideHud", hideHud);
@@ -521,6 +565,7 @@ public final class CineSettings {
         root.addProperty("idleSeconds", idleSeconds);
         root.addProperty("shotBeats", shotBeats);
         root.addProperty("speedMultiplier", speedMultiplier);
+        root.addProperty("environmentShotPercent", environmentShotPercent);
         root.addProperty("fovPunchDegrees", fovPunchDegrees);
         root.addProperty("handheldIntensity", handheldIntensity);
         root.addProperty("hideHud", hideHud);

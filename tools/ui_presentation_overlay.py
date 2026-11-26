@@ -85,4 +85,5 @@ def apply(source):
         '''        beginScissor(panelX, bodyY, navW, bodyH);
         try { drawNav(fr, panelX, bodyY, navW, bodyH, categories, mouseX, mouseY); }
         finally { endScissor(); }''')
-    return source
+    from settings_appearance_overlay import apply_editor
+    return apply_editor(source)

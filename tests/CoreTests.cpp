@@ -6,6 +6,11 @@ int checks=0;
 void Check(bool ok,char const* label){++checks;if(!ok)throw std::runtime_error(label);}
 template<class F>void Refuses(F f,char const* label){bool refused=false;try{f();}catch(...){refused=true;}Check(refused,label);}
 int main(){try{
+    Check(ParseConfig("{}").voiceMicrophoneKey=="NONE"&&ParseConfig("{}").voiceDeafenKey=="NONE","voice shortcuts default unbound");
+    auto voice=ParseConfig(R"({"voiceMicrophoneKey":"CTRL+M","voiceDeafenKey":"CTRL+D"})");
+    Check(voice.voiceMicrophoneKey=="CTRL+M"&&voice.voiceDeafenKey=="CTRL+D","voice chords retained");
+    Refuses([]{ParseConfig(R"({"openKey":"CTRL+M","voiceMicrophoneKey":"CTRL+M"})");},"voice conflicts rejected");
+    Refuses([]{ParseConfig(R"({"voiceMicrophoneKey":"CTRL+D","voiceDeafenKey":"CTRL+D"})");},"voice controls cannot share chord");
     Check(ParseConfig(R"({"openKey":"CTRL+K","playPauseKey":"SHIFT+K","nextKey":"LALT+K","previousKey":"CTRL+SHIFT+LALT+K"})").openKey=="CTRL+K","combination config accepted by actual 0.7 player parser");
     Refuses([]{ParseConfig(R"({"openKey":"CTRL+K","nextKey":"CTRL+K"})");},"same chord conflicts, distinct modifier masks do not");
 

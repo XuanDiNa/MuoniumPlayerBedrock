@@ -201,8 +201,9 @@ class StageRenderTest {
                     var f=HostMiniPlayer.class.getDeclaredField("scale");f.setAccessible(true);float scale=f.getFloat(page);
                     var fx=HostMiniPlayer.class.getDeclaredField("x");fx.setAccessible(true);
                     var fy=HostMiniPlayer.class.getDeclaredField("y");fy.setAccessible(true);
-                    page.clickEvent(Math.round(fx.getFloat(page)+(float)(com.muoniumplayer.core.rendering.MusicCapsuleCard.CARD_WIDTH-26)*scale),
-                        Math.round(fy.getFloat(page)+(float)(com.muoniumplayer.core.rendering.MusicCapsuleCard.COVER_Y+12)*scale),0);
+                    page.clickEvent(Math.round(fx.getFloat(page)+(float)com.muoniumplayer.core.rendering.MusicCardLayout.controlX(
+                            com.muoniumplayer.core.rendering.MusicCardLayout.Target.MODE)*scale),
+                        Math.round(fy.getFloat(page)+(float)com.muoniumplayer.core.rendering.MusicCardLayout.CONTROLS_Y*scale),0);
                     assertNotEquals(oldMode,CloudMusic.playMode,"Mini click must reach original capsule controls");
                 }finally{CloudMusic.playMode=oldMode;}
                 page.keyEvent('\0',com.muoniumplayer.compat.lwjgl2.Keyboard.KEY_ESCAPE);

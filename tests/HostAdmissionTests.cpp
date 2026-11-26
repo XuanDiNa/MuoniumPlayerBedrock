@@ -11,7 +11,10 @@ int wmain(int argc,wchar_t** argv){
         Need(mp::VerifyHost(argv[3]),"verified launcher 26.60 image must be admitted");
         Need(mp::VerifyHost(argv[4]),"verified LeviLamina 26.60 image must be admitted");
         auto reinstalled=mp::MatchHostIdentity("FAD0788DB090874B7BADC6353BBBCBD38FAC9172DA1F5D3F30771056E8A7A6A5",323855872);
-        Need(reinstalled&&mp::VerifiedHostIdentity.load()==reinstalled,"current exact reinstalled LL image selects the reviewed identity");
+        Need(reinstalled&&reinstalled->version==mp::GameVersion::V2660,"reviewed reinstalled LL identity remains independently selectable");
+        auto actualLevi=mp::VerifiedHostIdentity.load();
+        Need(actualLevi&&actualLevi->name.find("LeviLamina")!=std::string_view::npos,
+            "supplied LL image must select its own reviewed identity rather than another LL file");
         auto player=mp::MatchHostIdentity("B554A2DA8B2271A4A164AE544A4A447F3A630B5FC2261AFEFE47C7C206826A53",323855872);
         Need(player,"reviewed B554 player image must be admitted by full identity");
         if(argc==6){

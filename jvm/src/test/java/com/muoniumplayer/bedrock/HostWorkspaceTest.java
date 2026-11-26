@@ -108,6 +108,16 @@ class HostWorkspaceTest {
             fixture.view.setInt(36,4);fixture.update();assertEquals(4,fixture.view.getInt(36),"Cancelled return cannot leak into a new handoff");
         }
     }
+    @Test void cancelledMailboxCannotCloseTheSameSingletonOpenedLaterByShortcut()throws Exception{
+        try(var fixture=new Mailbox()){
+            var singleton=fixture.client.gui.screen();
+            fixture.view.setInt(36,6);fixture.update();fixture.update();
+            fixture.panel.open(singleton);
+            for(int i=0;i<5;i++)fixture.update();
+            assertSame(singleton,fixture.client.gui.screen(),"A consumed cancellation must not retain ownership of a singleton page");
+            assertTrue(fixture.panel.isOpen());
+        }
+    }
     static class Mailbox implements AutoCloseable {
         final Api api=Api.I;final HANDLE mapping,mutex;final Pointer view;
         final BedrockClient client=BedrockClient.getInstance();final OverlaySession panel;final HostWorkspace workspace;

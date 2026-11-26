@@ -44,7 +44,9 @@ inline constexpr char DefaultPlayerConfig[]=R"MPBCONFIG({
   "hudEditorKey": "NONE",
   "worldLyricsOcclusion": false,
   "smtcPublishEnabled": false,
-  "islandSearchKey": "NONE"
+  "islandSearchKey": "NONE",
+  "voiceMicrophoneKey": "NONE",
+  "voiceDeafenKey": "NONE"
 }
 )MPBCONFIG";
 }

@@ -32,11 +32,11 @@ struct JvmApp {
     Config config;
     std::wstring lastConfig;
     std::unique_ptr<Jobs> menu;
-    std::array<Handle,14> controls;
+    std::array<Handle,16> controls;
     Handle job, child;
     WorkspaceTransport workspace;
     WorkspaceRequest workspaceIssued;
-    std::array<modmenu::binding::Tracker,8> bindings{};
+    std::array<modmenu::binding::Tracker,10> bindings{};
     bool ready{}, smoke{};
     int result{};
     ULONGLONG started{}, readyAt{}, reloadAt{};
@@ -159,12 +159,13 @@ struct JvmApp {
         }
         if(smoke)return;
         bool eligible=GetForegroundWindow()==owner;
-        std::array<std::string,8> keys{config.openKey,config.playPauseKey,config.nextKey,config.previousKey,config.speakerKey,config.miniPlayerKey,config.hudEditorKey,config.islandSearchKey};
+        std::array<std::string,10> keys{config.openKey,config.playPauseKey,config.nextKey,config.previousKey,config.speakerKey,config.miniPlayerKey,config.hudEditorKey,config.islandSearchKey,config.voiceMicrophoneKey,config.voiceDeafenKey};
         for(std::size_t i=0;i<keys.size();++i){
             auto binding=modmenu::binding::ParseInput(keys[i]).value_or(modmenu::binding::Binding{});
             auto sample=modmenu::binding::Sample(binding,[](unsigned k){return (GetAsyncKeyState(static_cast<int>(k))&0x8000)!=0;});
             if(bindings[i].Update(binding,sample,eligible&&config.enabled).pressed){
-                if(i==0)Start(true);else if(i>=5){if(Start(false))SetEvent(controls[i==5?9:i==6?7:10].get());}
+                if(i>=8){if(child.get()&&ready)SetEvent(controls[i==8?14:15].get());}
+                else if(i==0)Start(true);else if(i>=5){if(Start(false))SetEvent(controls[i==5?9:i==6?7:10].get());}
                 else if(child.get()&&ready&&(i!=4||config.speakerEnabled))SetEvent(controls[i==4?6:i].get());
             }
         }

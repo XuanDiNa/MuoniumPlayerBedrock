@@ -1,283 +1,1196 @@
 {
-  "edition": "0.12.0-public2",
-  "date": "2026-11-15",
-  "upstream": "9b4cc7e7bd143315da716075a6d024a0d4c0c81b",
-  "priorPublicEdition": "v0.12.0-public2 before console correction",
-  "supersededSourceCommit": "d8799a5806a83ab37924fdcade4aa8739e81c56e",
-  "publicationRevision": "test11-workspace-correction",
-  "freshNativeChecks": {
-    "debug": {
-      "Native60ConsoleAdmissionTests": {
-        "exit": 0,
-        "output": "Native60 console exact-identity, mutation and loader checks=221 passed\n",
-        "stderr": ""
-      },
-      "Native51VanillaAdmissionTests": {
-        "exit": 0,
-        "output": "Native51 vanilla exact-identity, mutation and loader checks=113 passed\n",
-        "stderr": ""
-      },
-      "NativeContractTests": {
-        "exit": 0,
-        "output": "Version-isolated contracts, exact loaded-header admission and unknown host refusal passed\n",
-        "stderr": ""
-      },
-      "LoaderPolicyTests": {
-        "exit": 0,
-        "output": "Wrong-loader refusal, exact LL admission and concurrent one-start/restart passed\n",
-        "stderr": ""
-      },
-      "OlderVersionTests": {
-        "exit": 0,
-        "output": "Older originals/loaders, version-isolated camera/RTT contracts, cross-version and LL refusal passed\n",
-        "stderr": ""
-      },
-      "OlderSceneFixtureTests": {
-        "exit": 0,
-        "output": "Four production cinematic scene layouts and validity revocation passed\n",
-        "stderr": ""
-      },
-      "MenuInteropLL": {
-        "exit": 0,
-        "output": "Real ModMenu v5 parser, eight chord bindings and current-manifest Workspace register/publish/command/ack/disable interop passed\n",
-        "stderr": ""
-      },
-      "MenuLiveInterop-vanilla": {
-        "exit": 0,
-        "output": "Real frozen LL Workspace API: delayed readiness, five actions, passive polling, disable/recovery, duplicate refusal and cleanup passed\n",
-        "stderr": ""
-      },
-      "MenuLiveInterop-LL": {
-        "exit": 0,
-        "output": "Real frozen LL Workspace API: delayed readiness, five actions, passive polling, disable/recovery, duplicate refusal and cleanup passed\n",
-        "stderr": ""
-      }
+  "version": "0.20.2",
+  "generatedUtc": "2026-11-26T15:45:38.665473+00:00",
+  "architecture": "client room host relay over existing TCP / binary WebSocket tunnel; no Minecraft server addon",
+  "platforms": [
+    "vanilla 1.26.45.01",
+    "vanilla 1.26.51.01",
+    "vanilla 1.26.52.03",
+    "vanilla 1.26.60.05",
+    "LeviLamina 26.60.7 / 1.26.60.05"
+  ],
+  "jvmTasks": {
+    "roomVoiceTest": {
+      "tests": 30,
+      "suites": [
+        {
+          "name": "com.muoniumplayer.bedrock.RoomVoiceCodecTest",
+          "tests": 2
+        },
+        {
+          "name": "com.muoniumplayer.bedrock.RoomVoiceGainTest",
+          "tests": 4
+        },
+        {
+          "name": "com.muoniumplayer.bedrock.RoomVoiceKeysTest",
+          "tests": 1
+        },
+        {
+          "name": "com.muoniumplayer.bedrock.RoomVoiceSocketTest",
+          "tests": 1
+        },
+        {
+          "name": "com.muoniumplayer.bedrock.RoomVoiceSpatialLifecycleTest",
+          "tests": 3
+        },
+        {
+          "name": "com.muoniumplayer.bedrock.RoomVoiceSpatialTest",
+          "tests": 4
+        },
+        {
+          "name": "com.muoniumplayer.bedrock.RoomVoiceTest",
+          "tests": 6
+        },
+        {
+          "name": "com.muoniumplayer.bedrock.RoomVoiceTransportTest",
+          "tests": 4
+        },
+        {
+          "name": "com.muoniumplayer.bedrock.RoomVoiceWireTest",
+          "tests": 2
+        },
+        {
+          "name": "com.muoniumplayer.bedrock.RoomVoiceWorldTest",
+          "tests": 3
+        }
+      ]
     },
-    "release": {
-      "Native60ConsoleAdmissionTests": {
-        "exit": 0,
-        "output": "Native60 console exact-identity, mutation and loader checks=221 passed\n",
-        "stderr": ""
-      },
-      "Native51VanillaAdmissionTests": {
-        "exit": 0,
-        "output": "Native51 vanilla exact-identity, mutation and loader checks=113 passed\n",
-        "stderr": ""
-      },
-      "NativeContractTests": {
-        "exit": 0,
-        "output": "Version-isolated contracts, exact loaded-header admission and unknown host refusal passed\n",
-        "stderr": ""
-      },
-      "LoaderPolicyTests": {
-        "exit": 0,
-        "output": "Wrong-loader refusal, exact LL admission and concurrent one-start/restart passed\n",
-        "stderr": ""
-      },
-      "OlderVersionTests": {
-        "exit": 0,
-        "output": "Older originals/loaders, version-isolated camera/RTT contracts, cross-version and LL refusal passed\n",
-        "stderr": ""
-      },
-      "OlderSceneFixtureTests": {
-        "exit": 0,
-        "output": "Four production cinematic scene layouts and validity revocation passed\n",
-        "stderr": ""
-      },
-      "MenuInteropLL": {
-        "exit": 0,
-        "output": "Real ModMenu v5 parser, eight chord bindings and current-manifest Workspace register/publish/command/ack/disable interop passed\n",
-        "stderr": ""
-      },
-      "MenuLiveInterop-vanilla": {
-        "exit": 0,
-        "output": "Real frozen LL Workspace API: delayed readiness, five actions, passive polling, disable/recovery, duplicate refusal and cleanup passed\n",
-        "stderr": ""
-      },
-      "MenuLiveInterop-LL": {
-        "exit": 0,
-        "output": "Real frozen LL Workspace API: delayed readiness, five actions, passive polling, disable/recovery, duplicate refusal and cleanup passed\n",
-        "stderr": ""
-      }
+    "voiceBroadcastTest": {
+      "tests": 10,
+      "suites": [
+        {
+          "name": "com.muoniumplayer.bedrock.BroadcastPcmQueueTest",
+          "tests": 6
+        },
+        {
+          "name": "com.muoniumplayer.bedrock.VoiceBroadcastHudTest",
+          "tests": 1
+        },
+        {
+          "name": "com.muoniumplayer.bedrock.VoiceBroadcastTest",
+          "tests": 3
+        }
+      ]
     },
-    "unsupportedHost": {
-      "exit": 0,
-      "output": "Production DLL load/export/unsupported-host refusal passed; no game process used\n",
-      "stderr": ""
+    "voiceBroadcastRenderTest": {
+      "tests": 1,
+      "suites": [
+        {
+          "name": "com.muoniumplayer.bedrock.VoiceBroadcastRenderTest",
+          "tests": 1
+        }
+      ]
+    },
+    "settingsAppearanceTest": {
+      "tests": 11,
+      "suites": [
+        {
+          "name": "com.muoniumplayer.bedrock.SettingsAppearanceTest",
+          "tests": 4
+        },
+        {
+          "name": "com.muoniumplayer.bedrock.UiPresentationTest",
+          "tests": 7
+        }
+      ]
+    },
+    "overlayInputTest": {
+      "tests": 23,
+      "suites": [
+        {
+          "name": "com.muoniumplayer.bedrock.FileDialogLifecycleTest",
+          "tests": 5
+        },
+        {
+          "name": "com.muoniumplayer.bedrock.HostWorkspaceTest",
+          "tests": 7
+        },
+        {
+          "name": "com.muoniumplayer.bedrock.IslandSearchRenderTest",
+          "tests": 1
+        },
+        {
+          "name": "com.muoniumplayer.bedrock.OverlayCloseRenderTest",
+          "tests": 1
+        },
+        {
+          "name": "com.muoniumplayer.bedrock.OverlayFocusInputTest",
+          "tests": 1
+        },
+        {
+          "name": "com.muoniumplayer.bedrock.OverlayModalInputTest",
+          "tests": 1
+        },
+        {
+          "name": "com.muoniumplayer.bedrock.OverlayPolicyTest",
+          "tests": 2
+        },
+        {
+          "name": "com.muoniumplayer.bedrock.OverlaySessionTest",
+          "tests": 3
+        },
+        {
+          "name": "com.muoniumplayer.bedrock.OverlayWindowModeTest",
+          "tests": 1
+        },
+        {
+          "name": "com.muoniumplayer.bedrock.QueueInputRenderTest",
+          "tests": 1
+        }
+      ]
+    },
+    "progressiveRegressionTest": {
+      "tests": 73,
+      "suites": [
+        {
+          "name": "com.muoniumplayer.bedrock.AllSourceStreamingTest",
+          "tests": 30
+        },
+        {
+          "name": "com.muoniumplayer.bedrock.ProgressiveAudioTest",
+          "tests": 5
+        },
+        {
+          "name": "com.muoniumplayer.bedrock.StreamingAutomixTest",
+          "tests": 6
+        },
+        {
+          "name": "com.muoniumplayer.bedrock.StreamingSeekTest",
+          "tests": 10
+        },
+        {
+          "name": "com.muoniumplayer.bedrock.StreamingTransitionTest",
+          "tests": 8
+        },
+        {
+          "name": "com.muoniumplayer.bedrock.StreamingTransportCoverageTest",
+          "tests": 14
+        }
+      ]
+    },
+    "playbackRecoveryTest": {
+      "tests": 6,
+      "suites": [
+        {
+          "name": "com.muoniumplayer.bedrock.PlaybackRetryTest",
+          "tests": 6
+        }
+      ]
+    },
+    "roomProxyTest": {
+      "tests": 25,
+      "suites": [
+        {
+          "name": "com.muoniumplayer.bedrock.RoomProxySettingsTest",
+          "tests": 4
+        },
+        {
+          "name": "com.muoniumplayer.bedrock.RoomProxyTransportTest",
+          "tests": 8
+        },
+        {
+          "name": "com.muoniumplayer.bedrock.TunnelInviteTest",
+          "tests": 4
+        },
+        {
+          "name": "com.muoniumplayer.bedrock.TunnelProcessTest",
+          "tests": 3
+        },
+        {
+          "name": "com.muoniumplayer.bedrock.TunnelRelayTest",
+          "tests": 3
+        },
+        {
+          "name": "com.muoniumplayer.bedrock.WindowsRoomProxyTest",
+          "tests": 3
+        }
+      ]
+    },
+    "roomProxyUiTest": {
+      "tests": 2,
+      "suites": [
+        {
+          "name": "com.muoniumplayer.bedrock.PartyTransportTest",
+          "tests": 1
+        },
+        {
+          "name": "com.muoniumplayer.bedrock.RoomProxyScreenTest",
+          "tests": 1
+        }
+      ]
+    },
+    "cinematicHostTest": {
+      "tests": 16,
+      "suites": [
+        {
+          "name": "com.muoniumplayer.bedrock.CinematicHostIntegrationTest",
+          "tests": 1
+        },
+        {
+          "name": "com.muoniumplayer.bedrock.CinematicReaderTest",
+          "tests": 2
+        },
+        {
+          "name": "com.muoniumplayer.bedrock.CinematicSnapshotCacheTest",
+          "tests": 5
+        },
+        {
+          "name": "com.muoniumplayer.bedrock.VoxelLyricClipTest",
+          "tests": 8
+        }
+      ]
+    },
+    "cinematicMotionTest": {
+      "tests": 72,
+      "suites": [
+        {
+          "name": "com.muoniumplayer.bedrock.CinematicCollisionTest",
+          "tests": 8
+        },
+        {
+          "name": "com.muoniumplayer.core.cine.CineInputTest",
+          "tests": 4
+        },
+        {
+          "name": "com.muoniumplayer.core.cine.CinematicMotionRegressionTest",
+          "tests": 2
+        },
+        {
+          "name": "com.muoniumplayer.core.cine.CinematicRoutePlannerTest",
+          "tests": 6
+        },
+        {
+          "name": "com.muoniumplayer.core.cine.CinematicScheduleIntegrationTest",
+          "tests": 3
+        },
+        {
+          "name": "com.muoniumplayer.core.cine.CinematicSmoothnessTest",
+          "tests": 6
+        },
+        {
+          "name": "com.muoniumplayer.core.cine.CinePoseMathTest",
+          "tests": 8
+        },
+        {
+          "name": "com.muoniumplayer.core.cine.CinePresetSeamTest",
+          "tests": 2
+        },
+        {
+          "name": "com.muoniumplayer.core.cine.CineSchedulerTest",
+          "tests": 24
+        },
+        {
+          "name": "com.muoniumplayer.core.cine.CineSettingsTest",
+          "tests": 9
+        }
+      ]
+    },
+    "worldSpeakerTest": {
+      "tests": 11,
+      "suites": [
+        {
+          "name": "com.muoniumplayer.bedrock.WorldSpeakerTest",
+          "tests": 11
+        }
+      ]
+    },
+    "acousticsRegressionTest": {
+      "tests": 34,
+      "suites": [
+        {
+          "name": "com.muoniumplayer.core.ncm.music.acoustics.SceneAcousticsRegressionTest",
+          "tests": 16
+        },
+        {
+          "name": "com.muoniumplayer.core.ncm.music.acoustics.SceneAcousticsTest",
+          "tests": 18
+        }
+      ]
+    },
+    "test": {
+      "tests": 5,
+      "suites": [
+        {
+          "name": "com.muoniumplayer.bedrock.EnvironmentFrameTest",
+          "tests": 3
+        },
+        {
+          "name": "com.muoniumplayer.bedrock.WorldReaderTest",
+          "tests": 2
+        }
+      ]
     }
   },
-  "freshReadOnlyImageReview": {
-    "gameSections": {
-      ".data": {
-        "sha256": "144C4327C671F71F0453C64E134CDDBF8D896248DFA27CC9830820C72F134332",
-        "headerIdentical": true
+  "freshJvmTests": 319,
+  "nativeRelease": {
+    "mode": "release",
+    "suites": {
+      "NativeContractTests": {
+        "exit": 0,
+        "output": "Version-isolated contracts, exact loaded-header admission and unknown host refusal passed\r\n"
       },
-      ".pdata": {
-        "sha256": "268E91D53EC8BF495C8F00FAB4821860699E7EE2BE0FC02E38BC1668DEFB1435",
-        "headerIdentical": true
+      "HostAdmissionTests": {
+        "exit": 0,
+        "output": "Exact original, launcher, LeviLamina, retained 26.52 and unsupported host admission passed\r\n"
       },
-      ".rdata": {
-        "sha256": "ACB23423E58C8E538CCCC9042BF2E0EE61910B851DA97A7025E1BA3999F3F49F",
-        "headerIdentical": true
+      "LoaderPolicyTests": {
+        "exit": 0,
+        "output": "Wrong-loader refusal, exact LL admission and concurrent one-start/restart passed\r\n"
       },
-      ".reloc": {
-        "sha256": "B8C9ED6C4AF9540B62491FF089C851A0C6486B869D974E9E5691BFB45FB8D8D8",
-        "headerIdentical": true
+      "PlayerConfigFileTests": {
+        "exit": 0,
+        "output": "Missing-only config creation, native defaults, user/invalid byte preservation and unsafe path refusal passed\r\n"
       },
-      ".rsrc": {
-        "sha256": "4FF4FB9873028CFCF7EBDC2890C20E47AB8E9666463C86D14D711FEF02C22B74",
-        "headerIdentical": true
+      "OlderSceneFixtureTests": {
+        "exit": 0,
+        "output": "Four production cinematic scene layouts and validity revocation passed\r\n"
       },
-      ".text": {
-        "sha256": "7CA5D1BAEF049979E9785D5BBAFE7100A829E1107A3D374975962CC64ECC76FE",
-        "headerIdentical": true
+      "WorldCaptureFixtureTests": {
+        "exit": 0,
+        "output": "Four native camera layouts and menu revocation passed\r\n"
       },
-      ".tls": {
-        "sha256": "D28CF4FDF1182D55F199CF0491014D3A33C4B7B8511498E84E6B867E22440DA3",
-        "headerIdentical": true
+      "JvmPolicyTests": {
+        "exit": 0,
+        "output": "Java command-line argument roundtrips passed: 7\r\n"
       },
-      ".xbld": {
-        "sha256": "CF3C900CC77849BC8E71C5CA8D133BB96AA049BB413B268450357E0CC213CA15",
-        "headerIdentical": true
+      "Local3RouteTests": {
+        "exit": 0,
+        "output": "Local3 description routing, settings round trip, custom/readonly/hardlink preservation and exact backup passed\r\n"
+      },
+      "CinematicTests": {
+        "exit": 0,
+        "output": "Cinematic command ownership, freshness, bounds, basis and synchronous scalar restoration passed\r\n"
+      },
+      "CinematicInputTests": {
+        "exit": 0,
+        "output": "Owned queue physical-input boundary, recenter rejection, focus owner and stop passed\r\n"
+      },
+      "CinematicTraceTests": {
+        "exit": 0,
+        "output": "CINEMATIC_TRACE real-patch pulse/base/aspect/pose/gap separation, phase/session isolation, restoration and bounded capture passed\r\n"
+      },
+      "CinematicBridgeTests": {
+        "exit": 0,
+        "output": "Cinematic contended-IPC continuity, unchanged expiry, input/world/UI revocation and scalar restoration passed\r\nCinematic private mapping, offline refusal and close/reopen invalidation passed\r\nCinematic hook coexistence, forwarding, guard refusal and read-only dispatch fixtures passed\r\n"
+      },
+      "CinematicRegistryTests": {
+        "exit": 0,
+        "output": "Camera sparse membership, recycled tokens, missing components, invalid pages and cyclic buckets passed\r\n"
+      },
+      "EnvironmentTests": {
+        "exit": 0,
+        "output": "Environment bounded scan, epoch/movement/timeout reset and complete-only publication passed\r\n"
+      },
+      "EnvironmentMaterialFixtureTests": {
+        "exit": 0,
+        "output": "Production old pointer and 26.60 inline materials: solid, non-solid, water and unknown passed\r\n"
+      },
+      "EntityTests": {
+        "exit": 0,
+        "output": "Nearby entity type, health, exclusions, stale-token, cycle, unreadable, limit, budget and read-only checks passed\r\n"
+      },
+      "DepthTests": {
+        "exit": 0,
+        "output": "Depth policy and real GPU 181 checks passed\r\n"
+      },
+      "DepthHookTests": {
+        "exit": 0,
+        "output": "Depth production API callbacks and WARP 27 checks passed\r\n"
+      },
+      "MetricsTests": {
+        "exit": 0,
+        "output": "FPS cadence/pause/invalid time, RTT local/remote/freshness/session/disconnect passed\r\n"
+      },
+      "NetworkFixtureTests": {
+        "exit": 0,
+        "output": "Actual detour forwarding, nested peer sampling, ambiguity, RTT updates, recycled-owner reset and exception restoration passed\r\n"
+      },
+      "PlayerTests": {
+        "exit": 0,
+        "output": "347 checks passed\r\n"
+      },
+      "Phase2Tests": {
+        "exit": 0,
+        "output": "88 phase2 checks passed\r\n"
+      },
+      "NativeTests": {
+        "exit": 0,
+        "output": "Native audio metadata, no autoplay, stale-event and stop tests passed\r\n"
+      },
+      "WorldBridgeTests": {
+        "exit": 0,
+        "output": "World protocol, validation, mapping, dormant offline hook and lifecycle passed\r\n"
+      },
+      "CompositionTests": {
+        "exit": 0,
+        "output": "Composition protocol 26 checks passed\r\n"
+      },
+      "CompositionGpuTests": {
+        "exit": 0,
+        "output": "GPU fixture driver=WARP flags=0 featureLevel=b000\r\nNative composition GPU 117 checks passed\r\n"
+      },
+      "CompositionHookTests": {
+        "exit": 0,
+        "output": "Repeated actual Present/Present1 inspected=144\r\nProduction composition hooks and lifecycle 629 checks passed\r\n"
+      },
+      "D3D12AdmissionTests": {
+        "exit": 0,
+        "output": "D3D12 INIT BEGIN probe=Win32-hwnd libraries=system32 packaged=false\r\nD3D12 RUNTIME resolved=system32 request=absolute-path verified=true appLocalModules=preserved\r\nD3D12 INIT OK stage=factory api=CreateDXGIFactory1\r\nD3D12 INIT OK stage=device api=D3D12CreateDevice\r\nD3D12 INIT OK stage=command-queue api=CreateCommandQueue\r\nD3D12 INIT OK stage=command-allocator api=CreateCommandAllocator\r\nD3D12 INIT OK stage=command-list api=CreateCommandList\r\nD3D12 INIT OK stage=command-list-close api=Close\r\nD3D12 INIT OK stage=probe-swapchain api=CreateSwapChainForHwnd\r\nD3D12 INIT OK stage=swapchain-interface api=QueryInterface-IDXGISwapChain3\r\nD3D12 INIT FAILED stage=hook-create api=ExecuteCommandLists hresult=0x00000000 win32=0 hookStatus=MH_ERROR_ALREADY_CREATED\r\nD3D12 REFUSED native hook initialization; layered output retained\r\nCOMPOSITION RELEASE backend=auto-d3d12 legacyD3D11Hooks=disabled fallback=layered-window\r\nD3D12_ADMISSION checks=8 passed\r\n"
+      },
+      "D3D12RuntimeTests": {
+        "exit": 0,
+        "output": "D3D12 INIT BEGIN probe=Win32-hwnd libraries=system32 packaged=false\r\nD3D12 RUNTIME resolved=system32 request=absolute-path verified=true appLocalModules=preserved\r\nD3D12 INIT OK stage=factory api=CreateDXGIFactory1\r\nD3D12 INIT OK stage=device api=D3D12CreateDevice\r\nD3D12 INIT OK stage=command-queue api=CreateCommandQueue\r\nD3D12 INIT OK stage=command-allocator api=CreateCommandAllocator\r\nD3D12 INIT OK stage=command-list api=CreateCommandList\r\nD3D12 INIT OK stage=command-list-close api=Close\r\nD3D12 INIT OK stage=probe-swapchain api=CreateSwapChainForHwnd\r\nD3D12 INIT OK stage=swapchain-interface api=QueryInterface-IDXGISwapChain3\r\nD3D12 ARMED native compositor awaiting owner swapchain/queue proof\r\nCOMPOSITION RELEASE backend=auto-d3d12 legacyD3D11Hooks=disabled fallback=layered-window\r\nD3D12 SWAPCHAIN selected owner=verified queue=pending backbuffers=2\r\nD3D12 READY backend=native queue=verified-backbuffer-submission transport=BGRA-premultiplied entityDepth=false\r\nD3D12_RUNTIME checks=14 passed backend=D3D12 stubCalls=0\r\n"
+      },
+      "D3D12TransferTests": {
+        "exit": 0,
+        "output": "TRANSFER_BENCH baseline=0 warp=0 frames=96 allocations=8 bytes=2843188 cpuAvgUs=621\r\nTRANSFER_PIXELS checks=634 passed\r\n"
+      },
+      "D3D12NativeTests": {
+        "exit": 0,
+        "output": "NATIVE_D3D12 checks=102 passed driver=hardware buffers=2 present1=true\r\nD3D12 INIT BEGIN probe=Win32-hwnd libraries=system32 packaged=false\r\nD3D12 RUNTIME resolved=system32 request=absolute-path verified=true appLocalModules=preserved\r\nD3D12 INIT OK stage=factory api=CreateDXGIFactory1\r\nD3D12 INIT OK stage=device api=D3D12CreateDevice\r\nD3D12 INIT OK stage=command-queue api=CreateCommandQueue\r\nD3D12 INIT OK stage=command-allocator api=CreateCommandAllocator\r\nD3D12 INIT OK stage=command-list api=CreateCommandList\r\nD3D12 INIT OK stage=command-list-close api=Close\r\nD3D12 INIT OK stage=probe-swapchain api=CreateSwapChainForHwnd\r\nD3D12 INIT OK stage=swapchain-interface api=QueryInterface-IDXGISwapChain3\r\nD3D12 ARMED native compositor awaiting owner swapchain/queue proof\r\nCOMPOSITION RELEASE backend=auto-d3d12 legacyD3D11Hooks=disabled fallback=layered-window\r\nD3D12 SWAPCHAIN selected owner=verified queue=pending backbuffers=2\r\nD3D12 READY backend=native queue=verified-backbuffer-submission transport=BGRA-premultiplied entityDepth=false\r\nD3D12 STATUS native=1 presents=48 draws=40 probes=8 uploads=48 queueMatches=1 busy=0 failures=0 resizes=0 cpuAvgUs=370 cpuMaxUs=7583 lockSkips=0 emptyFrames=0 textureAllocations=4 uploadedPixelBytes=40960\r\nD3D12 STATUS native=1 presents=49 draws=41 probes=8 uploads=49 queueMatches=1 busy=0 failures=0 resizes=0 cpuAvgUs=367 cpuMaxUs=7583 lockSkips=0 emptyFrames=0 textureAllocations=4 uploadedPixelBytes=41984\r\nD3D12 SWAPCHAIN selected owner=verified queue=pending backbuffers=2\r\nD3D12 READY backend=native queue=verified-backbuffer-submission transport=BGRA-premultiplied entityDepth=false\r\n"
+      },
+      "OlderVersionTests": {
+        "exit": 0,
+        "output": "Older originals/loaders, version-isolated camera/RTT contracts, cross-version and LL refusal passed\r\n"
+      },
+      "Native51VanillaAdmissionTests": {
+        "exit": 0,
+        "output": "Native51 vanilla exact-identity, mutation and loader checks=113 passed\r\n"
+      },
+      "Native60ConsoleAdmissionTests": {
+        "exit": 0,
+        "output": "Native60 console exact-identity, mutation and loader checks=221 passed\r\n"
       }
+    }
+  },
+  "binaries": {
+    "vanilla": {
+      "bytes": 1007616,
+      "sha256": "9F234DF9D3D7A9221104F2E87CF1751C31453B3C664DDE79DCF754D9F27F5515",
+      "imports": {
+        "bcrypt.dll": [
+          "BCryptDestroyHash",
+          "BCryptFinishHash",
+          "BCryptGenRandom",
+          "BCryptHash",
+          "BCryptHashData",
+          "BCryptCreateHash",
+          "BCryptCloseAlgorithmProvider",
+          "BCryptOpenAlgorithmProvider"
+        ],
+        "winhttp.dll": [
+          "WinHttpCloseHandle",
+          "WinHttpConnect",
+          "WinHttpReadData",
+          "WinHttpSetOption",
+          "WinHttpSetTimeouts",
+          "WinHttpOpenRequest",
+          "WinHttpSendRequest",
+          "WinHttpReceiveResponse",
+          "WinHttpQueryHeaders",
+          "WinHttpOpen",
+          "WinHttpCrackUrl"
+        ],
+        "user32.dll": [
+          "GetForegroundWindow",
+          "KillTimer",
+          "SetTimer",
+          "SetWindowsHookExW",
+          "IsChild",
+          "GetWindowLongPtrW",
+          "SetWindowLongPtrW",
+          "PostQuitMessage",
+          "DispatchMessageW",
+          "TranslateMessage",
+          "UnhookWindowsHookEx",
+          "GetMessageW",
+          "GetWindow",
+          "CallNextHookEx",
+          "GetRawInputData",
+          "GetAsyncKeyState",
+          "DefWindowProcW",
+          "RegisterClassW",
+          "GetWindowThreadProcessId",
+          "GetClassNameW",
+          "EnumWindows",
+          "EnumChildWindows",
+          "GetClientRect",
+          "IsWindowVisible",
+          "PostMessageW",
+          "GetClassInfoW",
+          "IsIconic",
+          "DestroyWindow",
+          "IsWindow",
+          "CreateWindowExW"
+        ],
+        "api-ms-win-core-libraryloader-l1-2-0.dll": [
+          "GetModuleHandleW",
+          "LoadLibraryExW",
+          "GetProcAddress",
+          "FreeLibrary",
+          "GetModuleFileNameW",
+          "GetModuleHandleExW",
+          "FreeLibraryAndExitThread"
+        ],
+        "api-ms-win-core-handle-l1-1-0.dll": [
+          "CloseHandle"
+        ],
+        "api-ms-win-core-errorhandling-l1-1-0.dll": [
+          "RaiseException",
+          "SetLastError",
+          "GetLastError"
+        ],
+        "api-ms-win-core-synch-l1-1-0.dll": [
+          "SetEvent",
+          "CreateEventW",
+          "InitializeCriticalSectionAndSpinCount",
+          "WaitForSingleObject",
+          "ReleaseMutex",
+          "CreateMutexW"
+        ],
+        "api-ms-win-core-sysinfo-l1-1-0.dll": [
+          "GetSystemDirectoryW",
+          "GetTickCount64",
+          "GetLocalTime",
+          "GetSystemInfo"
+        ],
+        "api-ms-win-core-memory-l1-1-0.dll": [
+          "VirtualAlloc",
+          "VirtualQuery",
+          "CreateFileMappingW",
+          "MapViewOfFile",
+          "UnmapViewOfFile",
+          "VirtualFree",
+          "ReadProcessMemory",
+          "VirtualProtect"
+        ],
+        "api-ms-win-core-processthreads-l1-1-0.dll": [
+          "TlsSetValue",
+          "GetCurrentProcess",
+          "ExitThread",
+          "GetExitCodeProcess",
+          "ResumeThread",
+          "ExitProcess",
+          "TlsGetValue",
+          "CreateThread",
+          "CreateProcessW",
+          "TlsAlloc",
+          "InitializeProcThreadAttributeList",
+          "TlsFree",
+          "SuspendThread",
+          "GetCurrentProcessId",
+          "TerminateProcess",
+          "DeleteProcThreadAttributeList",
+          "GetCurrentThreadId",
+          "UpdateProcThreadAttribute",
+          "OpenThread"
+        ],
+        "api-ms-win-appmodel-runtime-l1-1-0.dll": [
+          "GetCurrentPackageFullName"
+        ],
+        "api-ms-win-core-string-l1-1-0.dll": [
+          "WideCharToMultiByte",
+          "MultiByteToWideChar"
+        ],
+        "api-ms-win-core-file-l1-1-0.dll": [
+          "GetFileType",
+          "CreateDirectoryW",
+          "GetFileInformationByHandle",
+          "SetFilePointerEx",
+          "DeleteFileW",
+          "GetFileAttributesW",
+          "GetFileSizeEx",
+          "ReadFile",
+          "FlushFileBuffers",
+          "SetFileInformationByHandle",
+          "CreateFileW",
+          "SetEndOfFile",
+          "WriteFile"
+        ],
+        "api-ms-win-core-file-l2-1-0.dll": [
+          "MoveFileExW"
+        ],
+        "api-ms-win-core-job-l2-1-0.dll": [
+          "AssignProcessToJobObject",
+          "CreateJobObjectW",
+          "SetInformationJobObject"
+        ],
+        "api-ms-win-core-profile-l1-1-0.dll": [
+          "QueryPerformanceCounter",
+          "QueryPerformanceFrequency"
+        ],
+        "api-ms-win-core-file-l2-1-2.dll": [
+          "CopyFileW"
+        ],
+        "api-ms-win-core-synch-l1-2-0.dll": [
+          "Sleep"
+        ],
+        "api-ms-win-core-heap-l1-1-0.dll": [
+          "HeapSize",
+          "HeapFree",
+          "GetProcessHeap",
+          "HeapCreate",
+          "HeapAlloc",
+          "HeapReAlloc"
+        ],
+        "api-ms-win-core-processthreads-l1-1-1.dll": [
+          "SetThreadContext",
+          "GetThreadContext",
+          "FlushInstructionCache"
+        ],
+        "api-ms-win-core-toolhelp-l1-1-0.dll": [
+          "Thread32First",
+          "Thread32Next",
+          "CreateToolhelp32Snapshot"
+        ],
+        "kernel32.dll": [
+          "AreFileApisANSI",
+          "GetFileInformationByHandleEx",
+          "WakeAllConditionVariable",
+          "SleepConditionVariableSRW",
+          "WaitForSingleObjectEx",
+          "GetExitCodeThread",
+          "EnterCriticalSection",
+          "LeaveCriticalSection",
+          "InitializeCriticalSectionEx",
+          "DeleteCriticalSection",
+          "EncodePointer",
+          "DecodePointer",
+          "LCMapStringEx",
+          "GetSystemTimeAsFileTime",
+          "GetFileAttributesExW",
+          "FindNextFileW",
+          "FindFirstFileExW",
+          "FindFirstFileW",
+          "FindClose",
+          "GetFullPathNameW",
+          "GetLocaleInfoEx",
+          "LocalFree",
+          "FormatMessageA",
+          "TryAcquireSRWLockExclusive",
+          "RtlLookupFunctionEntry",
+          "AcquireSRWLockExclusive",
+          "ReleaseSRWLockExclusive",
+          "InitializeSListHead",
+          "GetStartupInfoW",
+          "IsDebuggerPresent",
+          "IsProcessorFeaturePresent",
+          "SetUnhandledExceptionFilter",
+          "GetCPInfo",
+          "GetStringTypeW",
+          "RtlCaptureContext",
+          "UnhandledExceptionFilter",
+          "RtlVirtualUnwind"
+        ],
+        "api-ms-win-core-rtlsupport-l1-1-0.dll": [
+          "RtlUnwindEx",
+          "RtlPcToFileHeader",
+          "RtlUnwind"
+        ],
+        "api-ms-win-core-interlocked-l1-1-0.dll": [
+          "InterlockedFlushSList"
+        ],
+        "api-ms-win-core-fibers-l1-1-0.dll": [
+          "FlsSetValue",
+          "FlsFree",
+          "FlsAlloc",
+          "FlsGetValue"
+        ],
+        "api-ms-win-core-localization-l1-2-0.dll": [
+          "GetACP",
+          "IsValidLocale",
+          "GetLocaleInfoW",
+          "LCMapStringW",
+          "GetOEMCP",
+          "IsValidCodePage",
+          "EnumSystemLocalesW",
+          "GetUserDefaultLCID"
+        ],
+        "api-ms-win-core-processenvironment-l1-1-0.dll": [
+          "GetCommandLineW",
+          "SetStdHandle",
+          "GetStdHandle",
+          "GetEnvironmentStringsW",
+          "GetCommandLineA",
+          "FreeEnvironmentStringsW"
+        ],
+        "api-ms-win-core-console-l1-1-0.dll": [
+          "ReadConsoleW",
+          "GetConsoleOutputCP",
+          "GetConsoleMode",
+          "WriteConsoleW"
+        ]
+      },
+      "exports": [
+        "MPB_GetStatus",
+        "MPB_GetVersion"
+      ]
     },
-    "originalEntrypointIdentical": true,
-    "forms": [
-      {
-        "sha256": "988F6A61403B4381AA41E6C66D64CCE441B14E561A9B10F647C2758EF3F2672A",
-        "bytes": 323819336,
-        "subsystem": 2,
-        "checksum": "0x134d2def"
+    "levilamina": {
+      "bytes": 1010176,
+      "sha256": "A8155C95BE3059DB7098732BBC407637FA68A3A7D551A841B6EB2D86CF2A7272",
+      "imports": {
+        "levilamina.dll": [
+          "?throwMemoryException@memory@ll@@YAX_K@Z",
+          "?getDefaultAllocator@memory@ll@@YAAEAVIMemoryAllocator@Memory@Bedrock@@XZ"
+        ],
+        "bcrypt.dll": [
+          "BCryptDestroyHash",
+          "BCryptFinishHash",
+          "BCryptCreateHash",
+          "BCryptOpenAlgorithmProvider",
+          "BCryptCloseAlgorithmProvider",
+          "BCryptGenRandom",
+          "BCryptHash",
+          "BCryptHashData"
+        ],
+        "winhttp.dll": [
+          "WinHttpCrackUrl",
+          "WinHttpOpen",
+          "WinHttpCloseHandle",
+          "WinHttpConnect",
+          "WinHttpReadData",
+          "WinHttpSetOption",
+          "WinHttpSetTimeouts",
+          "WinHttpOpenRequest",
+          "WinHttpSendRequest",
+          "WinHttpReceiveResponse",
+          "WinHttpQueryHeaders"
+        ],
+        "user32.dll": [
+          "GetForegroundWindow",
+          "KillTimer",
+          "UnhookWindowsHookEx",
+          "CallNextHookEx",
+          "GetWindowLongPtrW",
+          "SetWindowLongPtrW",
+          "GetRawInputData",
+          "SetTimer",
+          "GetAsyncKeyState",
+          "PostQuitMessage",
+          "DispatchMessageW",
+          "IsChild",
+          "SetWindowsHookExW",
+          "DefWindowProcW",
+          "RegisterClassW",
+          "CreateWindowExW",
+          "IsWindow",
+          "DestroyWindow",
+          "TranslateMessage",
+          "GetMessageW",
+          "GetWindow",
+          "IsIconic",
+          "GetWindowThreadProcessId",
+          "GetClassNameW",
+          "EnumWindows",
+          "EnumChildWindows",
+          "GetClientRect",
+          "IsWindowVisible",
+          "PostMessageW",
+          "GetClassInfoW"
+        ],
+        "api-ms-win-core-libraryloader-l1-2-0.dll": [
+          "FreeLibraryAndExitThread",
+          "FreeLibrary",
+          "LoadLibraryExW",
+          "GetProcAddress",
+          "GetModuleHandleW",
+          "GetModuleHandleExW",
+          "GetModuleFileNameW"
+        ],
+        "api-ms-win-core-handle-l1-1-0.dll": [
+          "CloseHandle"
+        ],
+        "api-ms-win-core-errorhandling-l1-1-0.dll": [
+          "GetLastError",
+          "RaiseException",
+          "SetLastError"
+        ],
+        "api-ms-win-core-synch-l1-1-0.dll": [
+          "SetEvent",
+          "CreateEventW",
+          "ReleaseMutex",
+          "InitializeCriticalSectionAndSpinCount",
+          "WaitForSingleObject",
+          "CreateMutexW"
+        ],
+        "api-ms-win-core-sysinfo-l1-1-0.dll": [
+          "GetSystemDirectoryW",
+          "GetSystemInfo",
+          "GetLocalTime",
+          "GetTickCount64"
+        ],
+        "api-ms-win-core-memory-l1-1-0.dll": [
+          "UnmapViewOfFile",
+          "VirtualFree",
+          "MapViewOfFile",
+          "CreateFileMappingW",
+          "VirtualQuery",
+          "ReadProcessMemory",
+          "VirtualAlloc",
+          "VirtualProtect"
+        ],
+        "api-ms-win-core-processthreads-l1-1-0.dll": [
+          "ExitProcess",
+          "TlsFree",
+          "DeleteProcThreadAttributeList",
+          "CreateProcessW",
+          "ResumeThread",
+          "GetExitCodeProcess",
+          "TerminateProcess",
+          "TlsSetValue",
+          "TlsGetValue",
+          "TlsAlloc",
+          "ExitThread",
+          "GetCurrentProcessId",
+          "CreateThread",
+          "OpenThread",
+          "InitializeProcThreadAttributeList",
+          "SuspendThread",
+          "UpdateProcThreadAttribute",
+          "GetCurrentProcess",
+          "GetCurrentThreadId"
+        ],
+        "api-ms-win-appmodel-runtime-l1-1-0.dll": [
+          "GetCurrentPackageFullName"
+        ],
+        "api-ms-win-core-string-l1-1-0.dll": [
+          "WideCharToMultiByte",
+          "MultiByteToWideChar"
+        ],
+        "api-ms-win-core-file-l1-1-0.dll": [
+          "GetFileSizeEx",
+          "ReadFile",
+          "DeleteFileW",
+          "SetFileInformationByHandle",
+          "GetFileInformationByHandle",
+          "WriteFile",
+          "CreateDirectoryW",
+          "SetFilePointerEx",
+          "GetFileType",
+          "SetEndOfFile",
+          "FlushFileBuffers",
+          "GetFileAttributesW",
+          "CreateFileW"
+        ],
+        "api-ms-win-core-file-l2-1-0.dll": [
+          "MoveFileExW"
+        ],
+        "api-ms-win-core-job-l2-1-0.dll": [
+          "SetInformationJobObject",
+          "CreateJobObjectW",
+          "AssignProcessToJobObject"
+        ],
+        "api-ms-win-core-profile-l1-1-0.dll": [
+          "QueryPerformanceFrequency",
+          "QueryPerformanceCounter"
+        ],
+        "api-ms-win-core-file-l2-1-2.dll": [
+          "CopyFileW"
+        ],
+        "api-ms-win-core-synch-l1-2-0.dll": [
+          "Sleep"
+        ],
+        "api-ms-win-core-heap-l1-1-0.dll": [
+          "GetProcessHeap",
+          "HeapAlloc",
+          "HeapCreate",
+          "HeapSize",
+          "HeapReAlloc",
+          "HeapFree"
+        ],
+        "api-ms-win-core-processthreads-l1-1-1.dll": [
+          "SetThreadContext",
+          "GetThreadContext",
+          "FlushInstructionCache"
+        ],
+        "api-ms-win-core-toolhelp-l1-1-0.dll": [
+          "Thread32Next",
+          "Thread32First",
+          "CreateToolhelp32Snapshot"
+        ],
+        "kernel32.dll": [
+          "GetExitCodeThread",
+          "EnterCriticalSection",
+          "LeaveCriticalSection",
+          "InitializeCriticalSectionEx",
+          "DeleteCriticalSection",
+          "EncodePointer",
+          "DecodePointer",
+          "LCMapStringEx",
+          "SleepConditionVariableSRW",
+          "GetCPInfo",
+          "GetStringTypeW",
+          "RtlCaptureContext",
+          "RtlLookupFunctionEntry",
+          "RtlVirtualUnwind",
+          "UnhandledExceptionFilter",
+          "SetUnhandledExceptionFilter",
+          "IsProcessorFeaturePresent",
+          "IsDebuggerPresent",
+          "GetStartupInfoW",
+          "InitializeSListHead",
+          "WakeAllConditionVariable",
+          "GetFileInformationByHandleEx",
+          "WaitForSingleObjectEx",
+          "AreFileApisANSI",
+          "ReleaseSRWLockExclusive",
+          "GetFullPathNameW",
+          "GetFileAttributesExW",
+          "FindNextFileW",
+          "FindFirstFileExW",
+          "FindFirstFileW",
+          "FindClose",
+          "GetLocaleInfoEx",
+          "LocalFree",
+          "FormatMessageA",
+          "TryAcquireSRWLockExclusive",
+          "AcquireSRWLockExclusive",
+          "GetSystemTimeAsFileTime"
+        ],
+        "api-ms-win-core-rtlsupport-l1-1-0.dll": [
+          "RtlUnwindEx",
+          "RtlUnwind",
+          "RtlPcToFileHeader"
+        ],
+        "api-ms-win-core-interlocked-l1-1-0.dll": [
+          "InterlockedFlushSList"
+        ],
+        "api-ms-win-core-fibers-l1-1-0.dll": [
+          "FlsSetValue",
+          "FlsGetValue",
+          "FlsFree",
+          "FlsAlloc"
+        ],
+        "api-ms-win-core-localization-l1-2-0.dll": [
+          "EnumSystemLocalesW",
+          "GetOEMCP",
+          "IsValidLocale",
+          "GetLocaleInfoW",
+          "LCMapStringW",
+          "IsValidCodePage",
+          "GetACP",
+          "GetUserDefaultLCID"
+        ],
+        "api-ms-win-core-processenvironment-l1-1-0.dll": [
+          "GetCommandLineW",
+          "GetEnvironmentStringsW",
+          "FreeEnvironmentStringsW",
+          "SetStdHandle",
+          "GetCommandLineA",
+          "GetStdHandle"
+        ],
+        "api-ms-win-core-console-l1-1-0.dll": [
+          "GetConsoleMode",
+          "WriteConsoleW",
+          "GetConsoleOutputCP",
+          "ReadConsoleW"
+        ]
       },
-      {
-        "sha256": "E34D9DBB574790CAB5293E8B2C9C31A696CD58287281C8424255C6CF5045C40B",
-        "bytes": 323819336,
-        "subsystem": 3,
-        "checksum": "0x134d2def"
+      "exports": [
+        "MPB_GetStatus",
+        "MPB_GetVersion",
+        "ll_memory_operator_overrided",
+        "ll_mod_disable",
+        "ll_mod_enable",
+        "ll_mod_load"
+      ]
+    },
+    "codec": {
+      "bytes": 538624,
+      "sha256": "76D1B08642F8200393D23C74B944B31BC7366D25378B0F47D77AD4162F2BDDBC",
+      "imports": {
+        "kernel32.dll": [
+          "RtlCaptureContext",
+          "RtlLookupFunctionEntry",
+          "RtlVirtualUnwind",
+          "UnhandledExceptionFilter",
+          "SetUnhandledExceptionFilter",
+          "GetCurrentProcess",
+          "TerminateProcess",
+          "IsProcessorFeaturePresent",
+          "QueryPerformanceCounter",
+          "GetCurrentProcessId",
+          "GetCurrentThreadId",
+          "GetSystemTimeAsFileTime",
+          "InitializeSListHead",
+          "IsDebuggerPresent",
+          "GetStartupInfoW",
+          "GetModuleHandleW",
+          "RtlUnwindEx",
+          "InterlockedFlushSList",
+          "RtlPcToFileHeader",
+          "RaiseException",
+          "GetLastError",
+          "SetLastError",
+          "EncodePointer",
+          "EnterCriticalSection",
+          "LeaveCriticalSection",
+          "DeleteCriticalSection",
+          "InitializeCriticalSectionAndSpinCount",
+          "TlsAlloc",
+          "TlsGetValue",
+          "TlsSetValue",
+          "TlsFree",
+          "FreeLibrary",
+          "GetProcAddress",
+          "LoadLibraryExW",
+          "ExitProcess",
+          "GetModuleHandleExW",
+          "GetModuleFileNameW",
+          "HeapFree",
+          "HeapAlloc",
+          "FlsAlloc",
+          "FlsGetValue",
+          "FlsSetValue",
+          "FlsFree",
+          "LCMapStringW",
+          "GetStdHandle",
+          "GetFileType",
+          "FindClose",
+          "FindFirstFileExW",
+          "FindNextFileW",
+          "IsValidCodePage",
+          "GetACP",
+          "GetOEMCP",
+          "GetCPInfo",
+          "GetCommandLineA",
+          "GetCommandLineW",
+          "MultiByteToWideChar",
+          "WideCharToMultiByte",
+          "GetEnvironmentStringsW",
+          "FreeEnvironmentStringsW",
+          "GetProcessHeap",
+          "FlushFileBuffers",
+          "WriteFile",
+          "GetConsoleOutputCP",
+          "GetConsoleMode",
+          "SetStdHandle",
+          "GetFileSizeEx",
+          "SetFilePointerEx",
+          "GetStringTypeW",
+          "HeapSize",
+          "HeapReAlloc",
+          "CloseHandle",
+          "CreateFileW",
+          "WriteConsoleW"
+        ]
       },
-      {
-        "sha256": "019F4EE7C82DB0E0C187653BC76C61CF75502FF6866A5CC6603FA0C909A386A2",
-        "bytes": 323821384,
-        "subsystem": 2,
-        "checksum": "0x134d3cba"
-      },
-      {
-        "sha256": "DA6C84C32681A7CD7F82CF3573B08E23D629BB2E6E6EC73AD44DE098248FCE63",
-        "bytes": 323821384,
-        "subsystem": 3,
-        "checksum": "0x134d3cba"
-      },
-      {
-        "sha256": "537A7BD5AB1BEB109BD9D2E5206B6DF35BF273D01717EF9C5B20EC4B68CC3017",
-        "bytes": 323821384,
-        "subsystem": 2,
-        "checksum": "0x134d3cbb"
-      },
-      {
-        "sha256": "68B38A0B3FD2A57C4538DBFAC5BEACE14AFD774513E2CBF1BE4443E9DE010768",
-        "bytes": 323821384,
-        "subsystem": 3,
-        "checksum": "0x134d3cbb"
-      }
+      "exports": [
+        "MV_Create",
+        "MV_Decode",
+        "MV_Destroy",
+        "MV_Encode"
+      ]
+    }
+  },
+  "hostJarSha256": "7C8AED2FD0B601AB8BEEC57F1E4A5B54154A425BF758F771AA4D26925781BF82",
+  "nativeProductionChanged": [
+    "include/Local3Descriptions.h",
+    "include/Version.h"
+  ],
+  "nativeHookAndLayoutChanges": false,
+  "unchangedVendorFiles": 1874,
+  "changedProductionClasses": [
+    "com/muoniumplayer/bedrock/RoomVoice.class",
+    "com/muoniumplayer/core/screens/hud/HudSettingsModel$163.class",
+    "com/muoniumplayer/core/screens/hud/HudSettingsModel$164.class",
+    "com/muoniumplayer/core/screens/hud/HudSettingsModel$165.class",
+    "com/muoniumplayer/core/screens/hud/HudSettingsModel$166.class",
+    "com/muoniumplayer/core/screens/hud/HudSettingsModel.class"
+  ],
+  "addedProductionClasses": [],
+  "unchangedMediaResources": true,
+  "local3ExactDescriptorSha256": "9C61987CCC5E566723E9579D850F1249F23DC85165C868A7447621B8414D28B0",
+  "opus": {
+    "version": "1.5.2",
+    "archiveSha256": "9480E329E989F70D69886DED470C7F8CFE6C0667CC4196D4837AC9E668FB7404",
+    "license": "BSD-3-Clause",
+    "runtime": "static MSVC",
+    "source": "https://github.com/xiph/opus/archive/refs/tags/v1.5.2.tar.gz",
+    "recipeCommit": "635956946b104aa1108d43267dd8878e13d3891a"
+  },
+  "defaults": {
+    "roomVoice": false,
+    "microphone": false,
+    "musicBroadcast": false,
+    "deafened": false
+  },
+  "bounds": {
+    "roomPeers": 8,
+    "globalPeers": 64,
+    "voicePacketsPerSecond": 55,
+    "opusBytes": 400,
+    "queuedFrames": 8,
+    "freshnessMs": 200,
+    "writeTimeoutMs": 2000
+  },
+  "physicalAudioTested": false,
+  "manualMinecraftAcceptance": "Ordinary and distance voice user-confirmed on0.20.1; extra physical microphone acceptance for0.20.2 gain explicitly skipped by maintainer; no universal hardware/network acceptance",
+  "twoComputerInternetTested": false,
+  "shortcuts": {
+    "microphone": "unbound",
+    "deafen": "unbound",
+    "nativeEvents": "appended 14 and 15",
+    "settingsInterop": "real ModMenuBE passive parser, ten chords, Apply/Cancel preserved"
+  },
+  "devices": "background enumeration and explicit input/output choice; selection never enables microphone; missing selected device fails visibly",
+  "bundledCodecResolution": "fresh Java process, deployed JAR/lib/voice layout, unrelated working directory, no path override; audible Opus roundtrip passed",
+  "voiceEvidence": "real Opus / original room engine / TCP / binary WebSocket tunnel / synthetic audio and injected endpoints; no physical microphone",
+  "installedGameModified": false,
+  "modMenuIncluded": false,
+  "bschatIncluded": false,
+  "userConfigurationIncluded": false,
+  "githubPublication": true,
+  "preservedReleases": [
+    "0.17.1",
+    "0.18.0",
+    "0.19.0",
+    "0.20.0",
+    "0.20.1"
+  ],
+  "knownLimitations": [
+    "Host must stay online",
+    "Tunnel/proxy/TCP quality affects latency",
+    "No echo cancellation or automatic game-server discovery",
+    "Input endpoints need48kHz mono; output needs48kHz stereo",
+    "No claim to repair existing YouTube playback"
+  ],
+  "spatial": {
+    "default": false,
+    "rangeOptions": [
+      8,
+      16,
+      32,
+      64
     ],
-    "nativeGuards": 61,
-    "fullNativeBodies": 48,
-    "test11WorkspaceFixtureIdentical": {
-      "src/Workspace.cpp": "3D79389D0C443505C03EC534A49CDBE319D39688F92B43BEE106CE7DB853F8C2",
-      "src/WorkspaceApi.cpp": "27555ADF9DF7949AE18BE4834E14F99A39A5C2A07E8173C2BF52C987A7BD9C7D",
-      "include/ModMenu/Workspace.h": "A1572792F6E51B1150431EDB1158B61E06E9A5F8CCE6EFDA304DEB774E852233"
-    },
-    "gameModified": false,
-    "gameLaunched": false,
-    "manualMinecraftAcceptance": false
+    "defaultRange": 32,
+    "output": "48kHz stereo",
+    "sender": "verified local player AABB head and rotation; independent of HUD and cinematic eligibility",
+    "listener": "same local player head and rotation",
+    "occlusion": "native33-cube collision shapes; unknown paths conservatively muffled; background voice worker only",
+    "contexts": "stable private player/world/dimension identity; UI/camera eligibility changes preserve consent; world loss/change or stale pose revokes",
+    "legacy": "capability negotiated; spatial frames never downgrade to full-room audio for old hosts/clients",
+    "coordinates": "ephemeral and only sent with distance consent; never persisted or logged",
+    "codecUnchangedFrom": "0.20.1",
+    "transport": "new96-byte private owned pose mapping, at most50Hz; existing hook/addresses/layout guards retained"
   },
-  "redGreenObserved": true,
-  "previousJavaTestInvocations": 584,
-  "javaCampaignRerun": false,
-  "javaEngineAndPublicFontsUnchanged": true,
-  "leviLaminaDllUnchanged": true,
-  "nativeRvasGuardsAndContractsUnchanged": true,
-  "packages": {
-    "vanilla-mc26.45-26.51-26.52-26.60": {
-      "edition": "0.12.0-public2",
-      "baselineVersion": "0.12.0-test2-mc2645-2651",
-      "minecraft": [
-        "1.26.45.01",
-        "1.26.51.01",
-        "1.26.52.03",
-        "1.26.60.05"
-      ],
-      "loader": "preload-native",
-      "baselineUserReportedRuns": false,
-      "newFontResourcesManualMinecraftTest": false,
-      "nativeDllUnchanged": false,
-      "dllSha256": "4B7A074552DB9D2FA6C457719BA380945EF0F9411B5C6C655790C511D6A15FA0",
-      "baselineHostJarSha256": "D5CAAA39BBDD545A9B57BDAE17148EF87CDE09468166592FCD66CE8FC1801A10",
-      "publicHostJarSha256": "BC16A69F3FAC8AB49EC28209EC7960A55C8058340C9D4561DA9B60090CB481F0",
-      "fontResourceDelta": {
-        "changedExistingEntries": [
-          "muonium/fonts/pf_middleblack.ttf",
-          "muonium/fonts/pf_normal.ttf",
-          "muonium/fonts/sfbold.otf",
-          "muonium/fonts/sfregular.otf"
-        ],
-        "productionClassesUnchanged": true
-      },
-      "requiresModMenu": "ModMenuBedrock 0.6.0-test11 reviewed; Workspace V1 unchanged",
-      "defaultHotkeys": "unbound",
-      "sourceFamily": "current-native",
-      "baselineUserReportedGameVersions": [
-        "1.26.45.01",
-        "1.26.51.01"
-      ],
-      "unifiedDllManualAcceptancePending": [
-        "1.26.45.01",
-        "1.26.51.01",
-        "1.26.52.03",
-        "1.26.60.05"
-      ],
-      "exactProfileSelection": "full-file SHA-256 and size; independent unchanged native contracts; no runtime normalization",
-      "nativeVersion": "0.12.0-test3-mc2660-console",
-      "nativeChange": "Four reviewed 26.60 console/launcher full identities; all previous identities and native contracts/guards retained",
-      "javaEngineUnchanged": true
-    },
-    "levilamina-mc26.60": {
-      "edition": "0.12.0-public2",
-      "baselineVersion": "0.11.0-test7-mc2660",
-      "minecraft": [
-        "1.26.60.05"
-      ],
-      "loader": "LeviLamina-26.60.7",
-      "baselineUserReportedRuns": true,
-      "newFontResourcesManualMinecraftTest": false,
-      "nativeDllUnchanged": true,
-      "dllSha256": "EA36EC131338E9B0C50BAA71EEFA2B453339DFAB04F76C60AB6E507C38D57F9C",
-      "baselineHostJarSha256": "2BB9DDBB57AE52E91D887E94B8753D0F05016891ED7E2FE0A2B975E40C5987F8",
-      "publicHostJarSha256": "56EEF9A9212A82D1F0340D7EEF618CA2D8C895EB6A400191867239C61B17C9F8",
-      "fontResourceDelta": {
-        "changedExistingEntries": [
-          "muonium/fonts/pf_middleblack.ttf",
-          "muonium/fonts/pf_normal.ttf",
-          "muonium/fonts/sfbold.otf",
-          "muonium/fonts/sfregular.otf"
-        ],
-        "productionClassesUnchanged": true
-      },
-      "requiresModMenu": "matching ModMenuBedrock; LeviLamina uses ModMenuBedrockLL",
-      "defaultHotkeys": "unbound",
-      "sourceFamily": "mc26.60-ll-baseline"
-    }
+  "regression": "Microphone gain and audio isolation plus retained room, spatial, focus, proxy, camera, playback and acoustic regressions",
+  "microphoneGain": {
+    "defaultPercent": 100,
+    "minimumPercent": 0,
+    "maximumPercent": 400,
+    "stepPercent": 50,
+    "scope": "microphone PCM before music mix; common send volume retained",
+    "peakProtection": "whole microphone frame attenuation above full scale; no hard clipping in gain stage",
+    "live": "no device reopen, room reconnect or implicit microphone activation",
+    "persistence": "dedicated bounded preference; old settings default to100percent",
+    "evidence": "real Opus decoded amplitude, zero gain, waveform distortion, music isolation, settings restore, actual HUD control and offscreen rendering"
   },
-  "publicDownloadFamilies": [
-    "vanilla-four-versions",
-    "LeviLamina-26.60"
-  ],
-  "newNativeDllManualAcceptancePending": [
-    "1.26.45.01",
-    "1.26.51.01",
-    "1.26.52.03",
-    "1.26.60.05"
-  ],
-  "manualMinecraftRunThisPublication": false,
-  "automaticInstallation": false
+  "previousCandidateSpatialAcceptance": "User reported0.20.1 distance voice working; no new live game test in this candidate",
+  "releaseUrl": "https://github.com/XuanDiNa/MuoniumPlayerBedrock/releases/tag/v0.20.2",
+  "physicalMicrophoneGainTest": "explicitly skipped by maintainer",
+  "publicationBinaryChanges": false,
+  "publicationDocumentationOnly": true,
+  "sourceArchiveCorrespondsToReleaseCommit": true
 }

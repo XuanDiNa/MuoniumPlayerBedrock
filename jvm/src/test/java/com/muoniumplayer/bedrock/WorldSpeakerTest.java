@@ -89,8 +89,9 @@ class WorldSpeakerTest {
         // Looking +Z, camera right is -X in the pinned native/Java convention.
         assertEquals(1,right.directPan(),1e-5);
         var plan=SceneResponse.respond(right,1);assertTrue(plan.hasSpeakerAnchor);
-        assertEquals(1,plan.directPan,1e-5);assertEquals(1,plan.directGain,1e-5);
-        assertTrue(SceneResponse.respond(sample(f,SpeakerState.place(-11.5,.5,.5,"0")),1).directGain<1);
+        // Upstream 2.6.1 rolls off continuously from 1m to 0.60 at 8m.
+        assertEquals(1,plan.directPan,1e-5);assertEquals(.60,plan.directGain,1e-5);
+        assertTrue(SceneResponse.respond(sample(f,SpeakerState.place(-11.5,.5,.5,"0")),1).directGain<plan.directGain);
         assertEquals(-7.5,plan.speakerX,1e-5);
         var left=sample(f,SpeakerState.place(8.5,.5,.5,"0"));assertEquals(-1,left.directPan(),1e-5);
     }
@@ -129,15 +130,18 @@ class WorldSpeakerTest {
     @Test void realOriginalPcmOutputMovesEnergyToSourceSide() throws Exception {
         var f=EnvironmentFrame.decode(EnvironmentFrameTest.packet(),1001,7);
         try {
+            SceneAcoustics.setListenerPose(.5,.5,.5,0,0,1,0,1,0);
             SceneAcoustics.applyTarget(SceneResponse.respond(sample(f,SpeakerState.place(-7.5,.5,.5,"0")),1));
             SceneAcoustics.flush();double left=0,right=0;
             for(int block=0;block<100;block++) {
                 double[] pcm=new double[2048];
-                for(int n=0;n<1024;n++)pcm[2*n]=pcm[2*n+1]=Math.sin((block*1024+n)*.075)*.12;
+                // 2.6.1 keeps bass in the far ear instead of equal-power muting it.
+                // Probe its directional high-frequency shelf with a 3.6kHz tone.
+                for(int n=0;n<1024;n++)pcm[2*n]=pcm[2*n+1]=Math.sin((block*1024+n)*2*Math.PI*3600/48000)*.12;
                 SceneAcoustics.render(pcm,2,48000);
                 if(block>70)for(int n=0;n<1024;n++){assertTrue(Double.isFinite(pcm[2*n]));assertTrue(Double.isFinite(pcm[2*n+1]));left+=pcm[2*n]*pcm[2*n];right+=pcm[2*n+1]*pcm[2*n+1];}
             }
-            assertTrue(right>left*2,"Actual original audio output must localize, not just publish a source field");
+            assertTrue(right>left*2,"Actual original audio output must localize: left="+left+", right="+right);
         }finally{SceneAcoustics.clearTarget();SceneAcoustics.flush();}
     }
     @Test void unknownGeometryAlsoMutesActualStereoSideSignal() throws Exception {

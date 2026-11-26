@@ -9,8 +9,11 @@ import json
 import re
 from upstream25 import verify, DELTA
 from streaming_mix_overlay import apply as streaming_mix_overlay
-from cine_schedule_overlay import apply as cine_schedule_overlay
+from cine_schedule_overlay import apply as cine_schedule_overlay, session as cine_session_overlay
 from ui_presentation_overlay import apply as ui_presentation_overlay
+import room_latency_overlay
+import room_voice_overlay
+from source_failure_overlay import apply as source_failure_overlay
 
 ROOT = Path(__file__).resolve().parents[1]
 REF = DELTA
@@ -33,9 +36,9 @@ def method_body(text, signature, body):
 
 SOURCES = {
     'muonium-common': [
-        'core/MuoniumPlayerExtension.java', 'core/utils/KeyboardUtils.java', 'core/cine/CineDirector.java',
+        'core/MuoniumPlayerExtension.java', 'core/utils/KeyboardUtils.java', 'core/cine/CineDirector.java', 'core/cine/CineSession.java',
         'core/screens/onboarding/OnboardingOverlay.java', 'core/management/FontManager.java', 'core/screens/hud/GuiHudEditorPro.java',
-        'core/ncm/music/CloudMusic.java', 'core/ncm/music/LiveStreamPlayer.java',
+        'core/ncm/music/CloudMusic.java', 'core/ncm/music/LiveStreamPlayer.java', 'core/ncm/music/BilibiliMusicService.java',
         'core/rendering/ui/AbstractWidget.java', 'core/screens/ncm/panels/PlayQueuePanel.java',
         'core/ncm/music/AudioPlayer.java', 'core/ncm/music/SmtcTimelineStabilizer.java', 'core/ncm/music/ExternalArtwork.java', 'core/screens/ncm/IslandSearchOverlay.java',
         'core/screens/ncm/panels/NavigateBar.java', 'core/screens/ncm/PlaylistCreateSheet.java'],
@@ -47,7 +50,12 @@ SOURCES = {
         'core/rendering/IslandVisibilityGate.java', 'core/rendering/IslandAmbientStatus.java']
 }
 SOURCES['muonium-common'] += ['core/ncm/music/acoustics/SceneAcoustics.java', 'core/widget/impl/MusicLyricsWidget.java', 'core/rendering/MusicSpectrumRenderer.java', 'core/lyrics3d/WorldLyricsRenderer.java', 'core/MuoniumPlayerEventHandler.java', 'core/settings/ConfigPaths.java', 'core/ncm/music/LyricCacheStore.java',
-    'core/ncm/music/MusicAudioCache.java', 'core/screens/ncm/NCMScreen.java']
+    'core/ncm/music/MusicAudioCache.java', 'core/screens/ncm/NCMScreen.java', 'core/download/DownloadCatalog.java',
+    'core/management/FontAssetDownload.java']
+SOURCES['muonium-common'] += ['core/music/source/MuQQApi.java', 'core/ncm/spotify/SpotifyMusicService.java',
+                            'core/ncm/kugou/KuGouMusicApi.java', 'core/ncm/music/KuGouMusicService.java']
+SOURCES['muonium-common'] += ['core/ncm/music/TrackLoudnessNormalization.java']
+SOURCES['muonium-common'] += ['core/screens/ncm/effects/EffectsWorkbench.java']
 
 report = []
 latest=verify()
@@ -59,8 +67,36 @@ for tree, names in SOURCES.items():
         src = (DELTA if source_rel.as_posix() in selected else REF) / source_rel
         old = src.read_text(encoding='utf-8-sig')
         new = old.replace('net.minecraft.client.Minecraft', CLIENT)
-        if name == 'core/cine/CineDirector.java':
+        new = source_failure_overlay(name, new, method_body)
+        if name == 'core/screens/ncm/effects/EffectsWorkbench.java':
+            labels={
+                '整曲静态响度归一化 · 目标 -18 LUFS':'曲目响度均衡 · 目标 -18 LUFS',
+                '在后台扫描本地音轨并缓存结果；再次播放可直接复用测量值。':'完整音轨在后台测量；串流按已缓冲内容逐步估算，不必等整首下载。',
+                '"整曲测量"':'"后台测量"',
+                '适用于已下载的完整音轨；电台直播没有整曲测量，不受此开关影响。':'支持完整音轨与边下边播，串流结果会随内容更新；电台直播不受此开关影响。'
+            }
+            for before,after in labels.items():
+                assert new.count(before)==1,before
+                new=new.replace(before,after)
+        elif name == 'core/ncm/music/BilibiliMusicService.java':
+            marker='return new ResolveResult(urlValue, "mp4", bandwidth, track);'
+            assert new.count(marker)==1
+            new=new.replace(marker,'return new ResolveResult(BilibiliCdnRoutes.remember(chosen,urlValue), "mp4", bandwidth, track);')
+        elif name == 'core/management/FontAssetDownload.java':
+            new=method_body(new, 'static boolean enabled()', '''        // Complete public Noto assets are bundled; never fetch the original proprietary font packs.
+        return false;''')
+        elif name == 'core/download/DownloadCatalog.java':
+            new=method_body(new,'public static boolean shouldShowEntry()', '        return true;')
+            new=method_body(new,'private static void addSkija(List<Item> items)', '''        items.add(new Item("skija", "Skija", "Bundled Windows graphics runtime", "",
+                Group.GRAPHICS, Status.INSTALLED, 100, "Bundled with the Bedrock host", false, "", null));''')
+            new=method_body(new,'private static void addMuoniumConfig(List<Item> items)',
+                '        // Bedrock uses its bundled HUD editor and ModMenuBE settings.')
+            new=method_body(new,'private static void addFonts(List<Item> items)', '''        items.add(new Item("fonts", "Noto fonts", "SIL OFL 1.1", "",
+                Group.FONTS, Status.INSTALLED, 100, "Bundled open-source fonts", false, "", null));''')
+        elif name == 'core/cine/CineDirector.java':
             new = cine_schedule_overlay(new)
+        elif name == 'core/cine/CineSession.java':
+            new = cine_session_overlay(new)
         elif name == 'core/screens/hud/GuiHudEditorPro.java':
             new = ui_presentation_overlay(new)
             marker='    @Override\n    protected void mouseReleased(int mouseX, int mouseY, int state) {'
@@ -97,13 +133,44 @@ for tree, names in SOURCES.items():
                 }
             });
         });''')
+            # New 2.6 import sheet reuses a second overload. Both entry points
+            # must use the asynchronous owned picker, never block the host UI.
+            new=method_body(new,'void openLocalFolderImport(Runnable onAccepted)', '''        if(com.muoniumplayer.bedrock.HostFileDialogs.active())return;
+        String initial=LocalMusicLibrary.directories().isEmpty()
+                ?new java.io.File("").getAbsolutePath():LocalMusicLibrary.directories().get(0);
+        com.muoniumplayer.bedrock.HostFileDialogs.chooseDirectory(initial,picked->{
+            if(picked==null||!picked.isDirectory())return;
+            final String directory=picked.getAbsolutePath();
+            onAccepted.run();
+            com.muoniumplayer.core.utils.other.multithreading.MultiThreadingUtil.runAsync(()->{
+                try{
+                    LocalMusicLibrary.addDirectory(directory);
+                    var tracks=LocalMusicLibrary.scanDirectory(directory);
+                    com.muoniumplayer.core.utils.other.multithreading.MultiThreadingUtil.runOnMainThread(()->finishLocalFolderImport(directory,tracks));
+                }catch(Throwable failure){
+                    com.muoniumplayer.core.utils.other.multithreading.MultiThreadingUtil.runOnMainThread(()->DownloadDynamicIsland.showModelOperationResult("本地音乐","导入失败",false));
+                }
+            });
+        });''')
         if name.endswith('NavigateBar.java'):
-            before='quickActionsSurface.addChild(btnTheme, btnFont, btnPlayerSize, btnRefresh, btnAnnouncement);'
+            before='quickActionsSurface.addChild(btnTheme, btnFont, btnPlayerSize, btnRefresh, btnAnnouncement, btnDownloads);'
             assert new.count(before)==1
             new=new.replace('btnAnnouncement.setUnreadBadge(() -> AnnouncementChecker.hasUnread());','// Bedrock player tools have no remote announcement feed.')
             new=new.replace('return "查看公告";', 'return "播放器工具 / Player tools";')
-            new=method_body(new,'private static int railSlotCount(', '        return 5;')
+            new=method_body(new,'private static int railSlotCount(', '        return 6;')
             new=method_body(new,'private static boolean railFitsAnnouncement(', '        return true;')
+            marker='''this.announcementButton.setHidden(!railFitsAnnouncement(this.getWidth() - 16)
+                    || DownloadCatalog.shouldShowEntry());'''
+            assert new.count(marker)==1
+            new=new.replace(marker, 'this.announcementButton.setHidden(false);')
+            marker='''btnDownloads.setPosition(railSlotX(DownloadCatalog.shouldShowEntry()
+                    && railFitsDownloads(Math.max(1, this.getWidth() - 16)) ? 5 : 4, actionWidth), 2);'''
+            assert new.count(marker)==1
+            new=new.replace(marker, 'btnDownloads.setPosition(railSlotX(5, actionWidth), 2);')
+            marker='double iconScale = 1.13 + hoverAnimation * .08 - pressAnimation * .055;'
+            assert new.count(marker)==1
+            new=new.replace(marker, '''double iconScale = Math.min(1.13 + hoverAnimation * .08 - pressAnimation * .055,
+                    Math.max(1d, getWidth() - 2d) / 17.2d);''')
         if name.endswith('IslandSearchOverlay.java'):
             new = new.replace('private IslandSearchOverlay() {', 'public boolean transparentHost(){return true;}\n    private IslandSearchOverlay() {')
             new=new.replace('private IslandSearchOverlay() {',
@@ -123,9 +190,11 @@ for tree, names in SOURCES.items():
             # A real stereo-side fixture proves the upstream fallback leaves
             # S audible even when the fixed source's direct path is muted.
             # Preserve the listener/headset branch and all original DSP logic.
-            before = 'final double width = 0.35 + 0.65 * Math.min(1.0, directGain * 1.4);'
-            assert new.count(before) == 1, 'Pinned source-side attenuation boundary changed'
-            new = new.replace(before, 'final double width = (0.35 + 0.65 * Math.min(1.0, directGain * 1.4)) * (plan.hasSpeakerAnchor ? directGain : 1.0);')
+            # Upstream 2.6 now attenuates both M/S outputs by directGain;
+            # the old width repair would double-attenuate this new DSP path.
+            # 2.6.1 replaces the stereo-side branch with the ray-field DSP.
+            # Its headroom/direct-path contracts are covered by PCM fixtures.
+            assert 'NATIVE_PCM_SCALE' in new
         if name == 'core/ncm/music/SmtcTimelineStabilizer.java':
             # The upstream controls advertise -1=automatic; preserve that choice
             # instead of clamping it permanently to a manual zero/500ms value.
@@ -157,9 +226,18 @@ for tree, names in SOURCES.items():
             new=new.replace('        this.syncRows();', '        this.syncRows();\n        '+flow+'\n        '+clear)
             new=new.replace('        this.open = open;', '''        this.open = open;
         System.out.println("QUEUE_UI action=" + (open ? "open" : "close") + " pending=" + CloudMusic.getQueuedNextSongs().size());''')
+        elif name == 'core/ncm/music/TrackLoudnessNormalization.java':
+            # Progressive registry tokens are not media files. Their decoded
+            # prefix is metered by the existing background decoder instead.
+            marker='private static void request(final AudioPlayer player, final File file) {'
+            assert new.count(marker)==1
+            new=new.replace(marker,marker+'\n        if(com.muoniumplayer.bedrock.ProgressiveAudio.isProgressive(file))return;')
         elif name == 'core/ncm/music/AudioPlayer.java':
+            marker='!expectedFile.equals(sourceFile)'
+            assert new.count(marker)==1
+            new=new.replace(marker,'(!expectedFile.equals(sourceFile) && !expectedFile.equals(getSourceFile()))')
             assert new.count('VoicechatBroadcast.ensureInstalled();')==1
-            new=new.replace('VoicechatBroadcast.ensureInstalled();','// Bedrock voice broadcast is deferred.')
+            new=new.replace('VoicechatBroadcast.ensureInstalled();','com.muoniumplayer.bedrock.RoomVoice.global().ensureInstalled();')
             new=new.replace('    public File getSourceFile() {', '''    public File bedrockSourceToken() { return this.sourceFile; }
     public File getSourceFile() {''')
             new=new.replace('    public File getSourceFile() {', '''    public boolean bedrockCompleteForMix(boolean enabled) {
@@ -174,7 +252,13 @@ for tree, names in SOURCES.items():
             new=new.replace('        this.sourceFile = file;', '        this.sourceFile = file;\n        this.bedrockBufferHeld = false;')
             new=new.replace('        return this.sourceFile;', '''        return com.muoniumplayer.bedrock.ProgressiveAudio.analysisFile(this.sourceFile);''')
             new=new.replace('    public float getTotalTimeMillis() {', '''    public boolean bedrockIsBuffering() { return bedrockBufferHeld; }
+    private float[] bedrockLastLoudness;
     public int bedrockProgressiveTick() {
+        float[] loudness=com.muoniumplayer.bedrock.ProgressiveAudio.loudness(this.sourceFile);
+        if(loudness!=bedrockLastLoudness) {
+            bedrockLastLoudness=loudness;
+            StreamingTrackLoudness.apply(this,this.sourceFile,loudness);
+        }
         int state = com.muoniumplayer.bedrock.ProgressiveAudio.state(this.sourceFile, getCurrentTimeMillis());
         if (state == 1 && !bedrockBufferHeld && this.playRequested && isUsable()) {
             this.player.pause(); bedrockBufferHeld = true;
@@ -216,7 +300,7 @@ for tree, names in SOURCES.items():
                 stopExistingPlayThread();
                 curIdx = retryIndex;
                 dontAdd = false;
-                startNewPlayThread(playList, retryIndex);
+                startNewPlayThread(playList, retryIndex, 0L);
                 return PlayPauseResult.RESUMED;
             }
         }
@@ -367,9 +451,7 @@ for tree, names in SOURCES.items():
             return complete;
         }
         private File bedrockStream(Tuple<String,String> url,Music song,java.util.function.BooleanSupplier cancelled,boolean ahead) {
-            return url!=null && song!=null && song.isNetease()
-                && ("mp3".equalsIgnoreCase(url.getB()) || "flac".equalsIgnoreCase(url.getB()))
-                ? com.muoniumplayer.bedrock.ProgressiveAudio.prepare(url.getA(),cancelled,bedrockCacheKey(url,song),ahead):null;
+            return url==null?null:StreamingAudioRoute.prepare(url.getA(),song,cancelled,bedrockCacheKey(url,song),ahead);
         }
         private File getMusicFile(Tuple<String, String> playUrl, Music song) {
             return bedrockPrepareAudio(playUrl,song,()->isPlaybackCancelled());
@@ -392,7 +474,7 @@ for tree, names in SOURCES.items():
             }catch(Throwable failure){System.out.println("PROGRESSIVE_AUDIO upcoming=cancelled-or-unavailable");}
             finally{com.muoniumplayer.bedrock.ProgressiveAudio.discard(file);prefetchingAudio=false;}
 ''')
-            new=new.replace('if (!worthAudioPrefetch(song)) return;', 'if (song==null || (!song.isNetease() && !worthAudioPrefetch(song))) return;')
+            new=new.replace('if (!worthAudioPrefetch(song)) return;', 'if (song==null) return;')
             new=new.replace('if (armed != null || arming) return;', 'if (armed != null || arming || prefetchingAudio || activeFade != null) return;')
             new=new.replace('if (prefetchingAudio || arming || armed != null) return;', 'if (prefetchingAudio || arming || armed != null || bedrockUpcoming != null || activeFade != null) return;')
             policy='com.muoniumplayer.bedrock.PlaybackFiles.global().prefetchEnabled()'
@@ -419,8 +501,9 @@ for tree, names in SOURCES.items():
                 'if (!com.muoniumplayer.bedrock.PlaybackFiles.global().prefetchEnabled() || !armStillValid(armGeneration, armRevision))')
             chunk=chunk.replace('                deck = new AudioPlayer(file);',
                 '                deck = new AudioPlayer(file); bedrockOwnedToken=null;')
-            chunk=chunk.replace('boolean incomingEnvelope = warmAdvancedEnvelopeNow(file, decodedMillis);',
-                'boolean incomingEnvelope = deck.getSourceFile()!=null && warmAdvancedEnvelopeNow(deck.getSourceFile(), decodedMillis);')
+            assert chunk.count('incomingEnvelope = warmPairSearchEnvelopeNow(file, decodedMillis);')==1
+            chunk=chunk.replace('incomingEnvelope = warmPairSearchEnvelopeNow(file, decodedMillis);',
+                'incomingEnvelope = deck.getSourceFile()!=null && warmPairSearchEnvelopeNow(deck.getSourceFile(), decodedMillis);')
             chunk=chunk.replace('track.plan = AutomixPlanner.plan(ownedPlayer, deck, lastVocalEnd);',
                 'track.plan = com.muoniumplayer.core.ncm.music.StreamingMixPlanner.plan(ownedPlayer, deck, lastVocalEnd);')
             chunk=chunk.replace('                arming = false;', '                com.muoniumplayer.bedrock.ProgressiveAudio.discard(bedrockOwnedToken);\n                arming = false;')
@@ -526,9 +609,9 @@ for tree, names in SOURCES.items():
                                 : tokenInk;''')
         if name == 'core/MuoniumPlayerEventHandler.java':
             new = new.replace('Interpolations.calcFrameDelta();', '// The owned SkijaHost already advances this clock once per frame.')
-            assert new.count('MusicSpectrumRenderer.renderHud();')==1 and new.count('DownloadDynamicIsland.render();')==1
+            assert new.count('MusicSpectrumRenderer.renderHud();')==1 and new.count('DownloadDynamicIsland.renderHudOverlay();')==1
             new = new.replace('MusicSpectrumRenderer.renderHud();','com.muoniumplayer.bedrock.HudElements.renderSpectrum(MusicSpectrumRenderer::renderHud);')
-            new = new.replace('DownloadDynamicIsland.render();','com.muoniumplayer.bedrock.HudElements.renderIsland(DownloadDynamicIsland::render);')
+            new = new.replace('DownloadDynamicIsland.renderHudOverlay();','com.muoniumplayer.bedrock.HudElements.renderIsland(DownloadDynamicIsland::renderHudOverlay);')
         if name.endswith('PlayQueuePanel.java'):
             marker='    private void cancelDrag() {'
             assert new.count(marker)==1
@@ -545,6 +628,8 @@ for tree, names in SOURCES.items():
             new = new.replace('migrateDirectory(new File("MusicCache"), MUSIC_CACHE);', '')
             new = new.replace('migrateDirectory(new File(configDir, "cache"), cacheDir);', '')
         elif name.endswith('NCMScreen.java'):
+            new=method_body(new,'private void maybeShowSponsorNotice()',
+                '        // The Bedrock port has no upstream announcement or sponsorship feed.')
             marker='    @Override\n    public void onGuiClosed() {'
             assert new.count(marker)==1
             new=new.replace(marker,'''    @Override
@@ -594,6 +679,7 @@ for tree, names in SOURCES.items():
             new = new.replace('import ' + CLIENT + ';', 'import ' + CLIENT + ';\nimport ' + CLIENT + '.KeyboardHandler;')
             new = re.sub(r'\bMinecraft\b', 'BedrockClient', new)
         elif name.endswith('MuoniumPlayerExtension.java'):
+            new=new.replace('SponsorNotice.beginSession();', '// No upstream sponsor startup action in the Bedrock port.')
             new = new.replace('MultiThreadingUtil.runAsync(LxSourceService::init);',
                               'com.muoniumplayer.bedrock.HostPolicy.initializeSources();')
             # Background companion/compiler download is an optional upstream side
@@ -626,6 +712,27 @@ for tree, names in SOURCES.items():
                               'BedrockClient.getInstance().printMessage(message);')
         elif name.endswith('HudSettingsModel.java'):
             new=new.replace('import com.muoniumplayer.core.ncm.music.VoicechatBroadcast;','')
+            # Native IPC has no chat-screen identity or chat mouse dispatch.
+            # Keep stored/preset keys intact, but expose no inert controls in
+            # either settings layout or search. The explicit mini player works
+            # independently and does not use the chat-card scale preference.
+            for label, end_label in [('可交互展开', '展开方式'), ('展开方式', None)]:
+                start = new.index(('toggle' if end_label else 'choice') + '("' + label + '",')
+                end = new.index('choice("' + end_label + '",', start) if end_label else new.index('new Group("通知",', start)
+                chunk = new[start:end]
+                visible = ('() -> HudConfig.dynamicIslandEnabled)' if end_label
+                           else '() -> HudConfig.dynamicIslandEnabled && HudConfig.islandHoverExpand)')
+                assert chunk.count(visible) == 1, label
+                new = new[:start] + chunk.replace(visible, '() -> false)') + new[end:]
+            before = 'slider(HudSetting.ISLAND_MINI_CARD_SCALE, "五款灵动岛展开音乐卡的整体大小。",'
+            start = new.index(before)
+            end = new.index('),', start) + 2
+            chunk = new[start:end]
+            assert chunk.count('() -> HudConfig.dynamicIslandEnabled') == 1
+            new = new[:start] + chunk.replace('() -> HudConfig.dynamicIslandEnabled', '() -> false') + new[end:]
+            before = '从 ModMenuBE Configure 打开，或在设置中自定义快捷键；默认无绑定。'
+            assert new.count(before) == 1
+            new = new.replace(before, '启用后可通过工作页或「打开界面」中的岛内搜索打开；快捷键默认未绑定，可在 ModMenuBE 自行设置。')
             start=new.index('new Group("设置界面", HudSettingsIcons.MODERN_UI,')
             end=new.index('new Group("外部播放器", HudSettingsIcons.NOTE,',start)
             new=new[:start]+'''new Group("设置界面", HudSettingsIcons.MODERN_UI,
@@ -667,7 +774,7 @@ for tree, names in SOURCES.items():
             end=new.index('new Category("界面与主题",',start)
             cine=new[new.index('new Group("卡点运镜",',start):end]
             mob=cine.index('toggle("追踪生物",')
-            cine=cine[:mob]+cine[cine.index('toggle("鼓点变焦",',mob):]
+            cine=cine[:mob]+cine[cine.index('choice("转场效果",',mob):]
             cine=cine.replace('环绕玩家 / 风景 / 移动生物','环绕玩家 / 风景')
             cine=cine.replace('CineSettings.setIdleSeconds(minutes > 0 ? minutes * 60 : 10);',
                 'CineSettings.setIdleSeconds(minutes > 0 ? minutes * 60 : Integer.parseInt(v.replace("秒", "").trim()));')
@@ -708,6 +815,10 @@ for tree, names in SOURCES.items():
                                 action("岛内搜索", "打开搜索框；输入并提交后才搜索。需先启用岛内搜索。",
                                         com.muoniumplayer.bedrock.HostToolsScreen::openIslandSearch)))
 '''+anchor)
+            from settings_appearance_overlay import apply_model as apply_settings_appearance_model
+            new=apply_settings_appearance_model(new)
+            from voice_broadcast_overlay import apply_model as apply_voice_broadcast_model
+            new=apply_voice_broadcast_model(new)
         elif name.startswith('core/screens/Gui'):
             new = re.sub(r'\bMinecraft\b', 'BedrockClient', new)
             new = new.replace('import net.minecraft.client.gui.screens.TitleScreen;', '')
@@ -718,6 +829,10 @@ for tree, names in SOURCES.items():
                 new=method_body(new,'public static void open(', '        // Original publisher announcements are disabled for this port.')
                 new=method_body(new,'public static void tickAutoShow(', '        // A Bedrock-owned feed can be added separately later.')
         elif name.endswith('IslandVisibilityGate.java'):
+            # The IPC scene currently reports whether a screen is open, not
+            # whether it is chat. Do not fabricate a Java ChatScreen identity.
+            new=method_body(new, 'static Object chatScreenIdentity()', '        return null;')
+            new=method_body(new, 'static boolean isChatOpen()', '        return false;')
             new = method_body(new, 'static Scene capture()', '''        var client = com.muoniumplayer.bedrock.BedrockClient.getInstance();
         var state = client.scene();
         return new Scene(state.inWorld(), state.playerListVisible(),
@@ -758,12 +873,18 @@ for source_rel in latest['java']:
         # Keep the pinned card/click geometry, but use actual outline bounds.
         # Text advances were unscaled, queue used the wrong font, and mode icons
         # depended on asynchronous prewarming with no list-loop asset.
-        new=method_body(new,'private void drawTransportGlyph(', '''        com.muoniumplayer.bedrock.CapsuleIcons.transport(glyph,centerX,centerY,size,color);''')
-        new=method_body(new,'private void drawModeGlyph(', '''        com.muoniumplayer.bedrock.CapsuleIcons.mode(x,y,size,box,alpha);''')
+        # 2.6 transport vectors use the new layout directly. Keep the original
+        # mode choice but center its bundled outline using actual Skia bounds:
+        # AWT GlyphInkMetrics differs from CFontRenderer's Skia baseline.
+        assert 'static void drawTransportIcon(Canvas canvas' in new
+        assert 'GlyphInkMetrics.of(font, glyph.charAt(0))' in new
+        new=method_body(new,'private void drawMode(double x, double y, float alpha, CloudMusic.PlayMode mode)',
+            '        com.muoniumplayer.bedrock.CapsuleIcons.modeAt(mode,x,y,MusicCardLayout.MODE_GLYPH_SIZE,alpha);')
     if rel.endswith('/HudSetting.java'):
-        before='SPIN_BASE_SPEED("陀螺模式 过渡转速", 0.0f, 360.0f);'
+        before='ISLAND_MUSIC_CAPSULE_MAX_WIDTH("音乐胶囊最大长度", 160.0f, 720.0f);'
         assert new.count(before)==1
-        new=new.replace(before,before[:-1]+',\n    SMTC_DELAY("系统镜像 延迟补偿(ms)", -1f, 2000f),\n    SMTC_WINDOW("系统镜像 外推窗口(ms)", -1f, 30000f);')
+        new=new.replace('SPIN_BASE_SPEED("陀螺模式 过渡转速", 0.0f, 360.0f),',
+            'SPIN_BASE_SPEED("陀螺模式 过渡转速", 0.0f, 360.0f),\n    SMTC_DELAY("系统镜像 延迟补偿(ms)", -1f, 2000f),\n    SMTC_WINDOW("系统镜像 外推窗口(ms)", -1f, 30000f),')
         new=new.replace('switch (this) {', 'switch (this) {', 1)
         a=new.index('public float getValue()');b=new.index('public void setValue(',a)
         part=new[a:b].replace('switch (this) {','switch (this) {\n            case SMTC_DELAY: return HudConfig.smtcTimelineDelayMs;\n            case SMTC_WINDOW: return HudConfig.smtcTimelineWindowMs;')
@@ -828,24 +949,68 @@ for source_rel in latest['java']:
 src=REF/'mpparty-common/src/main/java/com/muoniumplayer/party/direct/DirectServer.java'
 new=src.read_text(encoding='utf-8-sig').replace('new InetSocketAddress("0.0.0.0", port)',
     'new InetSocketAddress(Boolean.getBoolean("muonium.bedrock.roomLoopbackOnly") ? "127.0.0.1" : "0.0.0.0", port)')
+new=room_latency_overlay.server(new)
+new=room_voice_overlay.server(new)
 dst=OUT/'com/muoniumplayer/party/direct/DirectServer.java';dst.parent.mkdir(parents=True,exist_ok=True);dst.write_text(new,encoding='utf-8')
 report.append({'source':src.relative_to(ROOT).as_posix(),'output':dst.relative_to(ROOT).as_posix(),
     'original_sha256':hashlib.sha256(src.read_bytes()).hexdigest(),'adapted_sha256':hashlib.sha256(dst.read_bytes()).hexdigest()})
 # Keep the original party widgets and engine; only add explicit host transport.
-for relative in ['direct/MpDirect.java','ui/MpPartyOverlay.java']:
+for relative in ['direct/MpDirect.java','direct/DirectClient.java','ui/MpPartyOverlay.java']:
     src=REF/'mpparty-common/src/main/java/com/muoniumplayer/party'/relative
     old=src.read_text(encoding='utf-8-sig');new=old
+    if relative=='direct/DirectClient.java':
+        new=room_latency_overlay.client(new)
+        new=room_voice_overlay.client(new)
+    elif relative=='direct/MpDirect.java':
+        new=room_latency_overlay.facade(new)
+        new=room_voice_overlay.facade(new)
+    else:
+        new=room_latency_overlay.ui(new)
     if relative=='direct/MpDirect.java':
+        # A complete invitation must include an address. The separate UI action
+        # may still copy a clearly labelled port/password fragment.
+        fragment='? s.listeningPort() + "#" + hostAuth'
+        assert new.count(fragment)==1
+        new=new.replace(fragment,'? ""')
+        new=new.replace('为空时只给 {@code 端口#密码} 形态（UI 会在复制前填地址）',
+            '为空时不生成邀请（端口密码片段由独立按钮提供）')
         signature='public static void close() {'
         assert new.count(signature)==1
         new=new.replace(signature,signature+'\n        com.muoniumplayer.bedrock.RoomTunnel.close();')
         signature='if (!wasMember && !wasLoop) return false;'
         assert new.count(signature)==1
         new=new.replace(signature,signature+'\n        com.muoniumplayer.bedrock.RoomTunnel.close();')
-    else:
-        new=new.replace('hosting ? 286.0 : 300.0','hosting ? 366.0 : 380.0')
+    elif relative=='ui/MpPartyOverlay.java':
+        new=new.replace('hosting ? 286.0 : 300.0','hosting ? 438.0 : 420.0')
         new=new.replace('"地址:端口#密码（好友发你的整串）", 160','"公网邀请或地址:端口#密码", 512')
         new=new.replace('com.muoniumplayer.party.direct.MpDirect.joinRoom(value, err -> {','com.muoniumplayer.bedrock.RoomTunnel.joinRoom(value, err -> {')
+        new=new.replace('"已复制邀请串" : "复制邀请串"','"已复制完整邀请" : "复制完整邀请"')
+        before='''                        DirectRoomSettingsBridge.setLastHost(host);
+                        String s = com.muoniumplayer.party.direct.MpDirect.inviteString(host);
+                        if (s.isEmpty()) return;
+                        KeyboardUtils.setClipboardString(s);'''
+        assert new.count(before)==1
+        new=new.replace(before,'''                        String s = com.muoniumplayer.bedrock.RoomTunnel.completeInvitation(host);
+                        if (s.isEmpty()) {
+                            hint = "请填写房主地址，或使用「一键公网穿透」";
+                            hintColor = ERROR_COLOR;
+                            return;
+                        }
+                        if(!com.muoniumplayer.bedrock.RoomTunnel.ready())DirectRoomSettingsBridge.setLastHost(host);
+                        KeyboardUtils.setClipboardString(s);
+                        hint = "已复制完整邀请；发送给好友即可";
+                        hintColor = OK_COLOR;''')
+        new=new.replace('"复制端口密码"','"仅端口密码"')
+        before='''                String s = com.muoniumplayer.party.direct.MpDirect.inviteString("");
+                if (s.isEmpty()) return;'''
+        assert new.count(before)==1
+        new=new.replace(before,'''                if (!com.muoniumplayer.party.direct.MpDirect.isHosting()) return;
+                String s = com.muoniumplayer.party.direct.MpDirect.port() + "#"
+                        + com.muoniumplayer.party.direct.MpDirect.hostPassword();''')
+        new=new.replace('hint = "已复制「端口#密码」：" + s;',
+            'hint = "仅端口密码；好友仍需房主地址，或使用公网邀请";')
+        new=new.replace('"邀请地址（填内网穿透给你的地址，或局域网 IP）"',
+            '"直连地址（公网穿透就绪后可留空）"')
         anchor='''        // ── 托管态 ──────────────────────────────────────────────────────────'''
         assert new.count(anchor)==1
         new=new.replace(anchor,'''        if(!joined) {
@@ -862,7 +1027,14 @@ for relative in ['direct/MpDirect.java','ui/MpPartyOverlay.java']:
                 }
             },STYLE_PRIMARY,b->{b.setBounds(230,28);b.setPosition(20,hosting?200:238);});
         }
+        btn(dialog,()->PartyIcons.LINK,()->"连接代理",null,
+            com.muoniumplayer.bedrock.RoomProxyScreen::open,STYLE_GHOST,
+            b->{b.setBounds(160,28);b.setPosition(20,hosting?270:308);});
+        LabelWidget proxyNote=label(dialog,"仅代理加入公网房间；保存后下次连接生效",FontManager.pf10bold);
+        proxyNote.setBeforeRenderCallback(()->proxyNote.setColor(secondary()).setPosition(20,hosting?307:345));
 ''' + anchor)
+    if relative=='ui/MpPartyOverlay.java':
+        new=room_voice_overlay.ui(new)
     dst=OUT/'com/muoniumplayer/party'/relative;dst.parent.mkdir(parents=True,exist_ok=True);dst.write_text(new,encoding='utf-8')
     report.append({'source':src.relative_to(ROOT).as_posix(),'output':dst.relative_to(ROOT).as_posix(),
         'original_sha256':hashlib.sha256(src.read_bytes()).hexdigest(),'adapted_sha256':hashlib.sha256(dst.read_bytes()).hexdigest()})
@@ -890,12 +1062,14 @@ new = old.replace('net.minecraft.client.Minecraft', CLIENT)
 new = new.replace('import com.mojang.blaze3d.platform.InputConstants;', '')
 new = re.sub(r'\bMinecraft\b', 'BedrockClient', new)
 new = new.replace('InputConstants.isKeyDown(handle, glfw)',
-                  'com.muoniumplayer.bedrock.HostInputState.allowed() && GLFW.glfwGetKey(handle, glfw) == GLFW.GLFW_PRESS')
+                  'com.muoniumplayer.bedrock.HostInputState.keyAllowed(glfw) && GLFW.glfwGetKey(handle, glfw) == GLFW.GLFW_PRESS')
 dst = OUT / 'com/muoniumplayer/compat/lwjgl2/Keyboard.java'
 dst.parent.mkdir(parents=True, exist_ok=True)
 dst.write_text(new, encoding='utf-8')
 report.append({'source': src.relative_to(ROOT).as_posix(), 'output': dst.relative_to(ROOT).as_posix(),
                'original_sha256': hashlib.sha256(src.read_bytes()).hexdigest(),
                'adapted_sha256': hashlib.sha256(dst.read_bytes()).hexdigest()})
+from streaming_formats_overlay import generate as streaming_formats_generate
+streaming_formats_generate(REF, OUT, ROOT, report)
 (OUT / 'adaptation-report.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
 print(f'Prepared {len(report)} platform overlays; reference sources unchanged.')

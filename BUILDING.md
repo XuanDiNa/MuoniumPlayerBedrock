@@ -31,13 +31,21 @@ This repository holds the unified four-version native-family source. The separat
 ## Verification
 
 ```powershell
-gradle -p jvm --no-daemon test worldSpeakerTest playbackRecoveryTest stageRenderTest alphaBoundsRenderTest uiPresentationRenderTest
+gradle -p jvm --no-daemon stable260Test test acousticsRegressionTest stageRenderTest nativeD3D12RenderTest playbackRecoveryTest worldSpeakerTest cinematicHostTest cinematicMotionTest roomProxyTest roomProxyUiTest installDist
 py tools/verify_public_assets.py .
 ```
 
 Before the render tests, build `D3D12DisplayFixture`; `check` also needs `D3D12NativeTests`. These test hardware/WARP composition in an owned Windows graphics session. Singleton audio fixtures use a separate JVM to avoid other playback-worker state. Optional API fixture tests use the reviewed sibling ModMenuBE registry (`--menu_fixture=y`). Passive settings tests use the supplied frozen local3 consumer in `vendor/modmenube-local3-passive/`, with source checksums and MIT license; the sibling menu is not a production build dependency. The production adapter uses the versioned API and its own descriptor routing. MenuBEInterop, Local3RouteTests and MenuSettingsInterop replace historical Workspace pairing fixtures; no legacy exports are required.
 
 Exact-image checks need legally obtained game images. No game executables, IDA databases or private extracted datasets are supplied. Historical investigation scripts/results are not required to build. Tests do not start Minecraft or install plugins.
+
+0.15.0 pins official upstream tag 2.6.0, commit
+eb541684e9d681d8145f5f9d681cf31980646dc7, documented in docs/UPDATE-0.15.0.md.
+Historical development snapshot records remain in docs/UPSTREAM-260.md.
+Default behavioral tests and graphics tests
+use isolated JVMs where global audio/font state would otherwise cross test
+boundaries. The current local package VERIFICATION.json is authoritative for
+this campaign; older verification records do not transfer to rebuilt binaries.
 
 Optional room helper: `py tools/prepare_tunnel.py` fetches a pinned cloudflared binary. Keep licenses/source/build access described in `docs/DEPENDENCIES.md` when redistributing.
 
@@ -52,3 +60,26 @@ not-ready state, request creation/failure/explicit return and deadline refusal.
 `HostWorkspaceTest` checks the actual Win32 mapping and real owned mini/tools UI
 without a GPU. Hardware rendering tests remain a separate requirement; do not
 count WGL-unavailable failures as passing or reuse earlier render XMLs.
+
+
+## 0.16.0 / upstream 2.6.1
+
+The curated snapshot now pins main release commit
+`4011d03b535cc40fa54b2cb8324cd5405eb9d6e0`; a 2.6.1 tag/release was not
+available at synchronization time. The historical vendor directory name stays
+unchanged. Regenerate adapters with `py tools/prepare_jvm_sources.py`, then run
+`gradle -p jvm upstream261Test youtubeStreamingTest sourceDiagnosticsTest` and
+the full existing JVM/native campaigns before packaging. Keep Java 21 and Noto
+overrides. New packaging tool: `tools/package_upstream261.py`.
+
+## 0.19.0 client-room voice
+
+Build the standalone codec first: from native/room-voice run
+`xmake f -y -p windows -a x64 -m release --vs=2022` and `xmake build`.
+It pins libopus v1.5.2, static library and static Microsoft runtime. Then run
+`gradle -p jvm roomVoiceTest voiceBroadcastTest voiceBroadcastRenderTest`.
+The historical voiceBroadcast task names now verify client-room HUD controls;
+legacy IPC unit fixtures are retained but no longer wired into the active host.
+Tests use synthetic audio and injected endpoints, never a physical microphone.
+Both ordinary native targets retain their exact-version game boundaries.
+Package with tools/package_room_voice.py; see native/room-voice/README.md.

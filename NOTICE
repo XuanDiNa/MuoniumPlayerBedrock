@@ -7,7 +7,9 @@ Not an official MuoniumPlayer, Mojang, Microsoft or NetEase release.
 MuoniumPlayer
 Copyright 2026 MuoniumPlayer Team and contributors
 https://github.com/zihe114514/MuoniumPlayer-multiversion
-Pinned source tag 2.5.2, commit 9b4cc7e7bd143315da716075a6d024a0d4c0c81b
+Pinned source release commit for 2.6.1, branch main (no tag available at synchronization)
+commit 4011d03b535cc40fa54b2cb8324cd5405eb9d6e0
+The original Fabric distribution is reference material, not a Bedrock runtime.
 Historical dependency JARs retained from the previous reference snapshot
 Apache-2.0. Full original LICENSE and NOTICE retained in licenses/.
 
@@ -64,6 +66,12 @@ https://github.com/AFAlimru/ModMenuBE
 Music belongs to its rights holders. Login does not grant extra playback rights.
 Minecraft is a trademark of Mojang AB.
 
+Historical 0.18.0 optional addon: copper-lamp/BSChat, AGPL-3.0-or-later,
+pinned at 31e1dfc7cdf753949e06444ee483a40e54d31055. Its source and notices
+are provided by the separate 0.18.0 candidate. It is not bundled or invoked
+by this 0.19.0 room-voice distribution. Legacy independently authored local
+PCM IPC classes are retained as inactive reference code.
+
 Java-WebSocket 1.6.0 — MIT, TooTallNate/Java-WebSocket contributors.
 cloudflared 2026.10.7 — Apache-2.0, Cloudflare, Inc. and contributors.
 Original licenses are in licenses/Java-WebSocket-LICENSE.txt and
@@ -79,3 +87,8 @@ Full GPL-3.0 and LGPL-3.0 texts are retained in licenses/.
 LeviLamina and Arke binaries are not redistributed in either package.
 The allocator headers use Microsoft GSL v4.2.0, MIT; its used headers and
 license are retained. https://github.com/microsoft/GSL/tree/v4.2.0
+
+Opus 1.5.2 — BSD-3-Clause, Xiph.Org Foundation and named contributors.
+MuoniumVoice.dll statically links libopus via the xmake package build recipe. Full copyright and terms:
+licenses/Opus-COPYING.txt. Source and build provenance: native/room-voice/README.md.
+The 0.19.0 client-room implementation does not invoke or bundle BSChat.

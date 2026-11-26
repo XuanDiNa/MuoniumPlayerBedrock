@@ -34,7 +34,10 @@ inline constexpr HostIdentity HostIdentities[]{
     {GameVersion::V2660,"1.26.60.05-console","E34D9DBB574790CAB5293E8B2C9C31A696CD58287281C8424255C6CF5045C40B",323819336,0x6AD79EE4,0x1383B000},
     {GameVersion::V2660,"1.26.60.05-launcher-console","DA6C84C32681A7CD7F82CF3573B08E23D629BB2E6E6EC73AD44DE098248FCE63",323821384,0x6AD79EE4,0x1383C000},
     {GameVersion::V2660,"1.26.60.05-console-capture-launcher-gui","537A7BD5AB1BEB109BD9D2E5206B6DF35BF273D01717EF9C5B20EC4B68CC3017",323821384,0x6AD79EE4,0x1383C000},
-    {GameVersion::V2660,"1.26.60.05-console-capture-launcher-console","68B38A0B3FD2A57C4538DBFAC5BEACE14AFD774513E2CBF1BE4443E9DE010768",323821384,0x6AD79EE4,0x1383C000}
+    {GameVersion::V2660,"1.26.60.05-console-capture-launcher-console","68B38A0B3FD2A57C4538DBFAC5BEACE14AFD774513E2CBF1BE4443E9DE010768",323821384,0x6AD79EE4,0x1383C000},
+    // Received 409C image: launcher section precedes rebuilt imports. All eight
+    // original sections, 61 guards, 48 bodies and original IAT rows match.
+    {GameVersion::V2660,"1.26.60.05-LeviLamina-player409","409C9597C5C973B3FA9B11204612850F4BAE8F83270C7692DCC783C491FCF04C",323855872,0x6AD79EE4,0x13847000}
 };
 constexpr HostIdentity const* MatchHostIdentity(std::string_view digest,std::uint64_t size) noexcept {
     for(auto const& p:HostIdentities)if(p.sha256==digest&&p.fileSize==size)return &p;

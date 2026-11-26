@@ -7,6 +7,25 @@ import java.util.function.Consumer;
 import static org.junit.jupiter.api.Assertions.*;
 
 class HostWatchdogTest {
+    @Test void productionCapturesDrawPauseShorterThanEightSeconds(@org.junit.jupiter.api.io.TempDir java.nio.file.Path logs)throws Exception {
+        var release=new CountDownLatch(1);var entered=new CountDownLatch(1);
+        Thread host=new Thread(()->{entered.countDown();try{release.await();}catch(InterruptedException ignored){}});
+        host.start();assertTrue(entered.await(1,TimeUnit.SECONDS));
+        try(var watcher=HostWatchdog.open(host,logs)) {
+            watcher.phase(HostWatchdog.Stage.DRAW);
+            long deadline=System.nanoTime()+3_500_000_000L;
+            String captured="";
+            while(System.nanoTime()<deadline) {
+                try(var paths=java.nio.file.Files.list(logs)) {
+                    var path=paths.findFirst();if(path.isPresent())captured=java.nio.file.Files.readString(path.get());
+                }
+                if(captured.contains("CountDownLatch.await"))break;
+                Thread.sleep(25);
+            }
+            assertTrue(captured.contains("HOST_STALL"),"The observed 6.1s draw stall must not escape the production capture threshold");
+            assertTrue(captured.contains("phase=DRAW"));assertTrue(captured.contains("CountDownLatch.await"));
+        }finally{release.countDown();host.join(1000);}
+    }
     @Test void capturesBlockedHostWithoutLoggingDynamicThreadNamesAndStopsOnClose()throws Exception {
         Class<?> type;
         try{type=Class.forName("com.muoniumplayer.bedrock.HostWatchdog");}

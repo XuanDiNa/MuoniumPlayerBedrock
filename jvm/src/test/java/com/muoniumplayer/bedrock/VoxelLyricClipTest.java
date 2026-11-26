@@ -38,9 +38,12 @@ class VoxelLyricClipTest {
         return hi>1e-7&&lo<=hi;
     }
     private static void compare(List<int[]> blocks,double x,double y,double z,double yaw,double pitch) {
+        compare(blocks,LyricVisibilityTest.camera(),x,y,z,yaw,pitch);
+    }
+    private static void compare(List<int[]> blocks,WorldFrame w,double x,double y,double z,double yaw,double pitch) {
         byte[] raw=LyricVisibilityTest.environment();
         for(int[] b:blocks)WorldSpeakerTest.cell(raw,b[0]-100,b[1]-70,b[2]+20,1);
-        var clip=new VoxelLyricClip();var w=LyricVisibilityTest.camera();
+        var clip=new VoxelLyricClip();
         var p=polygons(clip,raw,w,x,y,z,yaw,pitch);
         var rotation=new Matrix3d().rotateY(Math.toRadians(-yaw)).rotateX(Math.toRadians(pitch));
         var eye=new Vector3d(w.eyeX(),w.eyeY(),w.eyeZ());
@@ -52,6 +55,19 @@ class VoxelLyricClipTest {
         for(var poly:p)for(int i=0;i<poly.length;i+=2) {
             assertTrue(Float.isFinite(poly[i])&&Float.isFinite(poly[i+1]));
             assertTrue(poly[i]>=-100.001&&poly[i]<=100.001&&poly[i+1]>=-60.001&&poly[i+1]<=60.001);
+        }
+    }
+    @Test void continuousOrbitAndNearPlaneCrossingsMatchIndependentVolumeReference(){
+        var blocks=List.of(new int[]{100,70,-18},new int[]{99,71,-17},new int[]{102,70,-17});
+        for(int frame=0;frame<96;frame++){
+            double phase=frame*2*Math.PI/96;
+            double ex=100.5+Math.sin(phase)*3,ey=70.5+Math.sin(phase*2)*.7,ez=-19.5+Math.cos(phase)*2;
+            var raw=WorldFrameTest.packet(1000);var b=ByteBuffer.wrap(raw).order(ByteOrder.LITTLE_ENDIAN);
+            b.putDouble(40,ex).putDouble(48,ey).putDouble(56,ez);
+            float[] view=new org.joml.Matrix4f().lookAt((float)ex,(float)ey,(float)ez,(float)ex,(float)ey,(float)ez+1,0,1,0).get(new float[16]);
+            for(int i=0;i<16;i++)b.putFloat(64+4*i,view[i]);
+            var world=WorldFrame.decode(raw,1001);assertNotNull(world);
+            compare(blocks,world,100.5-ex,70.5-ey,-15.5-ez,Math.sin(phase)*48,Math.cos(phase)*20);
         }
     }
     @Test void partialGlyphAndAngledPlanesMatchIndependentSegmentVolumeReference() {

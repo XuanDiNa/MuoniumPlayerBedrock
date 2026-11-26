@@ -25,6 +25,7 @@ struct Config {
     std::string openKey{"NONE"}, playPauseKey{"NONE"}, nextKey{"NONE"}, previousKey{"NONE"};
     std::string speakerKey{"NONE"};
     std::string miniPlayerKey{"NONE"},hudEditorKey{"NONE"},islandSearchKey{"NONE"};
+    std::string voiceMicrophoneKey{"NONE"},voiceDeafenKey{"NONE"};
 };
 Config ParseConfig(std::string_view);
 int KeyCode(std::string_view);

@@ -54,7 +54,9 @@ final class HostWorkspace implements AutoCloseable {
                 if(phase==6||!enabled){
                     HostBackNavigation.clear();returnRequested=false;
                     if(!accepted&&opened!=null&&BedrockClient.getInstance().gui.screen()==opened)panel.close();
-                    accepted=false;
+                    // Consume ownership once: later explicit opens can reuse a
+                    // singleton, but not this cancelled request's right to close it.
+                    opened=null;accepted=false;
                 }
             }else {accepted=false;returnRequested=false;HostBackNavigation.clear();}
         }finally{Api.INSTANCE.ReleaseMutex(mutex);}

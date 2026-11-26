@@ -30,14 +30,15 @@ final class VoxelLyricClip {
 
     void clear(){cached=null;boxes.clear();}
     int mergedBoxCount(){return boxes.size();}
-    void apply(Canvas canvas,EnvironmentFrame f,WorldFrame w,
+    int apply(Canvas canvas,EnvironmentFrame f,WorldFrame w,
                double x,double y,double z,double yaw,double pitch,float scale) {
         var r=canvas.getLocalClipBounds();
-        if(r==null)return;
+        if(r==null)return 0;
         try(var path=new PathBuilder().setFillMode(PathFillMode.WINDING)) {
             int count=shadows(f,w,x,y,z,yaw,pitch,scale,
                 new Bounds(r.getLeft(),r.getTop(),r.getRight(),r.getBottom()),p->path.addPolygon(p,true));
             if(count>0)try(var mask=path.detach()){canvas.clipPath(mask,ClipMode.DIFFERENCE,true);}
+            return count;
         }
     }
     /** Emits consistently wound, viewport-clipped convex shadows. A solid box

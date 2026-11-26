@@ -17,10 +17,11 @@ record CinematicState(long sequence,long at,long epoch,long input,boolean applie
     }
     static final class Session {
         private CinematicState previous;
-        boolean changed(CinematicState next){
-            boolean result=(previous==null)!=(next==null)||previous!=null&&next!=null
-                &&(previous.epoch!=next.epoch||previous.input!=next.input||next.health<previous.health
-                    ||distance(previous,next)>.0001);
+        boolean changed(CinematicState next){return !"none".equals(changeReason(next));}
+        String changeReason(CinematicState next){
+            String result=previous==null&&next!=null?"sample-start":previous!=null&&next==null?"sample-lost":
+                previous==null?"none":previous.epoch!=next.epoch?"native-context":previous.input!=next.input?"native-input":
+                next.health<previous.health?"hurt":distance(previous,next)>.0001?"player-moved":"none";
             previous=next;return result;
         }
         private static double distance(CinematicState a,CinematicState b){

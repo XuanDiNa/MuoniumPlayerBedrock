@@ -25,6 +25,7 @@ public final class StageLyrics implements WorldLyricsRenderer.Host, LyricGlyphAt
     private void include(float x,float y,float w,float h){gameDepth.include(x,y,w,h);if(composition!=null)composition.include(x,y,w,h);}
     private EnvironmentFrame environment;
     private final VoxelLyricClip voxelClip=new VoxelLyricClip();
+    private final LyricOcclusionTrace occlusionTrace=new LyricOcclusionTrace();
     void environment(EnvironmentFrame frame){environment=frame;}
     private final GameDepthClip gameDepth=new GameDepthClip();
     void depth(DepthFrame frame,long now){gameDepth.update(frame,now);}
@@ -47,11 +48,13 @@ public final class StageLyrics implements WorldLyricsRenderer.Host, LyricGlyphAt
     }
     public void render(long nowNanos,WorldFrame frame) {
         world=frame;
+        occlusionTrace.begin(frame,environment,hostSettings.worldLyricsOcclusion());
         gameDepth.beginFrame();
         settings = WorldLyricsSettings.snapshot();
         HudElements.applyLyricColor(settings,hostSettings);
         if (!settings.enabled || !SkijaHost.inFrame()) return;
         WorldLyricsRenderer.render(state, frame==null?stageCamera:frame, settings, this, nowNanos);
+        occlusionTrace.end(nowNanos);
         if (stackDepth != 0) throw new IllegalStateException("Lyric transform leak");
     }
     public long drawnGlyphs() { return drawnGlyphs; }
@@ -86,7 +89,7 @@ public final class StageLyrics implements WorldLyricsRenderer.Host, LyricGlyphAt
         else {
             SkijaHost.canvas().concat(StageProjection.skija(matrix));
             gameDepth.begin(world,matrix,x,y,z,yaw,pitch,scale,hostSettings.worldLyricsOcclusion());
-            if(!gameDepth.recording()&&world!=null&&hostSettings.worldLyricsOcclusion())voxelClip.apply(SkijaHost.canvas(),environment,world,x,y,z,yaw,pitch,scale);
+            if(!gameDepth.recording()&&world!=null&&hostSettings.worldLyricsOcclusion())clipVoxels(x,y,z,yaw,pitch,scale);
         }
         planeX=x;planeY=y;planeZ=z;planeYaw=yaw;planePitch=pitch;planeScale=scale;
     }
@@ -94,8 +97,11 @@ public final class StageLyrics implements WorldLyricsRenderer.Host, LyricGlyphAt
     @Override public void popBillboard() {
         if (stackDepth < 1) throw new IllegalStateException("Lyric transform underflow");
         if(composition!=null&&composition.recording()){composition.end();stackDepth--;return;}
-        gameDepth.end(()->voxelClip.apply(SkijaHost.canvas(),environment,world,planeX,planeY,planeZ,planeYaw,planePitch,planeScale));
+        gameDepth.end(()->clipVoxels(planeX,planeY,planeZ,planeYaw,planePitch,planeScale));
         SkijaHost.canvas().restore(); stackDepth--;
+    }
+    private void clipVoxels(double x,double y,double z,double yaw,double pitch,float scale){
+        occlusionTrace.row(voxelClip.apply(SkijaHost.canvas(),environment,world,x,y,z,yaw,pitch,scale));
     }
     @Override public void drawPixelText(String text, float x, float y, int argb, boolean shadow) {
         include(x-2,y-2,pixelWidth(text)+5,(float)FontManager.pf18.getFontHeight()+5);

@@ -21,10 +21,11 @@ class IslandSearchRenderTest {
                 for(var group:category.groups)assertFalse(group.title.contains("公告"));
             }
             var count=com.muoniumplayer.core.screens.ncm.panels.NavigateBar.class.getDeclaredMethod("railSlotCount",double.class);
-            count.setAccessible(true);assertEquals(4,count.invoke(null,320d));assertEquals(4,count.invoke(null,112d));
+            count.setAccessible(true);assertEquals(6,count.invoke(null,320d));assertEquals(6,count.invoke(null,112d)); // Fifth: owned tools; sixth: stable download manager.
             HudConfig.islandSearchEnabled=true;
             var session=new OverlaySession(client,NCMScreen::getInstance);
             HostIslandSearch.open(session);
+            HostInputState.update(windows.display(),true); // Production loop restores focused input after explicit handoff.
             var page=client.gui.screen();assertInstanceOf(IslandSearchOverlay.class,page);
             assertTrue(session.isOpen());assertTrue(page.transparentHost());
             for(int i=0;i<35;i++){BedrockOverlay.drawFrame(session,()->{});Thread.sleep(16);}

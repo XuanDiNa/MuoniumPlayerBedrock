@@ -40,9 +40,16 @@ class HudSettingsTaxonomyStaticTest {
      *
      * <p>2026-11-05 「发光」组新增「发光形态」choice（经典 / 辉光），三页里
      * 只有 3D 歌词页 +1（30 → 31）；其余页不变。</p>
+     *
+     * <p>2026-11-17 「播放」页新增「智能动态均衡」toggle（automix 学习式 EQ，
+     * 七树同步）—— 播放页 29 → 30，26.3 总数 200 → 201，其余六树 196 → 197。</p>
+     *
+     * <p>2026-11-20 七树「面板与卡片」页新增「桌面歌词对齐」choice（值存共享层 DesktopLyricSetting，
+     * 不经 HudConfig）—— 本页 +1，26.3 总数 201 → 202，其余六树总数 197 → 198。</p>
+     * <p>2026-11-21「追踪柔度」追加到娱乐页：26.3 娱乐页 22 → 23、总数 202 → 203；其余六树娱乐页 22 → 23、总数 199 → 201。</p>
      */
     private static final List<Integer> COUNTS =
-            Arrays.asList(12, 22, 9, 28, 4, 33, 29, 22, 31, 4, 3);
+            Arrays.asList(12, 22, 10, 31, 4, 33, 30, 23, 31, 4, 3);
 
     /**
      * 「常用」页只在 26.3 起存在。
@@ -64,13 +71,14 @@ class HudSettingsTaxonomyStaticTest {
     }
 
     private static List<Integer> expectedCounts() {
-        return hasFavoritesPage()
-                ? COUNTS
-                : Arrays.asList(28, 31, 9, 25, 29, 22, 33, 6, 4, 3);
+        if (hasFavoritesPage()) {
+            return COUNTS;
+        }
+        return Arrays.asList(28, 31, 10, 31, 30, 23, 33, 6, 4, 3);
     }
 
     private static int expectedTotal() {
-        return hasFavoritesPage() ? TOTAL : 190;
+        return hasFavoritesPage() ? TOTAL : 199;
     }
 
     private static String versionName() {
@@ -146,11 +154,15 @@ class HudSettingsTaxonomyStaticTest {
      *  同日陀螺组再添「过渡转速」滑条（不按节拍时的基础恒速，值存 music_spin.json）——
      *  播放页 +1；同日组内再添「头乱晃」toggle + 「头部动作」choice（乱晃/低头/360°转头；头部
      *  动作仅在两个开关都打开时可见；值存同一 music_spin.json）—— 播放页 +2。
-     *  同日七树「播放」页新增「语音广播」toggle（26.3 是独立组，其余六树接在
-     *  「切出游戏时」组尾；状态存共享层 VoicechatBroadcast 自己的 voicechat_broadcast.json，
-     *  不经 HudConfig）—— 播放页 45 → 46 条，191 → 192；其余六树旧口径 184 → 185。 */
+     * 2026-11-20 七树「面板与卡片」页新增「桌面歌词对齐」choice（值存共享层 DesktopLyricSetting，
+     * 不经 HudConfig）—— 本页 9 → 10，26.3 总数 201 → 202，其余六树 190 → 191。
+     */
     // 独立模板预设栏目只增加四条 ACTION，不回搬各树原有分类或设置条目。
-    private static final int TOTAL = 197;
+    // 2026-11-12 灵动岛五款音乐卡：26.3 +1 触发方式；其余六树补三项卡片设置并 +1 触发方式。
+    // 2026-11-16 七树灵动岛追加「音乐胶囊最大长度」滑块：每页 30 → 31，26.3 总数 200，其余六树 196。
+    // 2026-11-17 七树「播放」页追加「智能动态均衡」toggle（automix 学习式 EQ）：
+    //            播放页 29 → 30，26.3 总数 200 → 201，其余六树 196 → 197。
+    private static final int TOTAL = 203;
 
     @Test
     @DisplayName("分类顺序、每页条目数和独立模板栏目不许悄悄变")
@@ -169,12 +181,29 @@ class HudSettingsTaxonomyStaticTest {
     }
 
     @Test
+    @DisplayName("七树卡点运镜恰有一条追踪柔度选择")
+    void cineTrackingSoftnessAppearsOnce() {
+        HudSettingsModel.Category cine = Arrays.stream(HudSettingsModel.categories())
+                .filter(category -> "娱乐".equals(category.title)).findFirst().orElseThrow();
+        List<HudSettingsModel.Entry> matches = new ArrayList<HudSettingsModel.Entry>();
+        for (HudSettingsModel.Group group : cine.groups) {
+            if (!"卡点运镜".equals(group.title)) continue;
+            for (HudSettingsModel.Entry entry : group.entries) {
+                if (entry.getLabel().contains("追踪柔度")) matches.add(entry);
+            }
+        }
+        assertEquals(1, matches.size());
+        assertEquals(HudSettingsModel.Kind.CHOICE, matches.get(0).kind);
+        assertArrayEquals(new String[]{"0.3 秒", "0.5 秒", "0.8 秒", "1.2 秒", "2 秒"},
+                matches.get(0).getChoices());
+    }
+
+    @Test
     @DisplayName("分类总数封顶：分类条是横排，页太多会被窗口裁掉")
     void categoryCountStaysWithinSidebarBudget() {
         // 独立「模板预设」+1：保留各树原来的分类分流，不把 26.3 的常用页倒灌到老树。
-        // 「娱乐」页再 +1：分类条横排 11 个短标题（最长的「信息栏与封面」6 字）在
-        // 各界面分辨率下目测放得下；真正的窗口裁切要 runClient 人工验收。
-        int cap = hasFavoritesPage() ? 11 : 10;
+        // 26.3 页面为 12 类，其余六树为 11 类；分类栏的实际宽度仍需 runClient 目测。
+        int cap = hasFavoritesPage() ? 12 : 11;
         assertTrue(HudSettingsModel.categories().length <= cap,
                 "分类页超过 " + cap + " 个就又开始「侧栏一半是空页」了；再加页先确认各界面分类条放得下");
     }
@@ -195,7 +224,7 @@ class HudSettingsTaxonomyStaticTest {
     }
 
     @Test
-    @DisplayName("滑块条目不重复，覆盖 54 个生效设置，不暴露退役的毛玻璃 Bloom / Fusion")
+    @DisplayName("滑块条目不重复，覆盖 60 个生效设置，不暴露退役的毛玻璃 Bloom / Fusion")
     void slidersAppearExactlyOnce() {
         List<String> settings = new ArrayList<String>();
         for (HudSettingsModel.Category category : HudSettingsModel.categories()) {
@@ -216,7 +245,9 @@ class HudSettingsTaxonomyStaticTest {
         // 这一条，其余六树等回打），56 → 57。
         // 同日「陀螺模式」新增「每拍转角」滑条（值存共享层 MusicSpin 的配置文件，不经
         // HudConfig），57 → 58（仅 26.3 口径；其余六树按 57 起算加一）。
-        assertEquals(hasFavoritesPage() ? 59 : 58, settings.size(), "滑块条目数变了：生效设置应恰好出现一次；旧 GLASS_BLOOM / GLASS_FUSION 仅保留读档兼容；频谱自定义柱数、透明度与高度都是有效设置");
+        // 2026-11-12 六树补齐音乐卡缩放滑块；七树共 59 个有效滑块。
+        // 2026-11-16 七树追加「音乐胶囊最大长度」滑块，59 → 60。
+        assertEquals(60, settings.size(), "滑块条目数变了：生效设置应恰好出现一次；旧 GLASS_BLOOM / GLASS_FUSION 仅保留读档兼容；频谱自定义柱数、透明度与高度都是有效设置");
         assertFalse(settings.contains("GLASS_BLOOM"), "退役的磨砂 bloom 不能作为无效设置暴露");
         assertFalse(settings.contains("GLASS_FUSION"), "参考透镜不使用旧融合描边");
         assertEquals(settings.size(), new HashSet<String>(settings).size(),

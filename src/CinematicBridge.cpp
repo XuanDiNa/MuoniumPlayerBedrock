@@ -1,5 +1,9 @@
 #include "CinematicBridge.h"
 #include "CinematicTrace.h"
+#include "CinematicInput.h"
+#include "CinematicLaminaHooks.h"
+#include "CinematicActorRead.h"
+#include "LoaderPolicy.h"
 #include "Runtime.h"
 #include "NativeContracts.h"
 #include <span>
@@ -26,13 +30,15 @@ std::filesystem::path folder;bool offline{},attempted{},installed{};std::atomic<
 std::atomic<HWND> window{};std::uintptr_t base{};
 std::atomic<std::uint64_t> scopes{},applied{},refused{},conflicts{},eligibleSamples{},validCommands{};
 std::atomic<std::uint64_t> attempts{},lifetimeBusy{},ipcBusy{},cachedApplied{},concurrentBusy{};
+std::atomic<std::uint64_t> eventResets{},heldResets{},motionResets{};
+std::atomic<unsigned> heldKey{};CinematicInput ownerInput;
 // Protected by the native lifetime mutex and rendererBusy; owns no game pointer.
 CinematicCommandCache commandCache;
 CinematicTrace continuity;
-std::atomic<std::uint64_t> hideUntil{};std::atomic<std::uintptr_t> hideClient{};std::atomic<DWORD> hideInput{};
+std::atomic<std::uint64_t> hideUntil{};std::atomic<std::uintptr_t> hideClient{};std::atomic<std::uint64_t> hideInput{};
 std::atomic<std::uint64_t> hudCalls{},hudHidden{};
 std::uint64_t epoch{1},sequence{},lastSeen{},inputSerial{1};
-std::uintptr_t lastLevel{},lastActor{};std::uint32_t lastToken{},lastInput{};int lastDimension{};
+std::uintptr_t lastLevel{},lastActor{};std::uint32_t lastToken{};std::uint64_t lastInput{};int lastDimension{};
 CinematicState lastState{};bool wasEligible{},heldInput{};std::uint64_t lastHeldPoll{};
 using Frame=std::uintptr_t(*)(void*,void*,void*,void*);
 using Render=std::uintptr_t(*)(void*,void*,void*);
@@ -78,9 +84,8 @@ bool Resolve(void* client,void*& component,void*& actor,void*& level,int& dimens
         if(!Member(registry,token,0x0E49CF3B,0,found)||found)return false;
         if(!Member(registry,token,0x9EC7D9E5,0,found)||!found)return false;
         if(!Member(registry,token,0x4F6047C7,288,component)||!component)return false;
-        auto box=Read<float*>(actor,native->actorAabb),rotation=Read<float*>(actor,native->actorRotation);if(!box||!rotation)return false;
-        state.foot[0]=(box[0]+box[3])*.5;state.foot[1]=box[1];state.foot[2]=(box[2]+box[5])*.5;
-        state.pitch=rotation[0];state.yaw=rotation[1];state.fov=Read<float>(component,80)*180/3.14159265358979323846f;
+        if(!ReadCinematicActor(Copy,nullptr,reinterpret_cast<std::uintptr_t>(actor),*native,state))return false;
+        state.fov=Read<float>(component,80)*180/3.14159265358979323846f;
         for(int i=0;i<3;i++){state.eye[i]=Read<float>(component,64+4*i);
             if(!std::isfinite(state.eye[i])||!std::isfinite(state.foot[i])||std::abs(state.foot[i])>32000000)return false;}
         if(!std::isfinite(state.pitch)||!std::isfinite(state.yaw)||!std::isfinite(state.fov)||state.fov<10||state.fov>170)return false;
@@ -138,12 +143,14 @@ bool Begin(void* scene,CinematicTracePhase phase) noexcept {
         if(!eligible||lastLevel!=reinterpret_cast<std::uintptr_t>(level)||lastActor!=reinterpret_cast<std::uintptr_t>(actor)
             ||lastToken!=token||lastDimension!=dimension||now-lastSeen>250){if(wasEligible||eligible)++epoch;lastState=state;}
         lastLevel=reinterpret_cast<std::uintptr_t>(level);lastActor=reinterpret_cast<std::uintptr_t>(actor);lastToken=token;lastDimension=dimension;lastSeen=now;wasEligible=eligible;
-        LASTINPUTINFO input{sizeof input};if(!GetLastInputInfo(&input))eligible=false;
-        // Immediate events use GetLastInputInfo; held-key polling only needs
-        // tick cadence, avoiding hundreds of Win32 calls per high-FPS frame.
-        if(now-lastHeldPoll>=50){lastHeldPoll=now;heldInput=false;
-            for(int key=1;key<255;key++)if(GetAsyncKeyState(key)&0x8000){heldInput=true;break;}}
-        if(input.dwTime!=lastInput||heldInput||CinematicInputChanged(lastState,state)){++inputSerial;lastInput=input.dwTime;}
+        auto input=ownerInput.serial();if(!ownerInput.available())eligible=false;
+        // Read physical input on this game's existing queue, rather than the
+        // session-wide timestamp, which cannot identify the event source.
+        if(now-lastHeldPoll>=50){lastHeldPoll=now;heldInput=false;heldKey=0;
+            for(int key=1;key<255;key++)if(GetAsyncKeyState(key)&0x8000){heldInput=true;heldKey=key;break;}}
+        bool eventInput=input!=lastInput,motionInput=CinematicInputChanged(lastState,state);
+        if(eventInput)++eventResets;if(heldInput)++heldResets;if(motionInput)++motionResets;
+        if(eventInput||heldInput||motionInput){++inputSerial;lastInput=input;}
         lastState=state;state.sequence=++sequence;state.at=now;state.epoch=epoch;state.input=inputSerial;state.eligible=eligible;
         auto wait=WaitForSingleObject(gate,0);bool acquired=wait==WAIT_OBJECT_0||wait==WAIT_ABANDONED;
         if(!acquired)++ipcBusy;
@@ -163,7 +170,7 @@ bool Begin(void* scene,CinematicTracePhase phase) noexcept {
         if(valid){current.trace.commandAt=command.at;current.trace.command=command.sequence;current.trace.offset=command.fovOffset;
             std::memcpy(current.trace.position,command.position,sizeof command.position);current.trace.yaw=command.yaw;current.trace.pitch=command.pitch;current.trace.roll=command.roll;}
         TraceCamera(current.trace,camera);
-        hideClient=reinterpret_cast<std::uintptr_t>(client);hideInput=input.dwTime;hideUntil=current.active&&(command.flags&1)?now+100:0;
+        hideClient=reinterpret_cast<std::uintptr_t>(client);hideInput=input;hideUntil=current.active&&(command.flags&1)?now+100:0;
         if(current.active)++applied;else ++refused;++scopes;return true;
 }
 void End() noexcept {
@@ -188,7 +195,7 @@ std::uintptr_t SaveHook(void* input,void* render,void* matrix){
     std::memcpy(scalarView+80,&current.vanillaFov,4);return originalSave(input,scalarView,matrix);
 }
 bool HudOwner(void* scene) noexcept {
-    LASTINPUTINFO input{sizeof input};if(!GetLastInputInfo(&input)||input.dwTime!=hideInput)return false;
+    if(!ownerInput.available()||ownerInput.serial()!=hideInput)return false;
     __try{
         if(!scene||Read<std::uintptr_t>(scene)!=base+native->sceneTable)return false;
         auto client=Read<void*>(scene,0x38),view=Read<void*>(scene,0x40);
@@ -234,16 +241,50 @@ bool InstallSceneDispatch() noexcept {
     VirtualProtect(reinterpret_cast<void*>(base+native->sceneSlot),8,old,&discarded);
     return AdmissionFailure("scene-restore-protection",native->sceneSlot,GetLastError());
 }
+void LogSharedHooks(bool occupied,bool setupOccupied) noexcept {
+    char text[192]{};std::snprintf(text,sizeof text,
+        "CINEMATIC_HOOK revision=ll-coexist2 backend=levilamina-shared renderOwner=%s setupOwner=%s hooks=5",
+        occupied?"lamium-0.7.0":"original",setupOccupied?"lamium-0.7.0":"original");Log(folder,text);
+}
 bool Install() noexcept {
     __try{
         native=LoadedNativeContract(base);if(!native)return AdmissionFailure("host-identity",0);
-        for(auto const& guard:VersionGuards(native->version,cinematicGuards2645,cinematicGuards2651,cinematicGuards,cinematicGuards2660))if(std::memcmp(reinterpret_cast<void*>(base+guard.rva),guard.bytes.data(),32))return AdmissionFailure("entry-guard",guard.rva);
+        CinematicLaminaApi api{};bool lamina=AdmitLoader(VerifiedHostIdentity.load(),LoaderKind::LeviLamina,true);
+        if(lamina&&!ResolveCinematicLaminaApi(api))return AdmissionFailure("shared-api-identity",0);
+        bool occupied=false,setupOccupied=false;
+        for(auto const& guard:VersionGuards(native->version,cinematicGuards2645,cinematicGuards2651,cinematicGuards,cinematicGuards2660)){
+            auto entry=reinterpret_cast<unsigned char const*>(base+guard.rva);
+            if(!std::memcmp(entry,guard.bytes.data(),32))continue;
+            if(lamina&&guard.rva==native->render&&entry[0]==0xe9&&!std::memcmp(entry+5,guard.bytes.data()+5,27)
+                &&CinematicJumpTo(Copy,nullptr,base+guard.rva,api.reviewedRenderOwner)){occupied=true;continue;}
+            // This dependency is called by the original render path; we never
+            // hook it. Reviewed Lamium camera/waypoint hooks forward through it.
+            // Detours displaces three two-byte pushes, filling byte six with CC.
+            if(lamina&&native->version==GameVersion::V2660&&guard.rva==0x53b3290&&entry[0]==0xe9&&entry[5]==0xcc
+                &&!std::memcmp(entry+6,guard.bytes.data()+6,26)){
+                for(auto owner:api.reviewedSetupOwners)if(CinematicJumpTo(Copy,nullptr,base+guard.rva,owner)){setupOccupied=true;break;}
+                if(setupOccupied)continue;
+            }
+            return AdmissionFailure("entry-guard",guard.rva);
+        }
         if(Read<void*>(reinterpret_cast<void*>(base+native->sceneSlot))!=reinterpret_cast<void*>(base+native->sceneRender))return AdmissionFailure("scene-slot",native->sceneSlot);
-        auto init=MH_Initialize();if(init!=MH_OK&&init!=MH_ERROR_ALREADY_INITIALIZED)return AdmissionFailure("hook-init",0,init);
         void* hooks[]{reinterpret_cast<void*>(base+native->frame),reinterpret_cast<void*>(base+native->render),reinterpret_cast<void*>(base+native->body),reinterpret_cast<void*>(base+native->hand),reinterpret_cast<void*>(base+native->saveCamera)};
         void* detours[]{reinterpret_cast<void*>(FrameHook),reinterpret_cast<void*>(RenderHook),reinterpret_cast<void*>(BodyHook),reinterpret_cast<void*>(HandHook),reinterpret_cast<void*>(SaveHook)};
         void** originals[]{reinterpret_cast<void**>(&originalFrame),reinterpret_cast<void**>(&originalRender),reinterpret_cast<void**>(&originalBody),reinterpret_cast<void**>(&originalHand),reinterpret_cast<void**>(&originalSave)};
         unsigned made=0,on=0;
+        if(lamina){
+            // Join the official shared dispatcher. Do not MinHook Lamium's
+            // detour or borrow its trampoline. Resident original pointers are
+            // maintained by LeviLamina for either plugin loading order.
+            for(;made<5;++made){auto status=api.attach(hooks[made],detours[made],originals[made],300,true);
+                if(status){AdmissionFailure("shared-hook-create",static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(hooks[made])-base),status);break;}}
+            if(made==5&&InstallSceneDispatch()){
+                LogSharedHooks(occupied,setupOccupied);return true;
+            }
+            while(made){--made;if(!api.detach(hooks[made],detours[made],true))AdmissionFailure("shared-hook-rollback",static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(hooks[made])-base));}
+            return false;
+        }
+        auto init=MH_Initialize();if(init!=MH_OK&&init!=MH_ERROR_ALREADY_INITIALIZED)return AdmissionFailure("hook-init",0,init);
         for(;made<5;made++){auto status=MH_CreateHook(hooks[made],detours[made],originals[made]);
             if(status!=MH_OK){AdmissionFailure("hook-create",static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(hooks[made])-base),status);break;}}
         if(made==5)for(;on<5;on++){auto status=MH_EnableHook(hooks[on]);
@@ -267,7 +308,13 @@ bool OpenCinematicBridge(std::wstring const& prefix,std::filesystem::path const&
     if(!request||GetLastError()==ERROR_ALREADY_EXISTS){if(request)CloseHandle(request);request=nullptr;UnmapViewOfFile(shared);shared=nullptr;CloseHandle(mapping);CloseHandle(gate);gate=mapping=nullptr;return false;}
     *shared=Transport{};++epoch;wasEligible=false;return true;
 }
-void SetCinematicOwner(HWND owner){window=owner;}
+void SetCinematicOwner(HWND owner){
+    HMODULE module{};
+    GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS|GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+        reinterpret_cast<LPCWSTR>(&SetCinematicOwner),&module);
+    bool attached=ownerInput.start(owner,module);window=attached?owner:nullptr;
+    Log(folder,attached?"CINEMATIC_INPUT READY owner-message-queue raw-input read-only; no device registration":"CINEMATIC_INPUT REFUSED owner queue observer unavailable; ordinary camera retained");
+}
 bool EnableCinematicBridge(bool value,std::uintptr_t image){
     // Repeated host polling need not contend with an already enabled renderer.
     // First admission, fault handling and disable/close still take the lock.
@@ -280,7 +327,7 @@ bool EnableCinematicBridge(bool value,std::uintptr_t image){
     return enabled;
 }
 void CloseCinematicBridge(){
-    enabled=false;hideUntil=0;std::lock_guard lock(mutex);++epoch;wasEligible=false;window=nullptr;
+    enabled=false;hideUntil=0;ownerInput.stop();std::lock_guard lock(mutex);++epoch;wasEligible=false;window=nullptr;
     commandCache.clear();
     if(shared){auto result=WaitForSingleObject(gate,0);if(result==WAIT_OBJECT_0||result==WAIT_ABANDONED){shared->command={};shared->state={};ReleaseMutex(gate);}UnmapViewOfFile(shared);shared=nullptr;}
     if(request)CloseHandle(request);request=nullptr;
@@ -292,6 +339,10 @@ void LogCinematicBridge(){
     std::filesystem::path logFolder;{std::lock_guard logLock(logMutex);logFolder=folder;}
     Log(logFolder,"CINEMATIC scopes="+std::to_string(scopes.load())+" eligible="+std::to_string(eligibleSamples.load())+" commands="+std::to_string(validCommands.load())+" applied="+std::to_string(applied.load())+" refused="+std::to_string(refused.load())+" conflicts="+std::to_string(conflicts.load())+" faulted="+std::to_string(faulted.load())+" hudCalls="+std::to_string(hudCalls.load())+" hudHidden="+std::to_string(hudHidden.load())
         +" attempts="+std::to_string(attempts.load())+" lifetimeBusy="+std::to_string(lifetimeBusy.load())+" ipcBusy="+std::to_string(ipcBusy.load())+" cachedApplied="+std::to_string(cachedApplied.load())+" concurrentBusy="+std::to_string(concurrentBusy.load()));
+    Log(logFolder,"CINEMATIC_INPUT observer="+std::to_string(ownerInput.available())+" rawEvents="+std::to_string(ownerInput.rawEvents())
+        +" keyEvents="+std::to_string(ownerInput.keyEvents())+" buttonEvents="+std::to_string(ownerInput.buttonEvents())
+        +" eventResets="+std::to_string(eventResets.load())+" heldResets="+std::to_string(heldResets.load())
+        +" motionResets="+std::to_string(motionResets.load())+" heldKey="+std::to_string(heldKey.load()));
     auto trace=continuity.take();
     if(trace.samples){
         char line[768]{};

@@ -4,7 +4,7 @@
     "id": "MuoniumPlayerBedrock",
     "entry": "MuoniumPlayerBedrock.dll",
     "versions": [
-      "0.13.0"
+      "0.20.2"
     ]
   },
   "config": {
@@ -468,7 +468,7 @@
       "default": 100,
       "min": 40,
       "max": 300,
-      "step": 5,
+      "step": 1,
       "unit": "%",
       "label": {
         "en_US": "3D lyric scale",
@@ -947,6 +947,46 @@
         "en_US": "Playback",
         "zh_TW": "播放",
         "zh_CN": "播放"
+      }
+    },
+    {
+      "path": "/voiceMicrophoneKey",
+      "type": "binding",
+      "default": "NONE",
+      "label": {
+        "en_US": "Toggle microphone",
+        "zh_TW": "切換麥克風",
+        "zh_CN": "切换麦克风"
+      },
+      "category": {
+        "en_US": "Room voice",
+        "zh_TW": "房間語音",
+        "zh_CN": "房间语音"
+      },
+      "description": {
+        "en_US": "Optional, unbound by default. Deafen suspends incoming audio and all voice/music sending without changing the stored microphone choice.",
+        "zh_TW": "預設無綁定，支援組合鍵。拒聽會暫停收聽、麥克風及音樂送出，解除後恢復原設定。",
+        "zh_CN": "默认无绑定，支持组合键。拒听暂停接收、麦克风及音乐发送，解除后恢复原设置。"
+      }
+    },
+    {
+      "path": "/voiceDeafenKey",
+      "type": "binding",
+      "default": "NONE",
+      "label": {
+        "en_US": "Toggle deafen",
+        "zh_TW": "切換拒聽",
+        "zh_CN": "切换拒听"
+      },
+      "category": {
+        "en_US": "Room voice",
+        "zh_TW": "房間語音",
+        "zh_CN": "房间语音"
+      },
+      "description": {
+        "en_US": "Optional, unbound by default. Deafen suspends incoming audio and all voice/music sending without changing the stored microphone choice.",
+        "zh_TW": "預設無綁定，支援組合鍵。拒聽會暫停收聽、麥克風及音樂送出，解除後恢復原設定。",
+        "zh_CN": "默认无绑定，支持组合键。拒听暂停接收、麦克风及音乐发送，解除后恢复原设置。"
       }
     }
   ]

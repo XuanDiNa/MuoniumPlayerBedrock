@@ -7,6 +7,7 @@
 #include "DepthBridge.h"
 #include "CompositionBridge.h"
 #include "CinematicBridge.h"
+#include "CinematicActorRead.h"
 #include <MinHook.h>
 #include <atomic>
 #include <array>
@@ -22,6 +23,11 @@ struct Guard {std::uint32_t rva; std::array<unsigned char,32> bytes;};
 #include "WorldGuards2660.inl"
 #include "WorldGuards2645.inl"
 #include "WorldGuards2651.inl"
+// Reuse the existing independently verified per-image player read contracts.
+#include "CinematicGuards.inl"
+#include "CinematicGuards2660.inl"
+#include "CinematicGuards2645.inl"
+#include "CinematicGuards2651.inl"
 using PreRender=void(*)(void*,void*,void*);
 PreRender original{};
 std::uintptr_t base{}, textLo{},textHi{},dataLo{},dataHi{};
@@ -35,6 +41,29 @@ std::uintptr_t lastLevel{};int lastDimension{};
 std::uintptr_t networkOwner{};
 std::uint64_t networkSelectedAt{};
 GameFrameCounter frameCounter;
+HANDLE voiceMapping{},voiceGate{};VoiceWorldPacket* voiceShared{};
+bool voiceVerified{},voiceValid{};std::uint64_t voiceEpoch{1},voiceSequence{},voiceAt{},voiceCaptures{},voiceRejected{};
+std::uintptr_t voiceLevel{},voiceActor{};std::uint32_t voiceToken{};int voiceDimension{};
+VoiceWorldPacket voiceLast;
+void CloseVoiceWorld(){
+    if(voiceShared)UnmapViewOfFile(voiceShared);voiceShared=nullptr;
+    if(voiceGate)CloseHandle(voiceGate);if(voiceMapping)CloseHandle(voiceMapping);voiceGate=voiceMapping=nullptr;
+}
+bool OpenVoiceWorld(std::wstring const& prefix){
+    voiceMapping=CreateFileMappingW(INVALID_HANDLE_VALUE,nullptr,PAGE_READWRITE,0,sizeof(VoiceWorldPacket),(prefix+L"-voice-world").c_str());
+    if(!voiceMapping||GetLastError()==ERROR_ALREADY_EXISTS){if(voiceMapping)CloseHandle(voiceMapping);voiceMapping=nullptr;return false;}
+    voiceGate=CreateMutexW(nullptr,FALSE,(prefix+L"-voice-world-lock").c_str());
+    if(!voiceGate||GetLastError()==ERROR_ALREADY_EXISTS){CloseVoiceWorld();return false;}
+    voiceShared=static_cast<VoiceWorldPacket*>(MapViewOfFile(voiceMapping,FILE_MAP_WRITE,0,0,sizeof(VoiceWorldPacket)));
+    if(!voiceShared){CloseVoiceWorld();return false;}*voiceShared=VoiceWorldPacket{};return true;
+}
+void PublishVoice(VoiceWorldPacket p){
+    if(!voiceShared||!voiceGate)return;auto status=WaitForSingleObject(voiceGate,0);
+    if(status!=WAIT_OBJECT_0&&status!=WAIT_ABANDONED)return;
+    p.sequence=++voiceSequence;p.at=GetTickCount64();p.epoch=voiceEpoch;*voiceShared=p;ReleaseMutex(voiceGate);
+}
+void ClearVoiceWorld(){if(voiceValid)++voiceEpoch;voiceValid=false;voiceLast={};voiceAt=0;PublishVoice({});}
+
 template<class T>T Read(void const* p,std::size_t off=0){T v;std::memcpy(&v,static_cast<std::byte const*>(p)+off,sizeof v);return v;}
 bool Table(void* object,std::uintptr_t rva){return object && Read<std::uintptr_t>(object)==base+rva;}
 void* Virtual(void* object,std::size_t offset){
@@ -85,10 +114,11 @@ bool Capture(void* renderer,WorldPacket& p,std::uintptr_t& levelId,std::uintptr_
         auto game=Read<void*>(client,native->clientGame);
         if(game){auto raw=Read<std::uintptr_t>(game,native->gameNetwork);auto tag=Read<unsigned char>(game,native->gameNetworkTag);
             if(raw&&tag<=1&&raw<UINTPTR_MAX-0x20)owner=raw+(tag?0x18:0x20);}
-        if(!Hud(client))return false;
         auto dimension=Read<void*>(source,48);if(!Virtual(dimension,16))return false;
         int dim=INT_MIN;reinterpret_cast<void*(*)(void*,int*)>(base+native->sourceDimension)(source,&dim);
         if(dim==INT_MIN)return false;
+        region=source;owningClient=client;p.dimension=dim;levelId=reinterpret_cast<std::uintptr_t>(level);
+        if(!Hud(client))return false;
         auto camera=static_cast<std::byte*>(renderer)+native->camera;
         if(!Matrix(camera,p.view)||!Matrix(camera+0x80,p.projection))return false;
         for(int i=0;i<3;++i){p.eye[i]=Read<float>(camera,0x124+4*i);p.look[i]=Read<float>(camera,0x118+4*i);}
@@ -96,6 +126,32 @@ bool Capture(void* renderer,WorldPacket& p,std::uintptr_t& levelId,std::uintptr_
         region=source;owningClient=client;p.dimension=dim;levelId=reinterpret_cast<std::uintptr_t>(level);
         return ValidWorldCamera(p);
     }__except(EXCEPTION_EXECUTE_HANDLER){return false;}
+}
+bool VoiceCopy(void*,std::uintptr_t address,void* out,std::size_t bytes){
+    __try{if(address<65536||address>0x7fffffffffff-bytes)return false;std::memcpy(out,reinterpret_cast<void*>(address),bytes);return true;}
+    __except(EXCEPTION_EXECUTE_HANDLER){return false;}
+}
+bool CaptureVoice(void* client,VoiceWorldPacket& p,std::uintptr_t& actorId,std::uint32_t& token) noexcept {
+    __try{
+        if(!native||!Table(client,native->clientTable))return false;
+        auto actor=reinterpret_cast<void*(*)(void*)>(base+native->getPlayer)(client);
+        if(!Table(actor,native->playerTable)||Read<unsigned char>(actor,native->actorRemoved))return false;
+        CinematicState state;
+        if(!ReadCinematicActor(VoiceCopy,nullptr,reinterpret_cast<std::uintptr_t>(actor),*native,state))return false;
+        auto bounds=Read<void*>(actor,native->actorAabb);auto top=Read<float>(bounds,16);
+        if(!std::isfinite(top)||top<state.foot[1]||top-state.foot[1]>16)return false;
+        // Player-head position from the verified AABB, independent of free camera.
+        p.position[0]=state.foot[0];p.position[1]=std::max(state.foot[1],double(top)-.1);p.position[2]=state.foot[2];
+        auto yaw=state.yaw*3.141592653589793/180,pitch=state.pitch*3.141592653589793/180;
+        p.look[0]=-std::sin(yaw)*std::cos(pitch);p.look[1]=-std::sin(pitch);p.look[2]=std::cos(yaw)*std::cos(pitch);
+        actorId=reinterpret_cast<std::uintptr_t>(actor);token=Read<std::uint32_t>(actor,24);return true;
+    }__except(EXCEPTION_EXECUTE_HANDLER){return false;}
+}
+void TrackVoice(VoiceWorldPacket p,bool valid,std::uintptr_t level,std::uintptr_t actor,std::uint32_t token,std::uint64_t now){
+    if(!valid){++voiceRejected;ClearVoiceWorld();return;}
+    if(!voiceValid||voiceLevel!=level||voiceActor!=actor||voiceToken!=token||voiceDimension!=p.dimension||now-voiceAt>350)++voiceEpoch;
+    voiceLevel=level;voiceActor=actor;voiceToken=token;voiceDimension=p.dimension;voiceAt=now;voiceValid=true;
+    p.valid=1;p.epoch=voiceEpoch;voiceLast=p;++voiceCaptures;PublishVoice(p);
 }
 void Publish(WorldPacket p){
     if(!shared||!gate)return;
@@ -125,7 +181,18 @@ void Detour(void* self,void* context,void* params){
     }else{if(wasValid)++epoch;wasValid=false;frameCounter.reset();++rejected;}
     p.at=now;p.epoch=epoch;p.sequence=captures;DepthCamera(p,paired?renderView:nullptr);
     CompositionCamera(p,paired?renderView:nullptr);
-    if(valid)CaptureEnvironment(source,client,p,epoch,now);else ClearEnvironment();
+    // At most 50Hz; the rendering hook and its camera ABI remain unchanged.
+    if(voiceVerified&&client&&source){
+        if(now-voiceAt>=20||!voiceValid){VoiceWorldPacket pose;std::uintptr_t actor{};std::uint32_t token{};
+            pose.dimension=p.dimension;pose.geometryEpoch=epoch;
+            bool ok=CaptureVoice(client,pose,actor,token);TrackVoice(pose,ok,level,actor,token,now);}
+    }else if(voiceValid)ClearVoiceWorld();
+    if(valid)CaptureEnvironment(source,client,p,epoch,now);
+    else if(voiceValid&&now-voiceAt<=350){
+        WorldPacket voiceScene;voiceScene.dimension=voiceLast.dimension;
+        for(int i=0;i<3;i++){voiceScene.eye[i]=voiceLast.position[i];voiceScene.look[i]=voiceLast.look[i];}
+        CaptureEnvironment(source,client,voiceScene,epoch,now);
+    }else ClearEnvironment();
     Publish(p);
 }
 bool Install() noexcept {
@@ -164,6 +231,8 @@ bool OpenWorldBridge(std::wstring const& prefix,std::filesystem::path const& fol
     if(!OpenEnvironmentBridge(prefix,folder)){UnmapViewOfFile(shared);shared=nullptr;CloseHandle(gate);CloseHandle(mapping);gate=mapping=nullptr;return false;}
     OpenDepthBridge(prefix,folder,test);
     if(!OpenCinematicBridge(prefix,folder,test))Log(folder,"CINEMATIC transport unavailable; ordinary player retained");
+    voiceValid=false;voiceAt=0;++voiceEpoch;
+    if(!OpenVoiceWorld(prefix))Log(folder,"VOICE_WORLD transport unavailable; ordinary room voice retained");
     frameReady=CreateEventW(nullptr,FALSE,FALSE,(prefix+L"-world-frame").c_str());
     if(frameReady&&GetLastError()==ERROR_ALREADY_EXISTS){CloseHandle(frameReady);frameReady=nullptr;}
     Log(folder,frameReady?"FRAME_SYNC READY auto-reset camera publication signal":"FRAME_SYNC unavailable; host rate-target fallback retained");
@@ -180,7 +249,16 @@ void EnableWorldBridge(bool value){
     // The unsuccessful 0.7.12 write-snapshot experiment remains offline only.
     // A refused compositor falls back to ordinary ULW/voxel output, not that cost.
     EnableDepthBridge(false,base);
-    if(active)VerifyEnvironmentNative(base); // Reopened companion gets fresh private mappings.
+    voiceVerified=false;
+    if(active){
+        VerifyEnvironmentNative(base); // Reopened companion gets fresh private mappings.
+        // Read-only reuse only: do not install any cinematic hooks here.
+        // Only getPlayer is a new call in this path; other context calls already
+        // passed WorldGuards. Cinematic render functions may already be hooked.
+        for(auto const& g:VersionGuards(native->version,cinematicGuards2645,cinematicGuards2651,cinematicGuards,cinematicGuards2660))
+            if(g.rva==native->getPlayer)voiceVerified=!std::memcmp(reinterpret_cast<void*>(base+g.rva),g.bytes.data(),g.bytes.size());
+    }
+    if(!active)ClearVoiceWorld();
     if(enabled.exchange(active)!=active){++epoch;wasValid=false;frameCounter.reset();networkOwner=0;SelectNetworkMetrics(0);Publish({});}
 }
 void PollWorldBridge(){
@@ -188,6 +266,8 @@ void PollWorldBridge(){
     RefreshDepthBridge();
     if(networkOwner&&now-networkSelectedAt>500){networkOwner=0;SelectNetworkMetrics(0);}
     if(!shared||now-loggedAt<5000)return;loggedAt=now;
+    Log(logFolder,"VOICE_WORLD verified="+std::to_string(voiceVerified)+" ready="+std::to_string(voiceValid&&now-voiceAt<=350)
+        +" captured="+std::to_string(voiceCaptures)+" rejected="+std::to_string(voiceRejected));
     LogEnvironment();
     LogDepthBridge();
     LogCompositionBridge();
@@ -200,6 +280,7 @@ void PollWorldBridge(){
 }
 void CloseWorldBridge(){
     enabled=false;std::lock_guard lock(transport);++epoch;wasValid=false;frameCounter.reset();networkOwner=0;SelectNetworkMetrics(0);Publish({});
+    ClearVoiceWorld();CloseVoiceWorld();voiceVerified=false;
     CloseEnvironmentBridge();
     CloseDepthBridge();
     CloseCompositionBridge();

@@ -6,6 +6,26 @@ import static org.junit.jupiter.api.Assertions.*;
 class TunnelInviteTest {
     static final String TOKEN="0123456789abcdef0123456789abcdef";
     static final String URL="https://fixture-test.trycloudflare.com";
+    @Test void portPasswordFragmentReportsTheMissingAddressWithoutStartingAConnection() {
+        for(String fragment:new String[]{"54883#fixture8", " 54883#fixture8 ", "54883#fixture8#ABC123"}) {
+            String error=RoomTunnel.joinRoom(fragment,ignored->fail("Incomplete invites must not start background work"));
+            assertNotNull(error);
+            assertTrue(error.contains("缺少房主地址"),error);
+            assertFalse(RoomTunnel.busy());
+            assertFalse(com.muoniumplayer.party.direct.MpDirect.isPendingJoin());
+        }
+    }
+    @Test void readyPublicInvitationCanBeCopiedWithoutAManualHostAddress() throws Exception {
+        var invite=RoomTunnel.class.getDeclaredField("invite");invite.setAccessible(true);
+        String previous=(String)invite.get(null);
+        try {
+            String complete=TunnelInvite.create(URL,TOKEN,"abcdefgh","ABC123");
+            invite.set(null,complete);
+            assertEquals(complete,RoomTunnel.completeInvitation(""));
+            assertEquals(complete,RoomTunnel.completeInvitation("old-host.invalid"));
+            assertFalse(RoomTunnel.busy(),"Copying must not start a helper or connection");
+        } finally {invite.set(null,previous);}
+    }
     @Test void encryptedInviteRoundTripsWithoutLosingRoomPasswordOrCode() {
         String invite=TunnelInvite.create(URL,TOKEN,"abcdefgh","ABC123");
         var parsed=TunnelInvite.parse(invite);

@@ -27,7 +27,8 @@ final class StreamingMixPreparation {
         return AutomixSettings.getEngine()+","+AutomixSettings.getOverlapMillis()+","+AutomixSettings.isAdvancedModeEnabled()
             +","+AutomixSettings.isPerformanceModeEnabled()+","+AutomixSettings.isBeatAlignEnabled()+","+AutomixSettings.isBassSwapEnabled()
             +","+AutomixSettings.isTempoLockEnabled()+","+AutomixSettings.isVocalDuckEnabled()+","+AutomixSettings.isPitchMatchEnabled()
-            +","+AutomixSettings.isSkipIntroEnabled()+","+AutomixSettings.getModelsDirectory();
+            +","+AutomixSettings.isSkipIntroEnabled()+","+AutomixSettings.getModelsDirectory()
+            +","+AutomixSettings.isLearnedEqEnabled();
     }
     synchronized boolean start(AudioPlayer outgoing,AudioPlayer incoming,long lastVocal,BooleanSupplier valid) {
         if(job!=null||outgoing.getSourceFile()==null||incoming.getSourceFile()==null||!BUSY.compareAndSet(false,true))return false;
@@ -39,9 +40,9 @@ final class StreamingMixPreparation {
                 if(!next.current())return;
                 if(outgoing.getSourceFile().length()>AutomixSettings.maxDeckBytes()
                         ||incoming.getSourceFile().length()>AutomixSettings.maxDeckBytes())return;
-                CloudMusic.warmAdvancedEnvelopeNow(outgoing.getSourceFile(),(long)outgoing.getTotalTimeMillis());
+                CloudMusic.warmPairSearchEnvelopeNow(outgoing.getSourceFile(),(long)outgoing.getTotalTimeMillis());
                 if(!next.current())return;
-                CloudMusic.warmAdvancedEnvelopeNow(incoming.getSourceFile(),(long)incoming.getTotalTimeMillis());
+                CloudMusic.warmPairSearchEnvelopeNow(incoming.getSourceFile(),(long)incoming.getTotalTimeMillis());
                 if(!next.current())return;
                 AutomixPlan plan=StreamingMixPlanner.plan(outgoing,incoming,lastVocal);
                 if(plan==null||!next.current())return;

@@ -1,4 +1,4 @@
 #pragma once
 namespace mp {
-inline constexpr char PluginVersion[]="0.13.0";
+inline constexpr char PluginVersion[]="0.20.2";
 }

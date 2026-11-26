@@ -23,6 +23,7 @@ public final class HostMiniPlayer extends GuiScreen {
         try(var paint=new Paint().setColor(0xF0202330).setAntiAlias(true)) {
             canvas.drawRRect(RRect.makeXYWH(x,y,(float)MusicCapsuleCard.CARD_WIDTH*scale,(float)MusicCapsuleCard.CARD_HEIGHT*scale,14*scale),paint);
         }
+        MusicCapsuleCard.observePlayback();
         MusicCapsuleCard.tick(16.67f);
         MusicCapsuleCard.INSTANCE.drawCard(x,y,scale,1,false);
         if(CloudMusic.getSnapshot().music==null)FontManager.pf18.drawString("Play a song to use the mini player",x+16,y+32,0xFFFFFFFF);

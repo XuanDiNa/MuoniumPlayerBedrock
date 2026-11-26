@@ -26,10 +26,10 @@ final class HostWatchdog implements AutoCloseable {
             Files.createDirectories(logDirectory);
             Path path=logDirectory.resolve("jvm-health-"+ProcessHandle.current().pid()+"-"+System.currentTimeMillis()+".log");
             writer=new PrintWriter(Files.newBufferedWriter(path,java.nio.charset.StandardCharsets.UTF_8,StandardOpenOption.CREATE_NEW),true);
-            writer.println("HOST_HEALTH version="+com.muoniumplayer.MuoniumPlayerClient.MOD_VERSION+" reportsMax=3 threadNames=omitted action=diagnostics-only");
+            writer.println("HOST_HEALTH version="+com.muoniumplayer.MuoniumPlayerClient.MOD_VERSION+" reportsMax=6 thresholdMs=2000 threadNames=omitted action=diagnostics-only");
             writer.println("HOST_IMAGE sha256="+imageHash());
         }catch(Exception unavailable){if(writer!=null)writer.close();writer=null;}
-        HostWatchdog watcher=new HostWatchdog(host,writer==null?System.err::println:writer::println,8_000_000_000L,250);
+        HostWatchdog watcher=new HostWatchdog(host,writer==null?System.err::println:writer::println,2_000_000_000L,250);
         watcher.destination=writer;
         return watcher;
     }
@@ -53,7 +53,7 @@ final class HostWatchdog implements AutoCloseable {
         while(active&&host.isAlive()) {
             try {
                 long now=System.nanoTime(),age=now-heartbeat;
-                if(age>=threshold&&reports<3&&(reportedAt==0||now-reportedAt>=threshold)) {
+                if(age>=threshold&&reports<6&&(reportedAt==0||now-reportedAt>=threshold)) {
                     reportedAt=now;stalled=true;
                     sink.accept("HOST_STALL report="+(++reports)+" phase="+stage+" ageMs="+age/1_000_000+" action=observe");
                     capture();

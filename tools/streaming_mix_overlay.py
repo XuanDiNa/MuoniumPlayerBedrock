@@ -67,7 +67,8 @@ def apply(text):
     text = replace_once(text, '                track.preRollMillis = preRoll;', '''                if(track.bedrockMixInstalling && track.bedrockReplannedVocal!=null
                         && deck.attachVocalMaterial(track.bedrockReplannedVocal))track.vocalMaterial=track.bedrockReplannedVocal;
                 track.preRollMillis = preRoll;''')
-    text = replace_once(text, '            track.plan = fresh;', '''            track.plan = fresh;
+    text = replace_once(text, '            track.plan = fresh;\n                track.pairSearchEvidence = true;', '''            track.plan = fresh;
+            track.pairSearchEvidence = true;
             if(track.bedrockMixInstalling)track.bedrockMixApplied=true;''')
     text = replace_once(text, '        private void cancelArmedTrack() {', '''        private void cancelArmedTrack() {
             bedrockMixReset();''')

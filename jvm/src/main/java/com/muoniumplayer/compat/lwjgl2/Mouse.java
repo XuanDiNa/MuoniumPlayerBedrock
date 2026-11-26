@@ -4,7 +4,7 @@ public final class Mouse {
     private static int wheel;
     private static double rawX, rawY;
     public static boolean isButtonDown(int button) {
-        return com.muoniumplayer.bedrock.HostInputState.allowed() && Display.getWindowHandle() != 0 && button >= 0 && button <= GLFW.GLFW_MOUSE_BUTTON_LAST
+        return com.muoniumplayer.bedrock.HostInputState.buttonAllowed(button) && Display.getWindowHandle() != 0 && button >= 0 && button <= GLFW.GLFW_MOUSE_BUTTON_LAST
                 && GLFW.glfwGetMouseButton(Display.getWindowHandle(), button) == GLFW.GLFW_PRESS;
     }
     public static void position(double x, double y) { rawX = x; rawY = y; }

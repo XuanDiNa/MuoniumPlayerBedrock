@@ -3,68 +3,45 @@ package com.muoniumplayer.core.cine;
 import org.junit.jupiter.api.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+/** The former monolithic scheduler regressions, through the immutable session. */
 class CinematicScheduleIntegrationTest {
-    static final CineDirector.SceneProbe PROBE=new CineDirector.SceneProbe(){
+    private final Object world=new Object(),player=new Object();
+    private final CineDirector.SceneProbe probe=new CineDirector.SceneProbe(){
+        public Object worldIdentity(){return world;}public Object playerIdentity(){return player;}
         public double playerX(){return 10;}public double playerY(){return 64;}public double playerZ(){return 10;}
-        public float playerYaw(){return 0;}public float playerPitch(){return 0;}
+        public double playerEyeY(){return 65.6;}public float playerYaw(){return 0;}public float playerPitch(){return 0;}
         public Object openScreen(){return null;}public boolean hurtThisTick(){return false;}
         public boolean inputThisTick(){return false;}public boolean playerAlive(){return true;}
-        public boolean clipBlocked(double x,double y,double z,double ex,double ey,double ez){return false;}
+        public boolean skyVisible(){return true;}public int dimensionKind(){return 0;}
+        public String biomeKey(){return "plains";}public long timeOfDay(){return 6000;}
+        public CineDirector.Vec3Holder clipCamera(double x,double y,double z,double ex,double ey,double ez){return new CineDirector.Vec3Holder(ex,ey,ez);}
         public CineDirector.MobSample nearestMovingMob(double range){return null;}
+        public CineDirector.MobSample trackedMob(int id,double range){return null;}
     };
-    static void field(String name,Object value)throws Exception{
-        var f=CineDirector.class.getDeclaredField(name);f.setAccessible(true);f.set(null,value);
+    private CineSession session;private long now,position;
+    private void tick(){now+=50_000_000L;position+=50;session.tick(probe,CineSettings.snapshot(),
+        new CineSession.Playback(true,1,1,position,null,.5f),now);}
+    @BeforeEach void setup(){CineSettings.resetForTest();CineSettings.setEnabled(true);CineSettings.setIdleSeconds(5);
+        CineSettings.setMinShotSeconds(12);session=new CineSession();now=1_000_000_000L;
+        for(int i=0;i<101;i++)tick();assertTrue(session.frame().active());}
+    @AfterEach void cleanup(){CineSettings.resetForTest();}
+    @Test void highFrameRateReadsNeverConsumeTheShotLifetime(){
+        var frame=session.frame();var pose=frame.sample(.5f);int shot=session.shotSequence();
+        for(int i=0;i<2400;i++)assertEquals(pose,frame.sample(.5f));
+        assertSame(frame,session.frame());assertEquals(shot,session.shotSequence());
+        for(int i=0;i<220;i++)tick();assertEquals(shot,session.shotSequence());
     }
-    static int shot()throws Exception{
-        var f=CineDirector.class.getDeclaredField("currentShotSequence");f.setAccessible(true);return f.getInt(null);
+    @Test void effectlessCutsHonorTwelveSecondFloorAndDoNotRepeatEachTick(){
+        CineSettings.setTransitionMask(0);int initial=session.shotSequence();
+        for(int i=0;i<239;i++)tick();assertEquals(initial,session.shotSequence());
+        tick();assertEquals(initial+1,session.shotSequence());
+        for(int i=0;i<239;i++)tick();assertEquals(initial+1,session.shotSequence());
+        tick();assertEquals(initial+2,session.shotSequence());
     }
-    static void tick()throws Exception{
-        var m=CineDirector.class.getDeclaredMethod("tickActive",CineDirector.SceneProbe.class);m.setAccessible(true);m.invoke(null,PROBE);
-    }
-    @BeforeEach void reset(){
-        System.setProperty("muonium.bedrock.offlineTest","true");
-        CineSettings.resetForTest();CineDirector.resetForTest();CineDirector.forceActiveForTest(true);
-    }
-    @AfterEach void cleanup(){CineDirector.resetForTest();CineSettings.resetForTest();}
-    void finishedTransition(boolean renderPolls)throws Exception{
-        field("activeTicks",500L);field("lastCutAtTick",0L);field("transitionShotPending",false);
-        long now=System.nanoTime();CineDirector.forceTransitionForTest(1,now-2_000_000_000L,now-1_000_000_000L,true);
-        if(renderPolls)for(int i=0;i<120;i++)assertNull(CineDirector.currentTransition());
-        tick();assertNull(CineDirector.currentTransition(),"Finishing a transition must start a fresh shot interval");
-        field("shotStartedNanos",System.nanoTime()-31_000_000_000L);
-        for(int i=0;i<239;i++){tick();assertNull(CineDirector.currentTransition(),"Render polling must not cause another immediate cut");}
-        tick();assertNotNull(CineDirector.currentTransition(),"The normal twelve-second fallback must still advance");
-    }
-    @Test void schedulerRetainsItsFullShotIntervalWithoutRenderPolling()throws Exception{finishedTransition(false);}
-    @Test void highFrameRateTransitionReadsCannotConsumeTheSchedulerCompletion()throws Exception{finishedTransition(true);}
-    @Test void disablingTransitionEffectsStillCutsOncePerShotInterval()throws Exception{
-        CineSettings.setTransitionMask(0);field("activeTicks",239L);field("lastCutAtTick",0L);
-        field("shotStartedNanos",System.nanoTime()-31_000_000_000L);
-        tick();assertEquals(1,shot(),"No visual transition must still commit the next shot");
-        for(int i=0;i<239;i++)tick();assertEquals(1,shot(),"No effect must not create a per-tick cutting loop");
-        field("shotStartedNanos",System.nanoTime()-31_000_000_000L);
-        tick();assertEquals(2,shot());
-    }
-    @Test void unmeteredFallbackCannotCutBeforeConfiguredMinimum()throws Exception{
-        CineSettings.setMinShotSeconds(12f);
-        var prepare=CineDirector.class.getDeclaredMethod("prepareShot",CineDirector.SceneProbe.class,long.class,boolean.class);
-        prepare.setAccessible(true);prepare.invoke(null,PROBE,System.nanoTime(),false);
-        field("activeTicks",239L);field("lastCutAtTick",0L);
-        tick();assertNull(CineDirector.currentTransition(),"The tick fallback must still honor the minimum in real elapsed time");
-        assertEquals(1,shot());
-    }
-    @Test void beatTriggeredAndEffectlessCutsAlsoHonorMonotonicShotLifetime()throws Exception{
-        var prepare=CineDirector.class.getDeclaredMethod("prepareShot",CineDirector.SceneProbe.class,long.class,boolean.class);
-        var begin=CineDirector.class.getDeclaredMethod("beginTransitionTo",CineDirector.SceneProbe.class,long.class);
-        prepare.setAccessible(true);begin.setAccessible(true);
-        for(int mask:new int[]{1,0}){
-            CineDirector.resetForTest();CineDirector.forceActiveForTest(true);
-            CineSettings.setMinShotSeconds(12f);CineSettings.setTransitionMask(mask);
-            long start=System.nanoTime();prepare.invoke(null,PROBE,start,false);
-            begin.invoke(null,PROBE,start+11_000_000_000L);
-            assertEquals(1,shot());assertNull(CineDirector.currentTransition(),"Beat changes must not bypass the time floor");
-            begin.invoke(null,PROBE,start+13_000_000_000L);
-            if(mask==0)assertEquals(2,shot());else assertNotNull(CineDirector.currentTransition());
-        }
+    @Test void expiredMaskReadsCannotMutateTheScheduler(){
+        for(int i=0;i<240;i++)tick();var frame=session.frame();int shot=session.shotSequence();
+        if(frame.transition()!=null)for(int i=0;i<1000;i++)frame.transition().at(now+100_000_000_000L);
+        assertSame(frame,session.frame());assertEquals(shot,session.shotSequence());
+        for(int i=0;i<220;i++)tick();assertEquals(shot,session.shotSequence());
     }
 }

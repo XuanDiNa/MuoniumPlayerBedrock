@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.muoniumplayer.core.rendering.DownloadDynamicIsland.DynamicIslandStyle;
 
 import java.io.File;
 
@@ -20,11 +21,7 @@ public final class HudConfig {
     public static final float SCALE_MIN = 0.5f;
     public static final float SCALE_MAX = 2.0f;
 
-    /** 灵动岛样式索引上限,与 {@code DownloadDynamicIsland.DynamicIslandStyle} 的数量保持一致。 */
-    /**
-     * {@link #dynamicIslandStyle} 的合法上限（存序号）。7 = 回弹胶囊、8 = 音乐胶囊。
-     * 历史上这里停在 6：选了回弹胶囊的存档在重载时会被钳回液态玻璃——顺手修正。
-     */
+    /** 灵动岛样式的最大稳定 ID；1/3/4/5 已移除，不能按枚举数量缩小上限。 */
     public static final int DYNAMIC_ISLAND_STYLE_MAX = 8;
 
     /** 全屏歌词样式索引上限,与 {@code FullscreenLyricStyle} 的数量保持一致。 */
@@ -563,10 +560,7 @@ public final class HudConfig {
     /**
      * HUD 设置界面用哪一层：MuoniumConfig（默认）、OneConfig 或 ModernUI。
      *
-     * <p>内置自绘界面（{@link #HUD_EDITOR_UI_BUILTIN}）已不作为可选档位：本项目的路线是
-     * 「走魔改 OneConfig」，设置界面统一交给 MuoniumConfig。常量保留只为读档兼容 ——
-     * 老配置里存着 {@code "builtin"} 的人会被 {@link #normalizeHudEditorUi} 归到 MuoniumConfig，
-     * 不会因为找不到那个值而回退到什么奇怪的状态。</p>
+     * <p>保留玩家选择的内置界面；未知值回退到 MuoniumConfig。</p>
      */
     public static final String HUD_EDITOR_UI_BUILTIN = "builtin";
     /** 私有化的 OneConfig（MuoniumConfig），随本 mod 自动下载，界面默认由它渲染。 */
@@ -580,7 +574,7 @@ public final class HudConfig {
     public static final String HUD_EDITOR_UI_MODERNUI = "modernui";
 
     /** 默认走 MuoniumConfig：它是本项目的设置界面，界面的样式与条目都在那边统一维护。 */
-    public static String hudEditorUi = HUD_EDITOR_UI_MCONFIG;
+    public static volatile String hudEditorUi = HUD_EDITOR_UI_MCONFIG;
 
     /**
      * 播放态由谁供给：内部播放器，还是系统里正在播的外部播放器（Windows SMTC）。
@@ -668,14 +662,21 @@ public final class HudConfig {
     /** 游戏内 Ctrl+F 从灵动岛长出的快捷搜索栏。关掉后快捷键不再响应。 */
     public static boolean islandSearchEnabled = true;
     /**
-     * 音乐胶囊（灵动岛第九款）迷你卡的缩放档位。卡片按 296×130 设计空间整体缩放；
+     * 五款灵动岛展开音乐卡共用的缩放档位。卡片按 296×130 设计空间整体缩放；
      * 窄窗口上会再按可用宽高自动收口，不会裁边。
      */
     public static float islandMiniCardScale = 1.0f;
-    /** 音乐胶囊收起行与迷你卡主文本是否显示当前歌词行（关掉则恒显歌名 - 歌手）。 */
+    /** 音乐胶囊收起状态的最大宽度，单位 GUI 逻辑像素；短歌词按内容自然伸展。 */
+    public static float islandMusicCapsuleMaxWidth = 320.0f;
+    /** 灵动岛歌曲行与展开音乐卡主文本是否显示当前歌词行（关掉则恒显歌名 - 歌手）。 */
     public static boolean islandMusicShowsLyric = true;
-    /** 音乐胶囊是否允许「鼠标悬停展开迷你卡」。关掉后卡片只能通过别的入口看到（收起行照常显示）。 */
+    /** 五款灵动岛共用的可交互展开开关；保留旧字段名与存档/分享键。 */
     public static boolean islandHoverExpand = true;
+    /** 灵动岛听歌上报、自动状态等辅助通知的显示偏好。 */
+    public static boolean islandAuxiliaryNotices = false;
+    /** 聊天栏中的展开方式：0 打开聊天栏自动展开，1 点击灵动岛展开。 */
+    public static int islandExpandTrigger = 0;
+    public static final int ISLAND_EXPAND_TRIGGER_MAX = 1;
     /** 真玻璃生效在桌面歌词卡片上。 */
     public static boolean glassSurfaceDesktopLyric = true;
     /** 真玻璃生效在三套 HUD 设置界面的面板上。这几块面板平时是不透明的，所以它同时决定底色压不压薄。 */
@@ -885,6 +886,12 @@ public final class HudConfig {
         dynamicIslandAmbientRotate = true;
         dynamicIslandAmbientStatusSeconds = 5.0f;
         dynamicIslandAmbientNowPlayingSeconds = 8.0f;
+        islandMiniCardScale = 1.0f;
+        islandMusicCapsuleMaxWidth = 320.0f;
+        islandMusicShowsLyric = true;
+        islandHoverExpand = true;
+        islandAuxiliaryNotices = false;
+        islandExpandTrigger = 0;
     }
 
     /** 恢复封面相关外观。 */
@@ -892,9 +899,10 @@ public final class HudConfig {
         animatedCoverEnabled = true;
     }
 
-    /** 加载已保存的设置；格式错误或超出范围的值安全回退。 */
+    /** 加载已保存的设置；格式错误或超出范围的值安全回退。若为首次运行（文件不存在），则写入默认配置。 */
     public static void load() {
         if (!FILE.exists()) {
+            save();
             return;
         }
         try {
@@ -1085,8 +1093,14 @@ public final class HudConfig {
             dynamicIslandEnabled = getBoolean(o, "dynamicIslandEnabled", dynamicIslandEnabled);
             islandSearchEnabled = getBoolean(o, "islandSearchEnabled", islandSearchEnabled);
             islandMiniCardScale = clamp(getFloat(o, "islandMiniCardScale", islandMiniCardScale), 0.5f, 2.0f);
+            float musicCapsuleMaxWidth = getFloat(o, "islandMusicCapsuleMaxWidth", islandMusicCapsuleMaxWidth);
+            if (Float.isFinite(musicCapsuleMaxWidth)) {
+                islandMusicCapsuleMaxWidth = clamp(musicCapsuleMaxWidth, 160.0f, 720.0f);
+            }
             islandMusicShowsLyric = getBoolean(o, "islandMusicShowsLyric", islandMusicShowsLyric);
             islandHoverExpand = getBoolean(o, "islandHoverExpand", islandHoverExpand);
+            islandAuxiliaryNotices = getBoolean(o, "islandAuxiliaryNotices", islandAuxiliaryNotices);
+            islandExpandTrigger = clampInt(getInt(o, "islandExpandTrigger", islandExpandTrigger), 0, ISLAND_EXPAND_TRIGGER_MAX);
             dynamicIslandScale = clamp(getFloat(o, "dynamicIslandScale", dynamicIslandScale), 0.60f, 1.35f);
             dynamicIslandY = clamp(getFloat(o, "dynamicIslandY", dynamicIslandY), -20.0f, 400.0f);
             infoCardBackdrop = clampInt(getInt(o, "infoCardBackdrop", infoCardBackdrop), 0, INFO_CARD_BACKDROP_MAX);
@@ -1096,8 +1110,7 @@ public final class HudConfig {
             dynamicIslandProgressHeight = clamp(getFloat(o, "dynamicIslandProgressHeight", dynamicIslandProgressHeight), 0.75f, 4.0f);
             dynamicIslandCompletionHoldSeconds = clamp(getFloat(o, "dynamicIslandCompletionHoldSeconds", dynamicIslandCompletionHoldSeconds), 0.5f, 6.0f);
             dynamicIslandQueueIntervalSeconds = clamp(getFloat(o, "dynamicIslandQueueIntervalSeconds", dynamicIslandQueueIntervalSeconds), 0.5f, 6.0f);
-            dynamicIslandStyle = clampInt(getInt(o, "dynamicIslandStyle", dynamicIslandStyle), 0,
-                    DYNAMIC_ISLAND_STYLE_MAX);
+            dynamicIslandStyle = DynamicIslandStyle.fromId(getInt(o, "dynamicIslandStyle", dynamicIslandStyle)).getId();
             dynamicIslandExpandSpeed = clamp(getFloat(o, "dynamicIslandExpandSpeed", dynamicIslandExpandSpeed), 0.40f, 2.50f);
             dynamicIslandCollapseSpeed = clamp(getFloat(o, "dynamicIslandCollapseSpeed", dynamicIslandCollapseSpeed), 0.40f, 2.50f);
             dynamicIslandContentSpeed = clamp(getFloat(o, "dynamicIslandContentSpeed", dynamicIslandContentSpeed), 0.40f, 2.50f);
@@ -1314,8 +1327,11 @@ public final class HudConfig {
             o.addProperty("dynamicIslandEnabled", dynamicIslandEnabled);
             o.addProperty("islandSearchEnabled", islandSearchEnabled);
             o.addProperty("islandMiniCardScale", islandMiniCardScale);
+            o.addProperty("islandMusicCapsuleMaxWidth", islandMusicCapsuleMaxWidth);
             o.addProperty("islandMusicShowsLyric", islandMusicShowsLyric);
             o.addProperty("islandHoverExpand", islandHoverExpand);
+            o.addProperty("islandAuxiliaryNotices", islandAuxiliaryNotices);
+            o.addProperty("islandExpandTrigger", islandExpandTrigger);
             o.addProperty("dynamicIslandScale", dynamicIslandScale);
             o.addProperty("dynamicIslandY", dynamicIslandY);
             o.addProperty("infoCardBackdrop", infoCardBackdrop);
@@ -1325,7 +1341,7 @@ public final class HudConfig {
             o.addProperty("dynamicIslandProgressHeight", dynamicIslandProgressHeight);
             o.addProperty("dynamicIslandCompletionHoldSeconds", dynamicIslandCompletionHoldSeconds);
             o.addProperty("dynamicIslandQueueIntervalSeconds", dynamicIslandQueueIntervalSeconds);
-            o.addProperty("dynamicIslandStyle", dynamicIslandStyle);
+            o.addProperty("dynamicIslandStyle", DynamicIslandStyle.fromId(dynamicIslandStyle).getId());
             o.addProperty("dynamicIslandExpandSpeed", dynamicIslandExpandSpeed);
             o.addProperty("dynamicIslandCollapseSpeed", dynamicIslandCollapseSpeed);
             o.addProperty("dynamicIslandContentSpeed", dynamicIslandContentSpeed);
@@ -1449,6 +1465,7 @@ public final class HudConfig {
      * 留着这个值会让人以为还能选回去。未知值同样归到 MuoniumConfig，因为它是默认档。</p>
      */
     private static String normalizeHudEditorUi(String value) {
+        if (HUD_EDITOR_UI_BUILTIN.equalsIgnoreCase(value)) return HUD_EDITOR_UI_BUILTIN;
         if (HUD_EDITOR_UI_ONECONFIG.equalsIgnoreCase(value)) return HUD_EDITOR_UI_ONECONFIG;
         if (HUD_EDITOR_UI_MODERNUI.equalsIgnoreCase(value)) return HUD_EDITOR_UI_MODERNUI;
         return HUD_EDITOR_UI_MCONFIG;

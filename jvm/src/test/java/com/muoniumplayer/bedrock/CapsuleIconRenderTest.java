@@ -21,17 +21,21 @@ class CapsuleIconRenderTest {
             var client=BedrockClient.getInstance();client.bindWindow(windows.display());
             client.getWindow().size(800,600,1);presenter.resize(800,600);SkijaHost.renderTarget(presenter.framebuffer());
             MuoniumPlayerClient.getInstance().init();
-            var transport=MusicCapsuleCard.class.getDeclaredMethod("drawTransportGlyph",String.class,double.class,double.class,double.class,int.class);
-            var mode=MusicCapsuleCard.class.getDeclaredMethod("drawModeGlyph",double.class,double.class,double.class,double.class,float.class);
+            Class<?> icons=Class.forName("com.muoniumplayer.core.rendering.MusicCardEffects$Icon");
+            var transport=MusicCapsuleCard.class.getDeclaredMethod("drawTransportIcon",io.github.humbleui.skija.Canvas.class,icons,
+                double.class,double.class,double.class,double.class,int.class);
+            var mode=MusicCapsuleCard.class.getDeclaredMethod("drawMode",double.class,double.class,float.class,CloudMusic.PlayMode.class);
             transport.setAccessible(true);mode.setAccessible(true);
             for(double scale:new double[]{.75,1,1.5,2}) {
-                for(String glyph:new String[]{"A","B","H","E","\ue144"}) {
-                    double size=(glyph.equals("A")||glyph.equals("B"))?22:glyph.equals("\ue144")?16:17;
+                for(String glyph:new String[]{"PREVIOUS","PLAY","PAUSE","NEXT"}) {
+                    double size=glyph.equals("PLAY")||glyph.equals("PAUSE")?20:16.5;
+                    Object icon=java.lang.Enum.valueOf((Class)icons,glyph.equals("PLAY")||glyph.equals("PAUSE")?"PLAY_PAUSE":glyph);
+                    double pause=glyph.equals("PAUSE")?1:0;
                     SkijaHost.beginFrame(0);
                     try {
                         var gl=com.muoniumplayer.api.OpenAPI.getInstance().getGLStateManager();
                         gl.pushMatrix();try{gl.translate(40,30,0);gl.scale(scale,scale,1);
-                            transport.invoke(MusicCapsuleCard.INSTANCE,glyph,100d,100d,size,0xFFFFFFFF);
+                            transport.invoke(null,SkijaHost.canvas(),icon,100d,100d,size,pause,0xFFFFFFFF);
                         }finally{gl.popMatrix();}
                     }finally{SkijaHost.endFrame();}
                     var image=capture("transport-"+(int)glyph.charAt(0)+"-"+scale);
@@ -39,7 +43,7 @@ class CapsuleIconRenderTest {
                     double cx=(b[0]+b[2]+1)*.5,cy=(b[1]+b[3]+1)*.5;
                     System.out.println("CAPSULE_INK glyph="+(int)glyph.charAt(0)+" scale="+scale+" center="+cx+","+cy+" pixels="+count);
                     assertTrue(count>=4,"Every transport control needs a visible glyph");
-                    assertEquals(40+100*scale,cx,1.6,"Scaled icon ink must center on its actual click target: "+glyph);
+                    assertEquals(40+(100+(glyph.equals("PLAY")?size*16/120:0))*scale,cx,1.6,"Scaled icon ink must center on its actual click target: "+glyph);
                     assertEquals(30+100*scale,cy,1.6,"Icon ink must align with the control row: "+glyph);
                     assertTrue(b[2]-b[0]<size*scale+3&&b[3]-b[1]<size*scale+3,"Icon must fit its allocated box");
                 }
@@ -49,7 +53,7 @@ class CapsuleIconRenderTest {
                     try {
                         var gl=com.muoniumplayer.api.OpenAPI.getInstance().getGLStateManager();
                         gl.pushMatrix();try{gl.translate(40,30,0);gl.scale(scale,scale,1);
-                            mode.invoke(MusicCapsuleCard.INSTANCE,88d,88d,24d,24d,1f);
+                            mode.invoke(MusicCapsuleCard.INSTANCE,100d,100d,1f,value);
                         }finally{gl.popMatrix();}
                     }finally{SkijaHost.endFrame();}
                     var image=capture("mode-"+value+"-"+scale);int[] b=ink(image);

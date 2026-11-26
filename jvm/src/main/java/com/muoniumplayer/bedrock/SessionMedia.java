@@ -35,6 +35,13 @@ public final class SessionMedia {
             return directory.toFile();
         } catch (IOException e) { throw new IllegalStateException("Session media unavailable", e); }
     }
+    /** Retire only one browser directory created inside this live owned session. */
+    static synchronized void releaseBrowserProfile(Path owned)throws IOException {
+        if(directory==null||owned==null||!owned.toAbsolutePath().normalize().getParent().equals(directory)
+                ||!owned.getFileName().toString().matches("youtube-browser-[0-9]+"))
+            throw new IOException("Browser working directory identity mismatch");
+        requirePlainRoot(owned);clear(owned,true);Files.deleteIfExists(owned);
+    }
     static void reclaimStale(Path parent) throws IOException {
         requirePlainRoot(parent);
         try (var children = Files.newDirectoryStream(parent, "session-*")) {
@@ -59,7 +66,10 @@ public final class SessionMedia {
         if (!Files.exists(path, LinkOption.NOFOLLOW_LINKS)) return false;
         // Windows directory junctions are not Java symbolic links. Refuse all
         // reparse points before walking/deleting, including mount junctions.
-        int attributes = Kernel32.INSTANCE.GetFileAttributes(path.toAbsolutePath().toString());
+        String nativePath=path.toAbsolutePath().normalize().toString();
+        if(!nativePath.startsWith("\\\\?\\"))nativePath=nativePath.startsWith("\\\\")
+                ?"\\\\?\\UNC\\"+nativePath.substring(2):"\\\\?\\"+nativePath;
+        int attributes = Kernel32.INSTANCE.GetFileAttributes(nativePath);
         if (attributes == WinBase.INVALID_FILE_ATTRIBUTES) throw new IOException("Media attributes unavailable");
         return (attributes & 0x400) != 0;
     }

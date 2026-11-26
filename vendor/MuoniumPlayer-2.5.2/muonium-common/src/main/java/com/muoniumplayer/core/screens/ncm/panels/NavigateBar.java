@@ -11,6 +11,7 @@ import com.muoniumplayer.core.management.FontManager;
 import com.muoniumplayer.core.ncm.api.CloudMusicApi;
 import com.muoniumplayer.core.ncm.music.BilibiliFavoriteService;
 import com.muoniumplayer.core.ncm.music.BilibiliPlaylistService;
+import com.muoniumplayer.core.ncm.music.BodianMusicService;
 import com.muoniumplayer.core.ncm.music.NeteaseMusicService;
 import com.muoniumplayer.core.ncm.music.CloudMusic;
 import com.muoniumplayer.core.ncm.music.KuGouMusicService;
@@ -25,12 +26,14 @@ import com.muoniumplayer.core.update.AnnouncementChecker;
 import com.muoniumplayer.core.ncm.music.NeteaseSearchSuggestService;
 import com.muoniumplayer.core.ncm.music.dto.Music;
 import com.muoniumplayer.core.ncm.music.dto.PlayList;
+import com.muoniumplayer.core.download.DownloadCatalog;
 import com.muoniumplayer.core.rendering.BrandVectorIcons;
 import com.muoniumplayer.core.rendering.DownloadDynamicIsland;
 import com.muoniumplayer.core.rendering.FoliaLucideIcons;
 import com.muoniumplayer.core.rendering.FontelloIcons;
 import com.muoniumplayer.core.rendering.GlassLook;
 import com.muoniumplayer.core.rendering.MusicBrandIcons;
+import com.muoniumplayer.core.rendering.AppStoreBrandIcons;
 import com.muoniumplayer.core.rendering.ScissorClipManager;
 import com.muoniumplayer.core.rendering.animation.Interpolations;
 import com.muoniumplayer.core.rendering.font.CFontRenderer;
@@ -106,7 +109,8 @@ public class NavigateBar extends NCMPanel {
      */
     private static boolean supportsPlaylistSearch(final MusicPlatform platform) {
         return platform == MusicPlatform.NETEASE || platform == MusicPlatform.KUGOU
-                || platform == MusicPlatform.QISHUI || platform == MusicPlatform.BILIBILI;
+                || platform == MusicPlatform.QISHUI || platform == MusicPlatform.BILIBILI
+                || platform == MusicPlatform.SPOTIFY || platform == MusicPlatform.APPLE;
     }
 
     /**
@@ -160,6 +164,7 @@ public class NavigateBar extends NCMPanel {
     private boolean selectionCacheDirty = true;
     /** 快捷操作条上那颗公告按钮。让位判断挂在父组件的渲染里，见 {@link #onRender}。 */
     private SidebarActionButton announcementButton;
+    private SidebarActionButton downloadButton;
     private final List<PlaylistItem> playlistItems = new CopyOnWriteArrayList<>();
 
     /**
@@ -987,15 +992,16 @@ public class NavigateBar extends NCMPanel {
         boolean youtubeMode = NeteaseMusicService.getCurrentPlatform() == MusicPlatform.YOUTUBE;
         boolean bilibiliMode = NeteaseMusicService.getCurrentPlatform() == MusicPlatform.BILIBILI;
         boolean qishuiMode = NeteaseMusicService.getCurrentPlatform() == MusicPlatform.QISHUI;
+        boolean bodianMode = NeteaseMusicService.getCurrentPlatform() == MusicPlatform.BODIAN;
         boolean spotifyMode = NeteaseMusicService.getCurrentPlatform() == MusicPlatform.SPOTIFY;
         boolean appleMode = NeteaseMusicService.getCurrentPlatform() == MusicPlatform.APPLE;
         // GD 聚合源沿用网易云那一套入口（原来 neteaseMode 就是这个含义），这里只把自有入口的平台单独拆出来。
         // Spotify 沿用网易云的发现入口（它的搜索就是网易云同款形态），账号歌单走自己的快照。
-        boolean neteaseMode = !qqMode && !kugouMode && !youtubeMode && !bilibiliMode && !qishuiMode
+        boolean neteaseMode = !qqMode && !kugouMode && !youtubeMode && !bilibiliMode && !qishuiMode && !bodianMode
                 && !spotifyMode && !appleMode;
         {
             LabelWidget lblDiscovery = new LabelWidget(
-                    qishuiMode ? "汽水音乐" : bilibiliMode ? "哔哩哔哩" : youtubeMode ? "YouTube Music"
+                    qishuiMode ? "汽水音乐" : bodianMode ? "波点音乐" : bilibiliMode ? "哔哩哔哩" : youtubeMode ? "YouTube Music"
                             : kugouMode ? "酷狗音乐发现" : spotifyMode ? "Spotify"
                             : appleMode ? "Apple Music"
                             : qqMode ? "QQ 音乐发现" : "网易云发现", FontManager.pf14bold);
@@ -1010,7 +1016,7 @@ public class NavigateBar extends NCMPanel {
             // 否则会先闪一个空的中转页、历史栈里也会多出一条回不去的记录。
             // QQ 的榜单不一样 —— 它是真的留在 NeteaseDiscoveryPanel 里按歌曲行展示，所以照旧直接切页。
             // Spotify 没有对齐的榜单对象，发现区只留账号歌单；Apple 同理（v1 不做榜单 UI）。
-            if (!youtubeMode && !bilibiliMode && !qishuiMode && !spotifyMode) {
+            if (!youtubeMode && !bilibiliMode && !qishuiMode && !bodianMode && !spotifyMode) {
                 this.addSidebarRow("nav:chart", new PlaylistItem(FontelloIcons.LEADERBOARD, FontManager.fontello16,
                         () -> NCMScreen.getColor(NCMScreen.ColorType.SECONDARY_TEXT),
                         () -> "排行榜", () -> {
@@ -1037,6 +1043,15 @@ public class NavigateBar extends NCMPanel {
                 this.addSidebarRow("nav:hot", new PlaylistItem("K", () -> NCMScreen.getColor(NCMScreen.ColorType.SECONDARY_TEXT),
                         () -> "热搜", () -> NCMScreen.getInstance().setCurrentPanel(
                         new NeteaseDiscoveryPanel(NeteaseDiscoveryPanel.Page.HOT_SEARCH, MusicPlatform.QQ))));
+                this.addSidebarRow("nav:radio", new PlaylistItem("台", FontManager.pf12bold,
+                        () -> NCMScreen.getColor(NCMScreen.ColorType.SECONDARY_TEXT),
+                        () -> "电台", () -> NCMScreen.getInstance().navigateAsync(
+                        "QQ 电台", RadioHubPanel::new)));
+                this.addSidebarRow("nav:fm", new PlaylistItem(MusicBrandIcons.PERSONAL_FM,
+                        FontManager.musicBrand16,
+                        () -> NCMScreen.getColor(NCMScreen.ColorType.ACCENT),
+                        () -> "私人 FM", () -> NCMScreen.getInstance()
+                        .setCurrentPanel(new PersonalFmPanel())));
             }
             if (qishuiMode) {
                 this.addSidebarRow("nav:qishui-radio", new PlaylistItem("台", FontManager.pf12bold,
@@ -1073,6 +1088,14 @@ public class NavigateBar extends NCMPanel {
                         () -> NCMScreen.getColor(NCMScreen.ColorType.SECONDARY_TEXT),
                         () -> "电台 · 播客", () -> NCMScreen.getInstance().navigateAsync(
                         "电台 · 播客", RadioHubPanel::new)));
+                this.addSidebarRow("nav:digital-albums", PlaylistItem.withLucideIcon(FoliaLucideIcons.ALBUM,
+                        () -> NCMScreen.getColor(NCMScreen.ColorType.SECONDARY_TEXT),
+                        () -> "已购专辑", () -> NCMScreen.getInstance().navigateAsync(
+                        "已购专辑", NeteaseDiscoveryPanel::loadDigitalAlbumsPanel)));
+                this.addSidebarRow("nav:netease-cloud", PlaylistItem.withLucideIcon(FoliaLucideIcons.CLOUD_DOWNLOAD,
+                        () -> NCMScreen.getColor(NCMScreen.ColorType.SECONDARY_TEXT),
+                        () -> "音乐云盘", () -> NCMScreen.getInstance().navigateAsync(
+                        "音乐云盘", NeteaseDiscoveryPanel::loadCloudSongsPanel)));
                 this.addSidebarRow("nav:fm", new PlaylistItem(MusicBrandIcons.PERSONAL_FM, FontManager.musicBrand16,
                         () -> NCMScreen.getColor(NCMScreen.ColorType.ACCENT),
                         () -> "私人 FM", () -> NCMScreen.getInstance().setCurrentPanel(new PersonalFmPanel())));
@@ -1230,8 +1253,27 @@ public class NavigateBar extends NCMPanel {
             }
         }
 
-        // QQ / 酷狗 / B 站 / 汽水 / Spotify / Apple 的账号歌单都是异步加载的快照；网易云继续使用现有 CloudMusic 缓存。
-        List<PlayList> pl = qqMode
+        if (qqMode && NeteaseMusicService.isLoggedIn(MusicPlatform.QQ)) {
+            PlaylistItem qqCreate = new PlaylistItem("+",
+                    () -> NCMScreen.getColor(NCMScreen.ColorType.SECONDARY_TEXT),
+                    () -> "新建 QQ 音乐歌单",
+                    () -> NCMScreen.getInstance().openPlaylistCreate());
+            qqCreate.setShouldOverrideMouseCursor(true);
+            this.addSidebarRow("nav:qq-playlist-create", qqCreate);
+        }
+
+        if (bodianMode && NeteaseMusicService.isLoggedIn(MusicPlatform.BODIAN)) {
+            PlaylistItem bodianCreate = new PlaylistItem("+",
+                    () -> NCMScreen.getColor(NCMScreen.ColorType.SECONDARY_TEXT),
+                    () -> "新建波点云歌单",
+                    () -> NCMScreen.getInstance().openPlaylistCreate());
+            bodianCreate.setShouldOverrideMouseCursor(true);
+            this.addSidebarRow("nav:bodian-playlist-create", bodianCreate);
+        }
+
+        // QQ / 酷狗 / B 站 / 汽水 / 波点 / Spotify / Apple 的账号歌单都是异步加载的快照；网易云继续使用现有 CloudMusic 缓存。
+        List<PlayList> pl = bodianMode ? BodianMusicService.getUserPlaylistsSnapshot()
+                : qqMode
                 ? NeteaseMusicService.getQQUserPlaylistsSnapshot()
                 : kugouMode ? KuGouMusicService.getUserPlaylistsSnapshot()
                 : bilibiliMode ? BilibiliFavoriteService.getUserPlaylistsSnapshot()
@@ -1243,6 +1285,11 @@ public class NavigateBar extends NCMPanel {
         if (qqMode && NeteaseMusicService.isLoggedIn(MusicPlatform.QQ)
                 && !NeteaseMusicService.areQQUserPlaylistsLoaded()) {
             NeteaseMusicService.ensureQQUserPlaylistsAsync(() ->
+                    MultiThreadingUtil.runOnMainThread(() -> NCMScreen.getInstance().markDirty()));
+        }
+        if (bodianMode && NeteaseMusicService.isLoggedIn(MusicPlatform.BODIAN)
+                && !BodianMusicService.areUserPlaylistsLoaded()) {
+            BodianMusicService.ensureUserPlaylistsAsync(() ->
                     MultiThreadingUtil.runOnMainThread(() -> NCMScreen.getInstance().markDirty()));
         }
         if (kugouMode && NeteaseMusicService.isLoggedIn(MusicPlatform.KUGOU)
@@ -1274,7 +1321,7 @@ public class NavigateBar extends NCMPanel {
         // QQ 的创建/收藏歌单统一显示在“我的账号歌单”下，不再因为平台切换而隐藏整个入口。
         lblPlaylists.setHidden(false);
         if (pl != null && !pl.isEmpty()) {
-            if (qqMode || kugouMode || bilibiliMode || qishuiMode || spotifyMode || appleMode) {
+            if (qqMode || kugouMode || bilibiliMode || qishuiMode || bodianMode || spotifyMode || appleMode) {
                 for (PlayList playList : pl) {
                     PlaylistItem item = new PlaylistItem("D",
                             () -> NCMScreen.getColor(NCMScreen.ColorType.SECONDARY_TEXT),
@@ -1301,7 +1348,7 @@ public class NavigateBar extends NCMPanel {
                     this.addSidebarRow(playlistRowKey("account", playList), item);
                 }
             }
-        } else if (qqMode || kugouMode || bilibiliMode || qishuiMode || spotifyMode || appleMode) {
+        } else if (qqMode || kugouMode || bilibiliMode || qishuiMode || bodianMode || spotifyMode || appleMode) {
             String status;
             if (bilibiliMode) {
                 status = !NeteaseMusicService.isLoggedIn(MusicPlatform.BILIBILI)
@@ -1318,6 +1365,11 @@ public class NavigateBar extends NCMPanel {
                         ? "登录汽水音乐后加载歌单"
                         : (QishuiMusicService.areUserPlaylistsLoading()
                         ? "正在加载汽水歌单…" : "暂无可用汽水歌单");
+            } else if (bodianMode) {
+                status = !NeteaseMusicService.isLoggedIn(MusicPlatform.BODIAN)
+                        ? "登录波点音乐后加载歌单"
+                        : (BodianMusicService.areUserPlaylistsLoading()
+                        ? "正在加载波点歌单…" : "暂无可用波点歌单");
             } else if (spotifyMode) {
                 status = !NeteaseMusicService.isLoggedIn(MusicPlatform.SPOTIFY)
                         ? "完成 Spotify 授权后加载歌单（音源浮层里登录）"
@@ -1349,7 +1401,7 @@ public class NavigateBar extends NCMPanel {
         });
 
         // 收藏歌单是网易云独有的分组：QQ 与酷狗的收藏歌单都已经并入上面的"我的账号歌单"。
-        lblSubscribed.setHidden(qqMode || kugouMode || youtubeMode || bilibiliMode || qishuiMode
+        lblSubscribed.setHidden(qqMode || kugouMode || youtubeMode || bilibiliMode || qishuiMode || bodianMode
                 || spotifyMode || appleMode);
         this.addSidebarSection("section:subscribed", lblSubscribed);
 
@@ -1428,7 +1480,10 @@ public class NavigateBar extends NCMPanel {
         SidebarActionButton btnAnnouncement = new SidebarActionButton(SidebarActionIcon.ANNOUNCEMENT);
         btnAnnouncement.setUnreadBadge(() -> AnnouncementChecker.hasUnread());
         this.announcementButton = btnAnnouncement;
-        quickActionsSurface.addChild(btnTheme, btnFont, btnPlayerSize, btnRefresh, btnAnnouncement);
+        SidebarActionButton btnDownloads = new SidebarActionButton(SidebarActionIcon.DOWNLOADS);
+        btnDownloads.setUnreadBadge(() -> DownloadCatalog.activeTasks() > 0 || DownloadCatalog.waitingTasks() > 0);
+        this.downloadButton = btnDownloads;
+        quickActionsSurface.addChild(btnTheme, btnFont, btnPlayerSize, btnRefresh, btnAnnouncement, btnDownloads);
 
         btnFont.setOnClickCallback((relativeX, relativeY, mouseButton) -> {
             if (mouseButton != 0) {
@@ -1526,6 +1581,21 @@ public class NavigateBar extends NCMPanel {
             btnAnnouncement.setPosition(railSlotX(4, actionWidth), 2);
             btnAnnouncement.setRadius(6);
             btnAnnouncement.setColor(btnAnnouncement.isHovering()
+                    ? NCMScreen.getColor(NCMScreen.ColorType.ELEMENT_HOVER)
+                    : NCMScreen.getColor(NCMScreen.ColorType.INPUT_BACKGROUND));
+        });
+        btnDownloads.setOnClickCallback((relativeX, relativeY, mouseButton) -> {
+            if (mouseButton != 0) return mouseButton == 1;
+            NCMScreen.getInstance().openDownloadManager();
+            return true;
+        });
+        btnDownloads.setBeforeRenderCallback(() -> {
+            double actionWidth = railSlotWidth(Math.max(1, this.getWidth() - 16));
+            btnDownloads.setBounds(actionWidth, 24);
+            btnDownloads.setPosition(railSlotX(DownloadCatalog.shouldShowEntry()
+                    && railFitsDownloads(Math.max(1, this.getWidth() - 16)) ? 5 : 4, actionWidth), 2);
+            btnDownloads.setRadius(6);
+            btnDownloads.setColor(btnDownloads.isHovering()
                     ? NCMScreen.getColor(NCMScreen.ColorType.ELEMENT_HOVER)
                     : NCMScreen.getColor(NCMScreen.ColorType.INPUT_BACKGROUND));
         });
@@ -1677,8 +1747,14 @@ public class NavigateBar extends NCMPanel {
         // 错峰号每帧重发：这一帧里第一次被看见的那几行才是同一批。放在这里（父组件的 onRender
         // 跑在子组件之前）和曲目列表那一条规则完全一致。
         this.entranceReveal.beginFrame();
+        /** 窄侧栏公告不与下载入口共存：保留公告原来的第五格。 */
         if (this.announcementButton != null) {
-            this.announcementButton.setHidden(!railFitsAnnouncement(this.getWidth() - 16));
+            this.announcementButton.setHidden(!railFitsAnnouncement(this.getWidth() - 16)
+                    || DownloadCatalog.shouldShowEntry());
+        }
+        if (this.downloadButton != null) {
+            this.downloadButton.setHidden(!DownloadCatalog.shouldShowEntry()
+                    || !railFitsAnnouncement(this.getWidth() - 16));
         }
         super.onRender(mouseX, mouseY);
     }
@@ -1713,6 +1789,10 @@ public class NavigateBar extends NCMPanel {
         } else if (platform == MusicPlatform.QISHUI) {
             startSidebarRefresh(btnRefresh, QishuiMusicService.areUserPlaylistsLoading(),
                     () -> QishuiMusicService.forceRefreshUserPlaylistsAsync(
+                            result -> completeSidebarRefresh(btnRefresh, result)));
+        } else if (platform == MusicPlatform.BODIAN) {
+            startSidebarRefresh(btnRefresh, BodianMusicService.areUserPlaylistsLoading(),
+                    () -> BodianMusicService.forceRefreshUserPlaylistsAsync(
                             result -> completeSidebarRefresh(btnRefresh, result)));
         } else if (platform == MusicPlatform.YOUTUBE) {
             DownloadDynamicIsland.showPlaylistRefreshFailure("YouTube 模式没有账号歌单可刷新");
@@ -1819,30 +1899,24 @@ public class NavigateBar extends NCMPanel {
         return Math.max(1, Math.min(RAIL_SLOT_MAX_WIDTH, natural));
     }
 
-    /** 五颗按钮占的总宽（n 格宽 + n-1 条 3 像素的缝），壳宽就是它再加左右内边距。 */
     private static double railClusterWidth(double railWidth) {
         double actionWidth = railSlotWidth(railWidth);
         return actionWidth * railSlotCount(railWidth) + 3.0 * (railSlotCount(railWidth) - 1);
     }
 
-    /** 第 {@code index} 颗按钮在壳内的左缘：左内边距 2 起，每颗占一格宽再加一条 3 像素的缝。 */
     private static double railSlotX(int index, double actionWidth) {
         return RAIL_SURFACE_INSET + index * (actionWidth + 3);
     }
 
-    /** 这一帧这条快捷操作条上有几颗按钮：窄到放不下第五颗时由公告让位。 */
     private static int railSlotCount(double railWidth) {
+        if (DownloadCatalog.shouldShowEntry() && railFitsDownloads(railWidth)) return 6;
         return railFitsAnnouncement(railWidth) ? 5 : 4;
     }
 
-    /**
-     * 第五颗按钮放不放得下。
-     *
-     * <p>门槛取 18.5：图标墨迹约 12.4 逻辑像素，再窄邻居之间就会视觉重叠，而这条按钮排是
-     * 横向并排的，叠在一起的图标读起来就是「界面坏了」。分母里扣的是壳的左右内边距 4 与
-     * 五颗之间 4 条 3 像素的缝。侧栏收窄到 112 逻辑像素那一档正好落在门槛外侧，
-     * 于是那一档只显示原来那四颗。</p>
-     */
+    private static boolean railFitsDownloads(double railWidth) {
+        return (railWidth - 2 * RAIL_SURFACE_INSET - 3.0 * 5) / 6.0 >= 18.5;
+    }
+
     private static boolean railFitsAnnouncement(double railWidth) {
         return (railWidth - 2 * RAIL_SURFACE_INSET - 3.0 * 4) / 5.0 >= 18.5;
     }
@@ -1883,6 +1957,7 @@ public class NavigateBar extends NCMPanel {
         if (platform == MusicPlatform.QISHUI) {
             return QishuiMusicService.membershipBadgeText();
         }
+        if (platform == MusicPlatform.BODIAN && BodianMusicService.isVipAccount()) return "VIP";
         return null;
     }
 
@@ -1892,6 +1967,7 @@ public class NavigateBar extends NCMPanel {
         if (platform == MusicPlatform.BILIBILI) return MusicBrandIcons.BILIBILI_MONOGRAM;
         if (platform == MusicPlatform.QISHUI) return MusicBrandIcons.QISHUI_MONOGRAM;
         if (platform == MusicPlatform.SPOTIFY) return MusicBrandIcons.SPOTIFY_MONOGRAM;
+        if (platform == MusicPlatform.BODIAN) return "点";
         return MusicBrandIcons.NETEASE_CLOUD_MUSIC;
     }
 
@@ -1901,6 +1977,7 @@ public class NavigateBar extends NCMPanel {
         if (platform == MusicPlatform.BILIBILI) return FontManager.pf12bold;
         if (platform == MusicPlatform.QISHUI) return FontManager.pf12bold;
         if (platform == MusicPlatform.SPOTIFY) return FontManager.pf12bold;
+        if (platform == MusicPlatform.BODIAN) return FontManager.pf12bold;
         return FontManager.musicBrand16;
     }
 
@@ -1952,7 +2029,9 @@ public class NavigateBar extends NCMPanel {
             // QQ 音乐使用其自有的服务商品牌字形。请勿复用 QQ 登录图标。
             // 有矢量标识的那三家（BrandVectorIcons.has）就用矢量，和圆盘、引导页是同一份数据；
             // 其余各家仍走各自的品牌字体字形。
-            this.platformIcon = BrandVectorIcons.has(this.platform)
+            ThemedTextureIconWidget appIcon = AppStoreBrandIcons.widget(this.platform,
+                    sourceGlyph(this.platform), sourceFont(this.platform), 0, 0, SOURCE_ICON_BOX);
+            this.platformIcon = appIcon != null ? appIcon : BrandVectorIcons.has(this.platform)
                     ? new BrandIconWidget(this.platform, SOURCE_ICON_BOX)
                     : new LabelWidget(sourceGlyph(this.platform), sourceFont(this.platform));
             this.platformIcon.setClickable(false);
@@ -1965,7 +2044,8 @@ public class NavigateBar extends NCMPanel {
             this.platformIcon.setBeforeRenderCallback(() -> {
                 boolean compact = NavigateBar.this.getWidth() < 112;
                 double groupWidth = this.platformIcon.getWidth() + (compact ? 0 : 4 + this.label.getWidth());
-                this.platformIcon.setColor(NeteaseMusicService.getCurrentPlatform() == this.platform
+                this.platformIcon.setColor(appIcon != null ? 0xFFFFFFFF
+                        : NeteaseMusicService.getCurrentPlatform() == this.platform
                         ? 0xFFFFFF : this.platform.getBrandColor());
                 this.platformIcon.setPosition(this.getWidth() * .5 - groupWidth * .5,
                         this.getHeight() * .5 - this.platformIcon.getHeight() * .5 + 1);
@@ -1985,7 +2065,8 @@ public class NavigateBar extends NCMPanel {
         FONT,
         SCALE,
         REFRESH,
-        ANNOUNCEMENT
+        ANNOUNCEMENT,
+        DOWNLOADS
     }
 
     /** 快捷操作条上那枚未读小圆点的颜色。 */
@@ -2098,6 +2179,7 @@ public class NavigateBar extends NCMPanel {
             if (icon == SidebarActionIcon.SCALE) return "切换窗口大小（右键还原）";
             if (icon == SidebarActionIcon.REFRESH) return refreshTooltipText();
             if (icon == SidebarActionIcon.ANNOUNCEMENT) return "查看公告";
+            if (icon == SidebarActionIcon.DOWNLOADS) return "下载管理 · 组件状态与安装";
             return "";
         }
 
@@ -2147,6 +2229,8 @@ public class NavigateBar extends NCMPanel {
                 }
             } else if (icon == SidebarActionIcon.ANNOUNCEMENT) {
                 name = FoliaLucideIcons.MEGAPHONE;
+            } else if (icon == SidebarActionIcon.DOWNLOADS) {
+                return false;
             } else {
                 return false;
             }
@@ -2170,6 +2254,8 @@ public class NavigateBar extends NCMPanel {
                 renderScaleIcon(centerX, centerY, alpha, accent, foreground);
             } else if (icon == SidebarActionIcon.ANNOUNCEMENT) {
                 renderAnnouncementIcon(centerX, centerY, alpha, accent, foreground);
+            } else if (icon == SidebarActionIcon.DOWNLOADS) {
+                renderDownloadIcon(centerX, centerY, alpha, accent);
             } else {
                 renderRefreshIcon(centerX, centerY, alpha, accent, foreground);
             }
@@ -2282,7 +2368,16 @@ public class NavigateBar extends NCMPanel {
                     RenderSystem.reAlpha(accent, alpha * .74f));
         }
 
+        private void renderDownloadIcon(double x, double y, float alpha, int accent) {
+            int ink = RenderSystem.reAlpha(accent, alpha);
+            roundedRect(x - 6.1, y + 4.5, 12.2, 1.7, .85, ink);
+            drawRotatedPill(x - 2.3, y + .8, 7.0, 1.7, 45f, ink);
+            drawRotatedPill(x + 2.3, y + .8, 7.0, 1.7, -45f, ink);
+            roundedRect(x - .9, y - 6.0, 1.8, 8.5, .9, ink);
+        }
+
         private int getIconAccentColor() {
+            if (icon == SidebarActionIcon.DOWNLOADS) return 0xFF63D4C5;
             if (icon == SidebarActionIcon.FONT) return 0xFFB79BFF;
             if (icon == SidebarActionIcon.ANNOUNCEMENT) return 0xFFFFC061;
             if (icon == SidebarActionIcon.SCALE) return 0xFF67D8FF;
@@ -2693,18 +2788,21 @@ public class NavigateBar extends NCMPanel {
         invalidateSelectionCache();
 
         final boolean bilibiliSearch = searchPlatform == MusicPlatform.BILIBILI;
+        final boolean bodianSearch = searchPlatform == MusicPlatform.BODIAN;
         final boolean spotifySearch = searchPlatform == MusicPlatform.SPOTIFY;
         final boolean appleSearch = searchPlatform == MusicPlatform.APPLE;
         final boolean searchPlaylists = searchPlaylistMode
                 && (searchPlatform == MusicPlatform.NETEASE || searchPlatform == MusicPlatform.KUGOU
-                || searchPlatform == MusicPlatform.QISHUI || bilibiliSearch || spotifySearch
+                || searchPlatform == MusicPlatform.QISHUI || bilibiliSearch || bodianSearch || spotifySearch
                 || appleSearch);
         if (searchPlaylists) {
             final long ticket = screen.beginContentRequest();
             final boolean kugouSearch = searchPlatform == MusicPlatform.KUGOU;
             final boolean qishuiSearch = searchPlatform == MusicPlatform.QISHUI;
             MultiThreadingUtil.runAsync(() -> {
-                List<PlayList> results = bilibiliSearch
+                List<PlayList> results = bodianSearch
+                        ? BodianMusicService.searchPlaylists(query, 50)
+                        : bilibiliSearch
                         // B 站没有歌单库这个对象：搜的是稿件，再把其中带合集或分 P 数 >1 的筛成歌单。
                         ? BilibiliPlaylistService.searchPlaylists(query, 30)
                         : qishuiSearch
@@ -2717,7 +2815,7 @@ public class NavigateBar extends NCMPanel {
                         // Apple 的 catalog 公开歌单走 AMP 关键词搜索；资料库歌单另在发现页列出。
                         ? applePlaylistSearch(query)
                         : searchNeteasePlaylists(query);
-                String title = (bilibiliSearch ? "B 站合集 / 分P搜索"
+                String title = (bodianSearch ? "波点歌单搜索" : bilibiliSearch ? "B 站合集 / 分P搜索"
                         : qishuiSearch ? "汽水歌单搜索" : kugouSearch ? "酷狗歌单搜索"
                         : spotifySearch ? "Spotify 歌单搜索" : appleSearch ? "Apple 歌单搜索"
                         : "歌单搜索")
@@ -3002,8 +3100,19 @@ public class NavigateBar extends NCMPanel {
             this(null, FontManager.music18, iconLocation, iconColorSupplier, label, onClick);
         }
 
+        private static PlaylistItem withLucideIcon(String icon, Supplier<Integer> iconColorSupplier,
+                                                   Supplier<String> label, Runnable onClick) {
+            return new PlaylistItem(null, FontManager.music18, null, iconColorSupplier, label, onClick, icon);
+        }
+
         private PlaylistItem(String icon, CFontRenderer iconFont, Location iconLocation,
                              Supplier<Integer> iconColorSupplier, Supplier<String> label, Runnable onClick) {
+            this(icon, iconFont, iconLocation, iconColorSupplier, label, onClick, null);
+        }
+
+        private PlaylistItem(String icon, CFontRenderer iconFont, Location iconLocation,
+                             Supplier<Integer> iconColorSupplier, Supplier<String> label, Runnable onClick,
+                             String lucideIcon) {
             this.icon = icon;
             this.iconLocation = iconLocation;
             this.iconColorSupplier = iconColorSupplier;
@@ -3022,7 +3131,17 @@ public class NavigateBar extends NCMPanel {
             // 每个条目各画一块的话，切换栏目只能是一块消失、另一块出现，没有位移可动画。
 
             AbstractWidget<?> iconWidget;
-            if (iconLocation == null) {
+            if (lucideIcon != null) {
+                LucideIconWidget vectorIcon = new LucideIconWidget(() -> lucideIcon, () -> "",
+                        FontManager.music18, 0, 0, 16, 16).setDrawScale(.675);
+                this.addChild(vectorIcon);
+                vectorIcon.setBeforeRenderCallback(() -> {
+                    vectorIcon.setColor(iconColorSupplier.get());
+                    vectorIcon.setPosition(4, vectorIcon.getRelativeY());
+                });
+                vectorIcon.setClickable(false);
+                iconWidget = vectorIcon;
+            } else if (iconLocation == null) {
                 LabelWidget glyphIcon = new LabelWidget(icon, iconFont == null ? FontManager.music18 : iconFont);
                 this.addChild(glyphIcon);
                 glyphIcon.setBeforeRenderCallback(() -> {
@@ -3050,9 +3169,10 @@ public class NavigateBar extends NCMPanel {
 
             lbl.setBeforeRenderCallback(() -> {
                 lbl.centerVertically();
-                lbl.setPosition(iconWidget.getRelativeX() + iconWidget.getWidth() + 4, lbl.getRelativeY());
+                lbl.setPosition(lucideIcon == null ? iconWidget.getRelativeX() + iconWidget.getWidth() + 4 : 20,
+                        lbl.getRelativeY());
                 lbl.setColor(NCMScreen.getColor(NCMScreen.ColorType.PRIMARY_TEXT));
-                lbl.setMaxWidth(this.getWidth() - 8 - iconWidget.getWidth() - 12);
+                lbl.setMaxWidth(this.getWidth() - (lucideIcon == null ? 8 + iconWidget.getWidth() + 12 : 32));
             });
 
             lbl.setClickable(false);

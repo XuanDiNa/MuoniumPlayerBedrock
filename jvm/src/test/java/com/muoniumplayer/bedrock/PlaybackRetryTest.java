@@ -15,10 +15,11 @@ import static org.junit.jupiter.api.Assertions.*;
 class PlaybackRetryTest {
     static Object flag(String name) throws Exception {var f=CloudMusic.class.getDeclaredField(name);f.setAccessible(true);return f.get(null);}
     static void flag(String name,Object value) throws Exception {var f=CloudMusic.class.getDeclaredField(name);f.setAccessible(true);f.set(null,value);}
-    Path wav;AudioPlayer original;boolean oldMix,oldBreak,oldDontAdd;CloudMusic.PlayMode oldMode;
+    Path wav;AudioPlayer original;boolean oldMix,oldBreak,oldDontAdd,oldLoudness;CloudMusic.PlayMode oldMode;
     @BeforeEach void setup() throws Exception {
         if(!MuoniumPlayerClient.getInstance().isReady())MuoniumPlayerClient.getInstance().init();
         oldMix=AutomixSettings.isEnabled();oldMode=CloudMusic.playMode;
+        oldLoudness=TrackLoudnessNormalization.isEnabled();TrackLoudnessNormalization.setEnabled(false);
         oldBreak=(boolean)flag("doBreak");oldDontAdd=CloudMusic.dontAdd;AutomixSettings.setEnabled(false);
         CloudMusic.exitPersonalFmSession();CloudMusic.playMode=CloudMusic.PlayMode.Sequential;
         wav=Files.createTempFile(SessionMedia.directory().toPath(),"owned-retry-",".wav");
@@ -36,12 +37,19 @@ class PlaybackRetryTest {
         ((java.util.concurrent.atomic.AtomicBoolean)flag("playing")).set(false);
     }
     @AfterEach void cleanup() throws Exception {
+        // Production cancellation is deliberately asynchronous. The fixture
+        // must await its worker before deleting the Windows-open audio file.
+        Thread pending=CloudMusic.playThread;
         var m=CloudMusic.class.getDeclaredMethod("stopExistingPlayThread");m.setAccessible(true);m.invoke(null);
+        if(pending!=null){pending.join(4000);assertFalse(pending.isAlive(),"Cancelled fixture worker must release its decoder");}
         if(original!=null)original.close();if(CloudMusic.player!=null)CloudMusic.player.close();
+        var releases=AudioPlayer.class.getDeclaredField("RELEASE_WORKER");releases.setAccessible(true);
+        ((java.util.concurrent.ExecutorService)releases.get(null)).submit(()->{}).get(4,java.util.concurrent.TimeUnit.SECONDS);
         CloudMusic.player=null;CloudMusic.playThread=null;CloudMusic.currentlyPlaying=null;
         CloudMusic.playList=new ArrayList<>();CloudMusic.curIdx=0;flag("awaitingPlaybackAction",false);
         flag("doBreak",oldBreak);CloudMusic.dontAdd=oldDontAdd;
-        AutomixSettings.setEnabled(oldMix);CloudMusic.playMode=oldMode;Files.deleteIfExists(wav);
+        AutomixSettings.setEnabled(oldMix);CloudMusic.playMode=oldMode;TrackLoudnessNormalization.setEnabled(oldLoudness);
+        Files.deleteIfExists(wav);
     }
     void assertNewPlayback() throws Exception {
         long deadline=System.nanoTime()+4_000_000_000L;

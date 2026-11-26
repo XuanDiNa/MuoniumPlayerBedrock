@@ -4,6 +4,8 @@
 #include <iostream>
 #include <stdexcept>
 namespace {
+void* fixtureActor{};
+void* Player(void*){return fixtureActor;}
 void* fixtureLevel{};void* fixtureSource{};void* fixtureScene{};bool fixtureHud=true;
 void* Level(void*){return fixtureLevel;}
 void* Source(void*){return fixtureSource;}
@@ -23,11 +25,14 @@ void Run(mp::NativeContract const& p){
         auto pointer=reinterpret_cast<std::uintptr_t>(target);std::memcpy(jump+2,&pointer,8);std::memcpy(image+at,jump,sizeof jump);
         FlushInstructionCache(GetCurrentProcess(),image+at,sizeof jump);
     };
-    function(p.getLevel,Level);function(p.getRegion,Source);function(p.hudPredicate,Hud);function(p.sourceDimension,Dim);
+    function(p.getPlayer,Player);function(p.getLevel,Level);function(p.getRegion,Source);function(p.hudPredicate,Hud);function(p.sourceDimension,Dim);
     auto method=p.clientTable+p.hudVirtual;
     Need(VirtualAlloc(image+(method&~0xfffu),4096,MEM_COMMIT,PAGE_READWRITE)!=nullptr,"commit fixture virtual dispatch");
     Put(image,method,mp::base+p.hudPredicate);
     std::vector<unsigned char> renderer(0x1000),levelRenderer(0x800),client(0x800),source(256),level(64),dimension(64),stack(64),scene(64);
+    std::vector<unsigned char> actor(0x400);float bounds[6]{.2f,64,1.7f,.8f,65.8f,2.3f},rotation[2]{0,0};
+    fixtureActor=actor.data();Put(actor.data(),0,mp::base+p.playerTable);Put(actor.data(),p.actorAabb,bounds);Put(actor.data(),p.actorRotation,rotation);
+    Put<std::uint32_t>(actor.data(),24,17);
     fixtureLevel=level.data();fixtureSource=source.data();fixtureScene=scene.data();
     Put(level.data(),0,mp::base+p.levelTable);Put(source.data(),0,mp::base+p.sourceTable);
     Put(source.data(),32,fixtureLevel);Put(source.data(),48,static_cast<void*>(dimension.data()));
@@ -49,6 +54,16 @@ void Run(mp::NativeContract const& p){
     Need(mp::Capture(renderer.data(),packet,levelId,owner,primary,region,owningClient),"each native camera capture must use its own tables, owner fields and HUD predicate");
     Need(packet.eye[1]==65&&packet.dimension==0&&region==source.data()&&owningClient==client.data(),"owned camera snapshot");
     fixtureHud=false;Need(!mp::Capture(renderer.data(),packet,levelId,owner,primary,region,owningClient),"menu must revoke camera capture");
+    mp::VoiceWorldPacket voice;std::uintptr_t playerId{};std::uint32_t token{};
+    Need(mp::CaptureVoice(owningClient,voice,playerId,token),"UI must retain independently verified player pose");
+    Need(std::abs(voice.position[1]-65.7)<.001&&voice.look[2]==1,"voice uses player head and rotation");
+    mp::TrackVoice(voice,true,levelId,playerId,token,1000);auto consent=mp::voiceEpoch;
+    fixtureHud=true;mp::TrackVoice(voice,true,levelId,playerId,token,1020);
+    Need(mp::voiceEpoch==consent,"UI return must not change voice world identity");
+    mp::TrackVoice(voice,true,levelId,playerId,token+1,1040);Need(mp::voiceEpoch!=consent,"respawn token revokes old consent");consent=mp::voiceEpoch;
+    voice.dimension=1;mp::TrackVoice(voice,true,levelId,playerId,token+1,1060);Need(mp::voiceEpoch!=consent,"dimension change revokes consent");
+    Put<unsigned char>(actor.data(),p.actorRemoved,1);Need(!mp::CaptureVoice(owningClient,voice,playerId,token),"removed player fails closed");
+    mp::TrackVoice({},false,0,0,0,1080);Need(!mp::voiceValid,"disconnect invalidates voice pose");
     VirtualFree(image,0,MEM_RELEASE);
 }
 }

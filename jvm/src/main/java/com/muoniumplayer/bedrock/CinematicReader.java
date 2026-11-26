@@ -13,6 +13,7 @@ final class CinematicReader implements AutoCloseable {
         boolean UnmapViewOfFile(Pointer view);boolean CloseHandle(HANDLE handle);long GetTickCount64();
     }
     private HANDLE mapping,lock,request;private Pointer view;private long sequence;private boolean wanted;
+    private final CinematicSnapshotCache cache=new CinematicSnapshotCache();
     CinematicReader(String prefix){
         if(!prefix.matches("Local\\\\MuoniumBedrock-[0-9a-f]{32}"))throw new IllegalArgumentException("Cinematic identity");
         mapping=Api.I.OpenFileMappingW(6,false,new WString(prefix+"-cinematic"));lock=Api.I.OpenMutexW(0x00100001,false,new WString(prefix+"-cinematic-lock"));
@@ -20,11 +21,15 @@ final class CinematicReader implements AutoCloseable {
         if(mapping!=null&&lock!=null&&request!=null)view=Api.I.MapViewOfFile(mapping,6,0,0,200);
         if(view==null){close();System.out.println("CINEMATIC transport unavailable; ordinary camera retained");}
     }
-    void request(boolean value){if(request!=null&&wanted!=value){if(value)Api.I.SetEvent(request);else Api.I.ResetEvent(request);wanted=value;}}
+    void request(boolean value){if(request!=null&&wanted!=value){if(value)Api.I.SetEvent(request);else Api.I.ResetEvent(request);wanted=value;}if(!value)cache.clear("not-requested");}
     CinematicState read(){
-        if(view==null||!wanted)return null;int wait=Api.I.WaitForSingleObject(lock,0);if(wait!=0&&wait!=0x80)return null;
-        try{return CinematicState.decode(view.getByteArray(88,112),Api.I.GetTickCount64());}finally{Api.I.ReleaseMutex(lock);}
+        if(view==null||!wanted){cache.clear(view==null?"transport-unavailable":"not-requested");return null;}
+        int wait=Api.I.WaitForSingleObject(lock,0);
+        if(wait==0x102)return cache.contended(Api.I.GetTickCount64());
+        if(wait!=0&&wait!=0x80){cache.clear("read-error");return null;}
+        try{return cache.read(view.getByteArray(88,112),Api.I.GetTickCount64());}finally{Api.I.ReleaseMutex(lock);}
     }
+    String diagnostic(){return "read="+cache.status()+" readBusy="+cache.busyReads()+" readRejected="+cache.rejectedReads()+" maxValidatedAgeMs="+cache.maxValidatedAgeMs();}
     void write(CinematicState state,CinePose pose,boolean hideHud,boolean allowed){
         if(view==null)return;var bytes=CinematicCommand.encode(state,pose,++sequence,Api.I.GetTickCount64(),hideHud,allowed);
         int wait=Api.I.WaitForSingleObject(lock,0);if(wait!=0&&wait!=0x80)return;

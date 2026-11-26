@@ -1,0 +1,101 @@
+{
+  "origin": "Owned synthetic 660Hz sine, mono44100Hz,16seconds; no third-party recording",
+  "generator": "imageio-ffmpeg0.6.0 FFmpeg7.1 essentials",
+  "arguments": {
+    "aac": [
+      "-c:a",
+      "aac",
+      "-b:a",
+      "64k",
+      "-f",
+      "adts"
+    ],
+    "m4a": [
+      "-c:a",
+      "aac",
+      "-b:a",
+      "64k",
+      "-movflags",
+      "+faststart"
+    ],
+    "tail.m4a": [
+      "-c:a",
+      "aac",
+      "-b:a",
+      "64k"
+    ],
+    "fmp4": [
+      "-c:a",
+      "aac",
+      "-b:a",
+      "64k",
+      "-movflags",
+      "empty_moov+default_base_moof+frag_keyframe",
+      "-frag_duration",
+      "500000",
+      "-f",
+      "mp4"
+    ],
+    "large.fmp4": [
+      "-c:a",
+      "aac",
+      "-b:a",
+      "64k",
+      "-movflags",
+      "empty_moov+default_base_moof+frag_keyframe",
+      "-f",
+      "mp4"
+    ],
+    "ogg": [
+      "-c:a",
+      "libvorbis",
+      "-q:a",
+      "3"
+    ],
+    "wav": [
+      "-c:a",
+      "pcm_s16le"
+    ],
+    "float.wav": [
+      "-c:a",
+      "pcm_f32le"
+    ],
+    "encrypted.m4a": [
+      "-c:a",
+      "aac",
+      "-b:a",
+      "64k",
+      "-encryption_scheme",
+      "cenc-aes-ctr",
+      "-encryption_key",
+      "00112233445566778899aabbccddeeff",
+      "-encryption_kid",
+      "ffeeddccbbaa99887766554433221100",
+      "-movflags",
+      "+faststart"
+    ],
+    "youtube.m4a": {
+      "duration": 180,
+      "arguments": [
+        "-c:a",
+        "aac",
+        "-b:a",
+        "96k",
+        "-movflags",
+        "+faststart"
+      ]
+    }
+  },
+  "sha256": {
+    "sine.aac": "9b21bc9e1aa584798fee91337ac31774d10feebe62164cf210404c668458a06d",
+    "sine.float.wav": "a34c0ec305f06900069808bd60cb44508908d3751c7e4a94f7a6206f1ba65f7d",
+    "sine.fmp4": "1d4897fe9e93d3fdd68a72407ad70527e8db3a4be227b2dfaf76180321d30014",
+    "sine.large.fmp4": "5689afb5dc3b6dbf897c39dc47b81bf4226f4165466e7dcff9244ab0a5313d36",
+    "sine.m4a": "16bd8128e38ac185d7c243d723af6ff4ab286318a86d8630e0c07f48d10fbfda",
+    "sine.ogg": "0e7b5afe69c42440a81c3ece86e2031849248b1f96020cccb6464e9b94ec00b7",
+    "sine.tail.m4a": "08e20a2315f51bfcbb2109573af9ba2b3bb387d037ebb425f19fb81d779d3dcd",
+    "sine.wav": "d385edf916f08edfddaf38f55e6e64d09d00cf9da7d410f33dc61f1b51a227a0",
+    "sine.encrypted.m4a": "8949728406e4d67ce1813f896bc9b09331c285bf439d24c7f647d8aaad5be2e1",
+    "sine.youtube.m4a": "9788d19b8b3241ee1c4402c70dc8d50b57856421b97b72950826d6ef36af9e95"
+  }
+}

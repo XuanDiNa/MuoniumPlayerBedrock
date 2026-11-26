@@ -8,7 +8,8 @@ int main(){try{
     for(auto const& p:mp::HostIdentities){
         bool patched=p.sha256=="807508E53ADE36497C30C95770016B9CABBC9DE9E7FA83130D28BA586B3C410F"||
             p.sha256=="FAD0788DB090874B7BADC6353BBBCBD38FAC9172DA1F5D3F30771056E8A7A6A5"||
-            p.sha256=="B554A2DA8B2271A4A164AE544A4A447F3A630B5FC2261AFEFE47C7C206826A53";
+            p.sha256=="B554A2DA8B2271A4A164AE544A4A447F3A630B5FC2261AFEFE47C7C206826A53"||
+            p.sha256=="409C9597C5C973B3FA9B11204612850F4BAE8F83270C7692DCC783C491FCF04C";
         Need(mp::AdmitLoader(&p,mp::LoaderKind::Preload,false)==!patched);
         Need(!mp::AdmitLoader(&p,mp::LoaderKind::Preload,true));
         Need(mp::AdmitLoader(&p,mp::LoaderKind::LeviLamina,true)==patched);

@@ -1,5 +1,5 @@
 {
-  "commit": "9b4cc7e7bd143315da716075a6d024a0d4c0c81b",
+  "commit": "4011d03b535cc40fa54b2cb8324cd5405eb9d6e0",
   "java": [
     "muonium-common/src/main/java/com/muoniumplayer/core/cine/CineSettings.java",
     "muonium-common/src/main/java/com/muoniumplayer/core/management/UiFontLibrary.java",
@@ -71,5 +71,7 @@
     "muonium-common/src/main/resources/muonium/presets/builtin/index.json",
     "muonium-common/src/main/resources/muonium/presets/builtin/minimal.mpreset.json",
     "muonium-common/src/main/resources/muonium/lx/builtin_source.js"
-  ]
+  ],
+  "version": "2.6.1",
+  "branch": "main"
 }

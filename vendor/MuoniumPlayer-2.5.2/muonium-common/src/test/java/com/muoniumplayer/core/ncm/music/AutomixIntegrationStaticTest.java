@@ -36,6 +36,8 @@ class AutomixIntegrationStaticTest {
                 "出厂默认引擎必须是智能混音");
         assertTrue(settings.contains("private static Engine engine = DEFAULT_ENGINE;"),
                 "未选择引擎时必须落到 DEFAULT_ENGINE，而不是写死另一个枚举常量");
+        assertTrue(read(music("AutomixPlanCache.java")).contains("FORMAT_VERSION = 4"),
+                "选点算法语义变更后，旧的持久化计划必须失效并重算");
         assertTrue(settings.contains("boolean migrateEngine = !root.has(\"engine\")"),
                 "旧配置缺少 engine 时必须进入迁移路径");
         assertTrue(settings.contains("engine = DEFAULT_ENGINE;"),
@@ -73,6 +75,12 @@ class AutomixIntegrationStaticTest {
                 "交接失败必须回到原始切歌路径");
         assertTrue(player.contains("if (!AutomixSettings.isEnabled()) return;"),
                 "Automix 关闭时不得把 DSP 链接入普通播放器");
+        assertTrue(cloud.contains("AudioContainerSupport.requiresFlacDecode(container)"),
+                "FLAC 播放必须先解成 WAV，不能把惰性 FLAC 解码留给音频线程");
+        assertTrue(cloud.contains("FlacAudioDecoder.decodeToWav"),
+                "FLAC 边车解码器没有接入播放前解析路径");
+        assertTrue(cloud.contains("AudioCacheFiles.isManagedCacheFile(sourceFile)"),
+                "本地 FLAC 转码失败时不得删除用户原文件");
     }
 
     @Test

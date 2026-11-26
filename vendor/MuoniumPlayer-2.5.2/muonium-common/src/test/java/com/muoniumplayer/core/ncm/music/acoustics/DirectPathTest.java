@@ -16,15 +16,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class DirectPathTest {
 
     @Test
-    @DisplayName("距离衰减:8m 内全增益,之后按 inverse 模型平滑下滑")
+    @DisplayName("近场有可辨的响度差,远场保持原有相对滚降")
     void distanceAttenuationTable() {
         assertEquals(1.0, DirectPath.distanceAttenuation(0.0), 1e-9);
-        assertEquals(1.0, DirectPath.distanceAttenuation(8.0), 1e-9);
-        // 24m:over=2 → 1/5
-        assertEquals(0.20, DirectPath.distanceAttenuation(24.0), 1e-3);
-        // 48m:over=5 → 1/26
-        assertEquals(1.0 / 26.0, DirectPath.distanceAttenuation(48.0), 1e-3);
-        // 96m:over=11 → 1/122 ≈ 0.0082(-41.7dB)
+        assertEquals(1.0, DirectPath.distanceAttenuation(1.0), 1e-9);
+        assertTrue(DirectPath.distanceAttenuation(2.0) > 1.2 * DirectPath.distanceAttenuation(5.0));
+        assertEquals(0.60, DirectPath.distanceAttenuation(8.0), 1e-9);
+        assertEquals(0.60, DirectPath.distanceAttenuation(7.999), 1e-7);
+        assertEquals(0.60, DirectPath.distanceAttenuation(8.001), 1e-7);
+        assertEquals(0.60 / 5.0, DirectPath.distanceAttenuation(24.0), 1e-6);
+        assertEquals(0.60 / 26.0, DirectPath.distanceAttenuation(48.0), 1e-6);
         assertTrue(DirectPath.distanceAttenuation(96.0) < 0.01,
                 "96m=" + DirectPath.distanceAttenuation(96.0));
         // 单调下降,无突变(相邻格差有界)
@@ -54,29 +55,39 @@ class DirectPathTest {
     }
 
     @Test
-    @DisplayName("空气吸收:近场不染色;96m 高频被吃(与 SceneAcoustics 同曲线)")
+    @DisplayName("空气吸收:无遮挡的中远距保留清晰度,距离边界连续")
     void airAbsorption() {
         assertEquals(DirectPath.FC_OPEN, DirectPath.airAbsorptionFc(5.0), 1e-6);
-        // 96m:18k·e^(-90/16)≈93 → 夹到 500Hz 下限
-        assertEquals(500.0, DirectPath.airAbsorptionFc(96.0), 1e-6);
-        // 30m:18k·e^(-24/16)≈3.86kHz,明显变闷
-        assertTrue(DirectPath.airAbsorptionFc(30.0) > 3_000.0
-                && DirectPath.airAbsorptionFc(30.0) < 5_000.0,
-                "30m=" + DirectPath.airAbsorptionFc(30.0));
+        assertEquals(DirectPath.FC_OPEN, DirectPath.airAbsorptionFc(8.0), 1e-6);
+        assertTrue(DirectPath.airAbsorptionFc(8.001) > 19999,
+                "不能跨过近场边界就骤降截止");
+        assertTrue(DirectPath.airAbsorptionFc(30.0) > 15_000,
+                "30m 无遮挡不该被压到约4kHz");
+        assertTrue(DirectPath.airAbsorptionFc(96.0) > 7_000,
+                "远距保留中高频定位线索");
+        assertEquals(6000.0, DirectPath.airAbsorptionFc(160.0), 1e-6);
+        double previous = DirectPath.FC_OPEN;
+        for (int d = 0; d <= 160; d++) {
+            final double cutoff = DirectPath.airAbsorptionFc(d);
+            assertTrue(cutoff <= previous && cutoff >= 6000, "d=" + d + " cutoff=" + cutoff);
+            previous = cutoff;
+        }
     }
 
     @Test
     @DisplayName("总截止取 min(遮挡,空气);总增益 = 距离 × 遮挡,范围 [0,1]")
     void combinedChain() {
-        // 96m 无遮挡:空气吸收主导(fc=500)
-        assertEquals(500.0, DirectPath.totalCutoffHz(0.0, 96.0), 1e-6);
+        // 96m 无遮挡:空气吸收主导,仍保留中高频而不是压成500Hz闷响。
+        assertEquals(DirectPath.airAbsorptionFc(96.0),
+                DirectPath.totalCutoffHz(0.0, 96.0), 1e-6);
         // 5m 一块墙:遮挡主导(fc≈1kHz)
         assertEquals(20000.0 * Math.exp(-3.0), DirectPath.totalCutoffHz(1.0, 5.0), 5.0);
-        // 总增益:近场无遮挡 = 1;远处有遮挡 < 距离衰减
-        assertEquals(1.0, DirectPath.directGain(5.0, 0.0), 1e-9);
+        // 墙体在相同距离上再乘透射损失,不受近场重新定标影响。
+        final double open = DirectPath.directGain(5.0, 0.0);
+        assertEquals(DirectPath.distanceAttenuation(5.0), open, 1e-9);
         // 一块实心方块:按物理基本不透声(−40dB ≈ ×0.01,再乘距离衰减)
         final double occluded = DirectPath.directGain(5.0, 1.0);
-        assertEquals(Math.pow(10.0, -40.0 / 20.0), occluded, 1e-9);
+        assertEquals(open * Math.pow(10.0, -40.0 / 20.0), occluded, 1e-9);
         assertTrue(DirectPath.directGain(100.0, 3.0) >= 0.0
                 && DirectPath.directGain(100.0, 3.0) <= 1.0);
     }
@@ -140,6 +151,28 @@ class DirectPathTest {
         assertEquals(s, SpeakerState.get());
         SpeakerState.set(null);
         assertFalse(SpeakerState.active());
+    }
+
+    @Test
+    @DisplayName("来声投影:面南时西侧是右耳,转身后左右反转")
+    void arrivalDirectionMatchesListenerRight() {
+        assertEquals(1f, DirectPath.arrivalPan(1, 0, 0), 1e-6);
+        assertEquals(-1f, DirectPath.arrivalPan(-1, 0, 0), 1e-6);
+        assertEquals(-1f, DirectPath.arrivalPan(1, 0, Math.PI), 1e-6);
+        assertEquals(0f, DirectPath.arrivalPan(0, 1, 0), 1e-6);
+        assertEquals(0f, DirectPath.arrivalPan(0, 0, 0), 1e-6);
+        for (int i = -100; i <= 100; i++) {
+            final float pan = i / 100f;
+            assertEquals(pan, DirectPath.panFromGains((float) DirectPath.gainL(pan),
+                    (float) DirectPath.gainR(pan)), 1e-6, "pan=" + pan);
+        }
+    }
+
+    @Test
+    @DisplayName("有限声源宽度:距离越远夹角越小,不留固定头锁定的伴奏")
+    void sourceWidthShrinksWithDistance() {
+        assertTrue(DirectPath.sourceHalfWidthRadians(4) > DirectPath.sourceHalfWidthRadians(24));
+        assertTrue(DirectPath.sourceHalfWidthRadians(96) < Math.toRadians(1));
     }
 
     // ---- 一阶绕射(遮挡边缘) ----
@@ -220,7 +253,8 @@ class DirectPathTest {
 
         // 非实心(玻璃/树叶 0.15)仍应明显透声:这是「能听见但发闷」
         final double throughGlass = DirectPath.directGain(10.0, 0.15);
-        assertTrue(throughGlass > 0.8, "玻璃不该被当成石墙: " + throughGlass);
+        assertTrue(throughGlass > 0.8 * DirectPath.distanceAttenuation(10.0),
+                "玻璃不该被当成石墙: " + throughGlass);
 
         // 截止同理:绕射路径的高频保留更多
         final double cutStraight = DirectPath.totalCutoffHz(1.0, 10.0);

@@ -13,7 +13,7 @@ public final class UiPresentation {
     public record Selection(int layout,int motion) {
         public Selection {if(layout<0||layout>=LAYOUTS.length||motion<0||motion>=MOTIONS.length)throw new IllegalArgumentException("UI selection");}
         public boolean modern(){return layout==1;}
-        public boolean reduced(){return motion==2;}
+        public boolean reduced(){return motion==2||!SettingsAppearance.global().animations();}
         public double progress(double value){
             double t=Math.max(0,Math.min(1,value));
             return reduced()?1:motion==1?1-Math.pow(1-t,1.35):t;

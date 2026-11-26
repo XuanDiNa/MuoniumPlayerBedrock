@@ -8,6 +8,15 @@ import java.util.Arrays;
 import static org.junit.jupiter.api.Assertions.*;
 
 class UiPresentationTest {
+    @Test void appearanceControlsBelongToTheExistingHudEditorModel(){
+        var entries=Arrays.stream(HudSettingsModel.categories()).flatMap(c->Arrays.stream(c.groups))
+            .flatMap(g->Arrays.stream(g.entries)).toList();
+        var theme=entries.stream().filter(e->e.getLabel().equals("设置页主题")).findFirst().orElse(null);
+        assertNotNull(theme,"The existing HUD editor must expose the new settings themes");
+        assertArrayEquals(new String[]{"PolyGlass Dark","PolyGlass Light","Minecraft Dark","Minecraft Light"},theme.getChoices());
+        assertTrue(entries.stream().anyMatch(e->e.getLabel().equals("设置页主色")&&e.kind==HudSettingsModel.Kind.COLOR));
+        assertTrue(entries.stream().anyMatch(e->e.getLabel().equals("设置页动画")&&e.kind==HudSettingsModel.Kind.TOGGLE));
+    }
     @TempDir Path root;
     @Test void acceptedLegacyRemainsDefaultAndBothChoicesPersistIndependently() throws Exception {
         var preferences=new UiPresentation(root);

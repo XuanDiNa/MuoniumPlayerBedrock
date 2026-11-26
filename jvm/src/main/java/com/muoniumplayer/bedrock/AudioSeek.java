@@ -5,12 +5,16 @@ import java.util.*;
 
 /** Codec positions are established by frame headers, never by a byte/time ratio. */
 final class AudioSeek {
-    final AudioRanges remote;final byte[] flacHeader;final int rate,channels,frames;
+    final AudioRanges remote;final byte[] flacHeader;final int rate,channels,frames;final ProgressiveAudio.FrameSource original;
     final List<Long> mp3Offsets=new ArrayList<>();int mp3Samples;long scanOffset;
-    AudioSeek(AudioRanges remote,byte[] header,ProgressiveAudio.FrameSource source){this.remote=remote;flacHeader=header;rate=source.rate();channels=source.channels();frames=source.frames();}
+    AudioSeek(AudioRanges remote,byte[] header,ProgressiveAudio.FrameSource source){this.remote=remote;flacHeader=header;original=source;rate=source.rate();channels=source.channels();frames=source.frames();}
     record Located(ProgressiveAudio.FrameSource source,long frame,float[] first){}
     Located open(long target)throws Exception {
-        return flacHeader!=null?flac(target):mp3(target);
+        if(flacHeader!=null)return flac(target);
+        if(original instanceof StreamingMp4 mp4)return mp4.locate(target);
+        if(original instanceof StreamingFormats.Wav wav){var found=wav.locate(remote,target);try{return new Located(found.source(),found.frame(),found.source().next());}catch(Exception e){found.source().close();throw e;}}
+        if(original instanceof ProgressiveAudio.Mp3Source)return mp3(target);
+        throw new AudioRanges.Unsupported();
     }
     private Located flac(long target)throws Exception {
         long low=42,high=remote.length-1,lowSample=0,highSample=frames;

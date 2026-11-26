@@ -26,5 +26,14 @@ struct WorldPacket {
 static_assert(sizeof(WorldPacket)==256);
 static_assert(offsetof(WorldPacket,view)==64 && offsetof(WorldPacket,look)==192);
 static_assert(offsetof(WorldPacket,metricsVersion)==224 && offsetof(WorldPacket,metricsAt)==240);
+// Voice player context is independent of HUD/camera eligibility. Values only.
+struct VoiceWorldPacket {
+    std::uint32_t magic{0x5657504d},version{1};
+    std::uint64_t sequence{},at{},epoch{};
+    std::uint32_t valid{};std::int32_t dimension{};
+    double position[3]{},look[3]{};
+    std::uint64_t geometryEpoch{};
+};
+static_assert(sizeof(VoiceWorldPacket)==96 && offsetof(VoiceWorldPacket,geometryEpoch)==88);
 bool ValidWorldCamera(WorldPacket const&) noexcept;
 }

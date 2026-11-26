@@ -31,6 +31,7 @@ public final class SkijaHost {
         try {
             if (context == null) context = DirectContext.makeGL();
             if (surface == null || width != win.getWidth() || height != win.getHeight()) {
+                com.muoniumplayer.core.screens.ncm.PlayerTransitionContentCache.clearAll();
                 if (surface != null) surface.close();
                 if (target != null) target.close();
                 width = win.getWidth(); height = win.getHeight();
@@ -60,6 +61,7 @@ public final class SkijaHost {
     public static void renderTarget(int next) {
         if(canvas!=null)throw new IllegalStateException("Cannot change target inside a frame");
         if(framebuffer==next)return;
+        com.muoniumplayer.core.screens.ncm.PlayerTransitionContentCache.clearAll();
         if(surface!=null){surface.close();surface=null;}
         if(target!=null){target.close();target=null;}
         framebuffer=next;
@@ -69,6 +71,14 @@ public final class SkijaHost {
         after = draw; return true;
     }
     public static Canvas canvas() { return canvas; }
+    /** Render-thread owned GPU ROI. The caller must close it before context teardown. */
+    public static Image snapshotContent(io.github.humbleui.types.IRect bounds) {
+        if(canvas==null||surface==null||context==null||bounds==null
+                ||!BedrockClient.getInstance().isSameThread())return null;
+        if(bounds.getLeft()<0||bounds.getTop()<0||bounds.getRight()>width||bounds.getBottom()>height
+                ||bounds.getRight()<=bounds.getLeft()||bounds.getBottom()<=bounds.getTop())return null;
+        return surface.makeImageSnapshot(bounds);
+    }
     /** Scoped lyric picture recording; the caller restores before ending a row. */
     public static Canvas redirectCanvas(Canvas next) {
         if(canvas==null||next==null||!BedrockClient.getInstance().isSameThread())throw new IllegalStateException("Canvas redirect outside render frame");
@@ -117,6 +127,7 @@ public final class SkijaHost {
     }
     public static void shutdown() {
         if (canvas != null) endFrame();
+        com.muoniumplayer.core.screens.ncm.PlayerTransitionContentCache.clearAll();
         com.muoniumplayer.bedrock.CapsuleIcons.close();
         if (surface != null) { surface.close(); surface = null; }
         if (target != null) { target.close(); target = null; }

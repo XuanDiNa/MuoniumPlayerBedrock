@@ -4,6 +4,7 @@
 #include "DefaultPlayerConfig.h"
 #include <bcrypt.h>
 #include <array>
+#include <cstring>
 #include <fstream>
 #include <iomanip>
 #include <mutex>
@@ -49,23 +50,65 @@ NativeContract const* LoadedNativeContract(std::uintptr_t base) noexcept{
         return MatchLoadedIdentity(identity,nt->FileHeader.Machine,nt->FileHeader.TimeDateStamp,nt->OptionalHeader.SizeOfImage)?contract:nullptr;
     }__except(EXCEPTION_EXECUTE_HANDLER){return nullptr;}
 }
-bool VerifyHost(std::filesystem::path const& path){
+bool VerifyHost(std::filesystem::path const& path,HostVerification* report){
     VerifiedHostIdentity.store(nullptr,std::memory_order_release);
+    HostVerification result;
+    struct Publish {HostVerification* report;HostVerification& value;~Publish(){if(report)*report=std::move(value);}} publish{report,result};
     try{
-        HANDLE f=CreateFileW(path.c_str(),GENERIC_READ,FILE_SHARE_READ|FILE_SHARE_DELETE,nullptr,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,nullptr);if(f==INVALID_HANDLE_VALUE)return false;
+        struct File {HANDLE value{INVALID_HANDLE_VALUE};~File(){if(value!=INVALID_HANDLE_VALUE)CloseHandle(value);}} file;
+        file.value=CreateFileW(path.c_str(),GENERIC_READ,FILE_SHARE_READ|FILE_SHARE_DELETE,nullptr,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,nullptr);
+        if(file.value==INVALID_HANDLE_VALUE){result.reason="open-failed";result.win32=GetLastError();return false;}
         LARGE_INTEGER size{};bool knownSize=false;
-        if(GetFileSizeEx(f,&size)&&size.QuadPart>=0)for(auto const& identity:HostIdentities)knownSize|=static_cast<std::uint64_t>(size.QuadPart)==identity.fileSize;
-        if(!knownSize){CloseHandle(f);return false;}
-        BCRYPT_ALG_HANDLE a{};BCRYPT_HASH_HANDLE hash{};bool ok=BCryptOpenAlgorithmProvider(&a,BCRYPT_SHA256_ALGORITHM,nullptr,0)>=0;
-        if(ok)ok=BCryptCreateHash(a,&hash,nullptr,0,nullptr,0,0)>=0;
+        if(!GetFileSizeEx(file.value,&size)){result.reason="size-read-failed";result.win32=GetLastError();return false;}
+        if(size.QuadPart<0){result.reason="size-invalid";return false;}
+        result.bytes=static_cast<std::uint64_t>(size.QuadPart);
+        for(auto const& identity:HostIdentities)knownSize|=result.bytes==identity.fileSize;
+        // Unknown sizes stay refused. A requested diagnostic may still hash a
+        // bounded file to identify it; that digest never authorizes a profile.
+        if(!knownSize&&(!report||result.bytes>512ull*1024*1024)){result.reason="size-unrecognized";return false;}
+        struct Crypto {BCRYPT_ALG_HANDLE alg{};BCRYPT_HASH_HANDLE hash{};~Crypto(){if(hash)BCryptDestroyHash(hash);if(alg)BCryptCloseAlgorithmProvider(alg,0);}} crypto;
+        auto status=BCryptOpenAlgorithmProvider(&crypto.alg,BCRYPT_SHA256_ALGORITHM,nullptr,0);
+        if(status<0){result.reason="hash-provider-failed";result.cryptoStatus=static_cast<std::uint32_t>(status);return false;}
+        status=BCryptCreateHash(crypto.alg,&crypto.hash,nullptr,0,nullptr,0,0);
+        if(status<0){result.reason="hash-create-failed";result.cryptoStatus=static_cast<std::uint32_t>(status);return false;}
         std::vector<unsigned char> buffer(1024*1024);std::array<unsigned char,32> digest{};DWORD read{};
-        while(ok){if(!ReadFile(f,buffer.data(),static_cast<DWORD>(buffer.size()),&read,nullptr)){ok=false;break;}if(!read)break;ok=BCryptHashData(hash,buffer.data(),read,0)>=0;}
-        if(ok)ok=BCryptFinishHash(hash,digest.data(),32,0)>=0;if(hash)BCryptDestroyHash(hash);if(a)BCryptCloseAlgorithmProvider(a,0);CloseHandle(f);
+        std::uint64_t total{};
+        for(;;){
+            if(!ReadFile(file.value,buffer.data(),static_cast<DWORD>(buffer.size()),&read,nullptr)){result.reason="read-failed";result.win32=GetLastError();return false;}
+            if(!read)break;
+            if(total==0&&read>=sizeof(IMAGE_DOS_HEADER)){
+                IMAGE_DOS_HEADER dos;std::memcpy(&dos,buffer.data(),sizeof(dos));
+                if(dos.e_magic==IMAGE_DOS_SIGNATURE&&dos.e_lfanew>=64&&dos.e_lfanew<=4096&&static_cast<std::size_t>(dos.e_lfanew)+sizeof(IMAGE_NT_HEADERS64)<=read){
+                    IMAGE_NT_HEADERS64 nt;std::memcpy(&nt,buffer.data()+dos.e_lfanew,sizeof(nt));
+                    if(nt.Signature==IMAGE_NT_SIGNATURE&&nt.OptionalHeader.Magic==IMAGE_NT_OPTIONAL_HDR64_MAGIC){
+                        result.peValid=true;result.machine=nt.FileHeader.Machine;result.timestamp=nt.FileHeader.TimeDateStamp;
+                        result.imageSize=nt.OptionalHeader.SizeOfImage;result.subsystem=nt.OptionalHeader.Subsystem;
+                    }
+                }
+            }
+            total+=read;
+            if(total>result.bytes){result.reason="size-changed";return false;}
+            status=BCryptHashData(crypto.hash,buffer.data(),read,0);
+            if(status<0){result.reason="hash-update-failed";result.cryptoStatus=static_cast<std::uint32_t>(status);return false;}
+        }
+        if(total!=result.bytes){result.reason="size-changed";return false;}
+        status=BCryptFinishHash(crypto.hash,digest.data(),32,0);
+        if(status<0){result.reason="hash-finish-failed";result.cryptoStatus=static_cast<std::uint32_t>(status);return false;}
         constexpr char hex[]="0123456789ABCDEF";std::string s;for(auto b:digest){s+=hex[b>>4];s+=hex[b&15];}
-        auto identity=ok?MatchHostIdentity(s,size.QuadPart):nullptr;
+        result.sha256=s;
+        auto identity=knownSize?MatchHostIdentity(s,result.bytes):nullptr;
+        result.reason=identity?"matched":knownSize?"digest-unrecognized":"size-unrecognized";
         if(identity)VerifiedHostIdentity.store(identity,std::memory_order_release);
         return identity!=nullptr;
-    }catch(...){return false;}
+    }catch(...){result.reason="unexpected-error";return false;}
+}
+std::string FormatHostVerification(HostVerification const& r){
+    std::ostringstream text;
+    text<<"HOST_DIAGNOSTIC revision=1 reason="<<r.reason<<" win32="<<r.win32<<" bytes="<<r.bytes
+        <<" sha256="<<(r.sha256.empty()?"unavailable":r.sha256)<<" crypto=0x"<<std::hex<<r.cryptoStatus
+        <<" pe="<<(r.peValid?"valid":"unavailable")<<" machine=0x"<<r.machine
+        <<" timestamp=0x"<<r.timestamp<<" imageSize=0x"<<r.imageSize<<std::dec<<" subsystem="<<r.subsystem;
+    return text.str();
 }
 void Log(std::filesystem::path const& folder,std::string const& text)noexcept{
     try{static std::mutex mutex;static std::filesystem::path file;std::lock_guard lock(mutex);SYSTEMTIME t;GetLocalTime(&t);

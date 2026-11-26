@@ -10,7 +10,12 @@ def upstream25 = new groovy.json.JsonSlurper().parse(file('../tools/upstream25.j
 def latestPaths = upstream25.java.collect { it.substring(it.indexOf('/src/main/java/') + '/src/main/java/'.length()) }
 def latestResources = upstream25.resources.collect { it.substring('muonium-common/src/main/resources/'.length()) }
 def overlays = [
-    'core/cine/CineDirector.java',
+    'core/screens/ncm/effects/EffectsWorkbench.java',
+    'core/ncm/music/TrackLoudnessNormalization.java', 'core/ncm/music/LyricLoadService.java',
+    'core/music/source/MuQQApi.java', 'core/ncm/spotify/SpotifyMusicService.java',
+    'core/ncm/kugou/KuGouMusicApi.java', 'core/ncm/music/KuGouMusicService.java',
+    'core/cine/CineDirector.java', 'core/cine/CineSession.java',
+    'core/download/DownloadCatalog.java',
     'core/widget/impl/MusicLyricsWidget.java',
     'core/rendering/MusicSpectrumRenderer.java',
     'core/lyrics3d/WorldLyricsRenderer.java',
@@ -18,9 +23,9 @@ def overlays = [
     'core/MuoniumPlayerExtension.java', 'core/utils/KeyboardUtils.java',
     'core/screens/onboarding/OnboardingOverlay.java', 'api/impl/GLStateManagerImpl.java',
     'api/impl/OpenAPIImpl.java',
-    'core/management/FontManager.java',
+    'core/management/FontManager.java', 'core/management/FontAssetDownload.java',
     'core/settings/ConfigPaths.java', 'core/ncm/music/LyricCacheStore.java', 'core/ncm/music/MusicAudioCache.java',
-    'core/screens/ncm/NCMScreen.java', 'core/rendering/ui/AbstractWidget.java', 'core/ncm/music/CloudMusic.java', 'core/ncm/music/LiveStreamPlayer.java',
+    'core/screens/ncm/NCMScreen.java', 'core/rendering/ui/AbstractWidget.java', 'core/ncm/music/CloudMusic.java', 'core/ncm/music/LiveStreamPlayer.java', 'core/ncm/music/BilibiliMusicService.java',
     'core/screens/ncm/panels/PlayQueuePanel.java', 'core/ncm/music/AudioPlayer.java',
     'compat/gl/GL11.java', 'compat/gl/GL14.java', 'core/screens/hud/HudSettingsModel.java',
     'core/screens/GuiAnnouncements.java', 'core/screens/GuiUpdateNotice.java',
@@ -29,7 +34,7 @@ def overlays = [
     'core/screens/ncm/panels/NavigateBar.java',
     'core/screens/ncm/PlaylistCreateSheet.java',
     'core/ncm/music/acoustics/SceneAcoustics.java', 'core/ncm/music/ExternalArtwork.java'
-    , 'core/ncm/music/SmtcTimelineStabilizer.java', 'core/screens/hud/GuiHudEditorPro.java'
+    , 'core/ncm/music/SmtcTimelineStabilizer.java', 'core/screens/hud/GuiHudEditorPro.java', 'core/ncm/music/QishuiAudioDecryptor.java', 'core/ncm/music/YouTubeMusicService.java', 'core/ncm/music/YouTubeSessionStore.java'
 ].collect { 'com/muoniumplayer/' + it }
 repositories { maven { url = 'https://maven.aliyun.com/repository/public' }; mavenCentral() }
 java { toolchain { languageVersion = JavaLanguageVersion.of(21) } }
@@ -38,11 +43,13 @@ tasks.withType(JavaCompile).configureEach {
     options.compilerArgs += ['-Xmaxerrs', '1500']
 }
 tasks.withType(Test).configureEach {
+    systemProperty 'muonium.upstreamFixtureRoot', reference.absolutePath
     systemProperty 'muonium.bedrock.offlineTest', 'true'
     if (project.hasProperty('bundledRuntime')) executable = file('../build/bundled-runtime-21/bin/java.exe').absolutePath
     // Optional isolated fixture runtime; never copied into a release.
     if (project.hasProperty('fixtureJava')) executable = file(project.property('fixtureJava')).absolutePath
     systemProperty 'muonium.lx.transpilerDownload', 'false'
+    systemProperty 'muonium.bschat.fixture', file('../build/windows/x64/release/mailbox-tests.exe').absolutePath
 }
 def reusedSources = files(
             fileTree(commonRoot) {
@@ -55,10 +62,14 @@ def reusedSources = files(
                 exclude 'com/muoniumplayer/render/skija/SkijaTrailRenderer.java'
                 exclude latestPaths
                 exclude 'repackage/com/jsyn/util/SampleLoader.java'
+                exclude 'repackage/net/sourceforge/jaad/mp4/MP4Container.java'
+                exclude 'repackage/net/sourceforge/jaad/mp4/MP4InputStream.java'
+                exclude 'repackage/net/sourceforge/jaad/mp4/api/Track.java'
             },
             fileTree(new File(reference, 'mpparty-common/src/main/java')) {
                 exclude 'com/muoniumplayer/party/lan/LanMpPlatform.java'
                 exclude 'com/muoniumplayer/party/direct/DirectServer.java'
+                exclude 'com/muoniumplayer/party/direct/DirectClient.java'
                 exclude 'com/muoniumplayer/party/direct/MpDirect.java'
                 exclude 'com/muoniumplayer/party/ui/MpPartyOverlay.java'
             },
@@ -82,7 +93,17 @@ tasks.register('preparePlatform', Exec) {
     inputs.file '../tools/prepare_jvm_sources.py'
     inputs.file '../tools/streaming_mix_overlay.py'
     inputs.file '../tools/cine_schedule_overlay.py'
+    inputs.file '../tools/cine_motion_overlay.py'
     inputs.file '../tools/ui_presentation_overlay.py'
+    inputs.file '../tools/settings_appearance_overlay.py'
+    inputs.file '../tools/voice_broadcast_overlay.py'
+    inputs.file '../tools/room_latency_overlay.py'
+    inputs.file '../tools/room_voice_overlay.py'
+    inputs.file '../tools/source_failure_overlay.py'
+    inputs.file '../tools/streaming_formats_overlay.py'
+    inputs.file '../tools/youtube_stream_overlay.py'
+    inputs.file '../tools/youtube_session_overlay.py'
+    inputs.file '../tools/youtube_lyrics_overlay.py'
     inputs.file '../tools/upstream25.py'
     inputs.file '../tools/upstream25.json'
     inputs.dir '../vendor/MuoniumPlayer-2.5.2'
@@ -92,6 +113,7 @@ sourceSets {
     main {
         java.srcDirs = ['src/main/java', 'build/generated/platform']
         resources.srcDirs = []
+        resources.srcDir 'src/main/resources'
         resources.srcDir(new File(reference, 'muonium-common/src/main/resources'))
 
 
@@ -109,6 +131,27 @@ sourceSets {
         java.include 'com/muoniumplayer/core/ncm/music/PlaybackQueueTest.java'
         java.exclude '**/*StaticTest.java'
         java.include 'repackage/com/jsyn/data/DownmixSampleTest.java'
+        java.include 'repackage/com/jsyn/util/soundfile/streamed/raf/RafFloatSampleTest.java'
+        java.include 'com/muoniumplayer/core/ncm/music/AutomixAutoCueTest.java'
+        java.include 'com/muoniumplayer/core/ncm/music/BodianMusicServiceTest.java'
+        java.include 'com/muoniumplayer/core/ncm/music/IntegratedLoudnessMeterTest.java'
+        java.include 'com/muoniumplayer/core/ncm/music/TrackLoudness*Test.java'
+        java.include 'com/muoniumplayer/core/ncm/music/AutomixTransitionCurveTest.java'
+        java.include 'com/muoniumplayer/core/ncm/music/ManualAutomixSelectionTest.java'
+        java.include 'com/muoniumplayer/core/ncm/music/PlaybackResumeStateTest.java'
+        java.include 'com/muoniumplayer/core/ncm/music/FoliaAutomixNumericTest.java'
+        java.include 'com/muoniumplayer/core/ncm/music/AutomixPlanCacheTest.java'
+        java.include 'com/muoniumplayer/core/ncm/music/AutomixLearnedEqTest.java'
+        java.include 'com/muoniumplayer/core/ncm/music/acoustics/*Test.java'
+        java.include 'com/muoniumplayer/core/rendering/MusicCapsuleLyricsTest.java'
+        java.include 'com/muoniumplayer/core/rendering/MusicCardRenderTest.java'
+        java.include 'com/muoniumplayer/core/rendering/MusicCard*Test.java'
+        java.include 'com/muoniumplayer/core/screens/ncm/Ncm*Test.java'
+        java.include 'com/muoniumplayer/core/screens/ncm/FontPicker*Test.java'
+        java.include 'com/muoniumplayer/core/rendering/InferenceCapsuleMotionTest.java'
+        java.include 'com/muoniumplayer/core/viper/Viper*Test.java'
+        java.include 'com/muoniumplayer/core/screens/ncm/Player*Test.java'
+        java.include 'com/muoniumplayer/core/screens/ncm/effects/EffectsWorkbenchRenderTest.java'
         java.include 'com/muoniumplayer/core/ncm/music/BilibiliPartyPageTrackTest.java'
         java.include 'com/muoniumplayer/core/rendering/ui/container/ScrollPanelTraversalTest.java'
         java.include 'com/muoniumplayer/core/rendering/font/TextGlowBloomGoldenTest.java'
@@ -116,6 +159,7 @@ sourceSets {
         java.include 'com/muoniumplayer/core/preset/**'
         java.include 'com/muoniumplayer/core/cine/**'
         java.include 'com/muoniumplayer/core/ncm/music/MusicSpinTest.java'
+        java.include 'com/muoniumplayer/core/settings/DesktopLyricAlignTest.java'
         java.include 'com/muoniumplayer/testsupport/RequiresSkijaNative.java'
         java.include 'com/muoniumplayer/testsupport/ProjectPaths.java'
 
@@ -124,6 +168,9 @@ sourceSets {
 tasks.named('compileJava', JavaCompile) {
     dependsOn 'preparePlatform'
     setSource(files(sourceSets.main.java, reusedSources))
+}
+tasks.named('compileTestJava', JavaCompile) {
+    setSource(sourceSets.test.java.filter { it != new File(reference, 'muonium-common/src/test/java/com/muoniumplayer/testsupport/ProjectPaths.java') })
 }
 dependencies {
     implementation 'com.google.code.gson:gson:2.11.0'
@@ -168,6 +215,31 @@ dependencies {
 }
 application { mainClass = 'com.muoniumplayer.bedrock.HostMain' }
 
+tasks.register('voiceBroadcastTest', Test) {
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/BroadcastPcmQueueTest.class', '**/VoiceBroadcastTest.class', '**/VoiceBroadcastHudTest.class'
+    systemProperty 'muonium.bschat.fixture', file('../build/windows/x64/release/mailbox-tests.exe').absolutePath
+    def fixtureRoot=layout.buildDirectory.dir('voice-broadcast-runtime').get().asFile
+    doFirst { fixtureRoot.mkdirs() }
+    workingDir fixtureRoot
+}
+
+tasks.register('roomVoiceTest', Test) {
+    useJUnitPlatform()
+    testClassesDirs=sourceSets.test.output.classesDirs
+    classpath=sourceSets.test.runtimeClasspath
+    include '**/RoomVoice*Test.class'
+    exclude '**/RoomVoiceRenderTest.class'
+    forkEvery=1
+    systemProperty 'muonium.voice.codecPath', file('../native/room-voice/build/windows/x64/release/MuoniumVoice.dll').absolutePath
+    systemProperty 'muonium.bedrock.roomLoopbackOnly','true'
+    def fixtureRoot=layout.buildDirectory.dir('room-voice-runtime').get().asFile
+    doFirst { fixtureRoot.mkdirs() }
+    workingDir fixtureRoot
+}
+
 tasks.named('processResources') {
     inputs.property('bedrockPresetTextVersion', 2)
     filteringCharset = 'UTF-8'
@@ -185,8 +257,18 @@ tasks.withType(JavaExec).configureEach {
     if (project.hasProperty('fixtureJava')) executable = file(project.property('fixtureJava')).absolutePath
 }
 test {
+    // Upstream atlas, audio and application singletons are process-wide.
+    // Classes must not inherit a previous fixture's initialized game host.
+    forkEvery = 1
+    // Real DSP singleton consumers run in separate JVMs from playback workers.
+    exclude '**/SceneAcousticsTest.class'
+    exclude '**/SceneAcousticsRegressionTest.class'
     // This fixture renders the process-wide audio singleton. Other playback
     // fixtures start audio workers; use a separate JVM to avoid cross-test DSP races.
+    exclude '**/MusicCardRenderTest.class'
+    exclude '**/MusicCard*RenderTest.class'
+    exclude '**/MusicCardCachedPreviewTest.class'
+    exclude '**/MusicCapsuleLyricsTest.class'
     exclude '**/WorldSpeakerTest.class'
     exclude '**/AlphaBoundsRenderTest.class'
     exclude '**/ThemeDropdownRenderTest.class'
@@ -215,8 +297,19 @@ test {
     exclude '**/CacheManagerRenderTest.class'
     exclude '**/SpeakerMarkerRenderTest.class'
     exclude '**/CinematicEffectsRenderTest.class'
+    exclude '**/UpstreamSnapshotRenderTest.class'
     exclude '**/PartyTransportTest.class'
-    filter { excludeTestsMatching '*BilibiliPartyPageTrackTest.clientPrecheckIsWiredToTheSharedGuard' }
+    exclude '**/RoomProxyScreenTest.class'
+    exclude '**/VoiceBroadcastRenderTest.class'
+    exclude '**/Stable260RenderTest.class'
+    exclude '**/EffectsWorkbenchRenderTest.class'
+    filter {
+        excludeTestsMatching '*BilibiliPartyPageTrackTest.clientPrecheckIsWiredToTheSharedGuard'
+        // Java chat UI visibility is intentionally unavailable in Bedrock.
+        // BedrockChatCardSettingsTest and actual editor rows cover the port.
+        excludeTestsMatching '*HudIslandStylePresetTest.音乐卡设置跟随五款样式及互动开关即时显示'
+        excludeTestsMatching '*HudIslandStylePresetTest.音乐胶囊最大长度只在启用的音乐胶囊样式显示且不依赖展开方式'
+    }
     useJUnitPlatform()
     systemProperty 'muonium.skija.autoDownload', 'false'
     systemProperty 'muonium.ci.skipSkijaNative', 'false'
@@ -224,7 +317,74 @@ test {
     doFirst { testRoot.mkdirs() }
     workingDir testRoot
 }
+tasks.register('stable260Test', Test) {
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/Stable260RegressionTest.class'
+    useJUnitPlatform()
+    def fixtureRoot = layout.buildDirectory.dir('stable260-test-runtime').get().asFile
+    doFirst { fixtureRoot.mkdirs() }
+    workingDir fixtureRoot
+    systemProperty 'muonium.skija.autoDownload', 'false'
+}
+
+// Owned-window focus/input handoffs; no game control or global input injection.
+tasks.register('overlayInputTest', Test) {
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/OverlayFocusInputTest.class', '**/OverlaySessionTest.class', '**/OverlayPolicyTest.class'
+    include '**/OverlayModalInputTest.class', '**/OverlayWindowModeTest.class', '**/OverlayCloseRenderTest.class'
+    include '**/HostWorkspaceTest.class', '**/FileDialogLifecycleTest.class', '**/QueueInputRenderTest.class'
+    include '**/IslandSearchRenderTest.class'
+    forkEvery = 1
+    systemProperty 'muonium.skija.autoDownload', 'false'
+    systemProperty 'muonium.ci.skipSkijaNative', 'false'
+    def fixtureRoot = layout.buildDirectory.dir('overlay-input-runtime').get().asFile
+    doFirst { fixtureRoot.mkdirs() }
+    workingDir fixtureRoot
+}
+
+tasks.register('upstream261Test', Test) {
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/Upstream261RegressionTest.class', '**/Acoustic261Test.class', '**/StreamingLoudness261Test.class'
+    include '**/BodianMusicServiceTest.class', '**/IntegratedLoudnessMeterTest.class', '**/TrackLoudness*Test.class'
+    include '**/AutomixTransitionCurveTest.class', '**/ManualAutomixSelectionTest.class', '**/PlaybackResumeStateTest.class'
+    useJUnitPlatform()
+    forkEvery = 1
+    def fixtureRoot = layout.buildDirectory.dir('upstream261-runtime').get().asFile
+    doFirst { fixtureRoot.mkdirs() }
+    workingDir fixtureRoot
+    systemProperty 'muonium.skija.autoDownload', 'false'
+}
+tasks.register('sourceDiagnosticsTest', Test) {
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/QQPlaybackResponseTest.class', '**/SourceHttpFailureTest.class', '**/SpotifySearchFeedbackTest.class', '**/SourceFailureDetailsTest.class', '**/BilibiliPlaybackLoginTest.class'
+    useJUnitPlatform()
+    forkEvery = 1
+    def fixtureRoot = layout.buildDirectory.dir('source-diagnostics-runtime').get().asFile
+    doFirst { fixtureRoot.mkdirs() }
+    workingDir fixtureRoot
+    systemProperty 'muonium.skija.autoDownload', 'false'
+}
+
+tasks.register('acousticsRegressionTest', Test) {
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/SceneAcousticsTest.class'
+    include '**/SceneAcousticsRegressionTest.class'
+    forkEvery = 1
+    def fixtureRoot = layout.buildDirectory.dir('acoustics-test-runtime').get().asFile
+    doFirst { fixtureRoot.mkdirs() }
+    workingDir fixtureRoot
+}
 tasks.register('stageRenderTest', Test) {
+    include '**/Stable260RenderTest.class'
+    include '**/UpstreamSnapshotRenderTest.class'
+    include '**/MusicCapsuleLyricsTest.class'
     include '**/ThemeDropdownRenderTest.class'
     useJUnitPlatform()
     testClassesDirs = sourceSets.test.output.classesDirs
@@ -253,12 +413,27 @@ tasks.register('stageRenderTest', Test) {
     include '**/SpeakerMarkerRenderTest.class'
     include '**/CinematicEffectsRenderTest.class'
     include '**/PartyTransportTest.class'
+    include '**/RoomProxyScreenTest.class'
     forkEvery = 1
     systemProperty 'muonium.skija.autoDownload', 'false'
     systemProperty 'muonium.ci.skipSkijaNative', 'false'
     def stageRoot = layout.buildDirectory.dir('stage-test-runtime').get().asFile
     doFirst { stageRoot.mkdirs() }
     workingDir stageRoot
+}
+
+tasks.register('upstream261RenderTest', Test) {
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/EffectsWorkbenchRenderTest.class'
+    forkEvery = 1
+    systemProperty 'muonium.skija.autoDownload', 'false'
+    systemProperty 'muonium.ci.skipSkijaNative', 'false'
+    systemProperty 'muonium.effects.previewDir', file('build/upstream261-captures').absolutePath
+    def fixtureRoot = layout.buildDirectory.dir('upstream261-render-runtime').get().asFile
+    doFirst { fixtureRoot.mkdirs() }
+    workingDir fixtureRoot
 }
 tasks.named('check') { dependsOn 'stageRenderTest' }
 tasks.register('nativeD3D12RenderTest', Test) {
@@ -310,6 +485,63 @@ tasks.register('playbackRecoveryTest', Test) {
 }
 tasks.named('check') { dependsOn 'playbackRecoveryTest' }
 
+// Full YouTube byte-window and real decoder regressions without discovering
+// unrelated process-isolated upstream classes on every targeted run.
+tasks.register('youtubeStreamingTest', Test) {
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/YouTubeWindowRecoveryTest.class'
+    include '**/YouTubeAccountRouteTest.class'
+    include '**/YouTubeLyricsTest.class'
+    def fixtureRoot = layout.buildDirectory.dir('youtube-streaming-test-runtime').get().asFile
+    doFirst { fixtureRoot.mkdirs() }
+    workingDir fixtureRoot
+}
+
+tasks.register('youtubeBrowserTest', Test) {
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/YouTubeBrowserAudioTest.class'
+    def fixtureRoot = layout.buildDirectory.dir('youtube-browser-runtime').get().asFile
+    doFirst { fixtureRoot.mkdirs() }
+    workingDir fixtureRoot
+}
+
+tasks.register('progressiveRegressionTest', Test) {
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/ProgressiveAudioTest.class', '**/StreamingSeekTest.class'
+    include '**/AllSourceStreamingTest.class', '**/StreamingTransportCoverageTest.class'
+    include '**/StreamingTransitionTest.class', '**/StreamingAutomixTest.class'
+    forkEvery = 1
+    def fixtureRoot = layout.buildDirectory.dir('progressive-regression-runtime').get().asFile
+    doFirst { fixtureRoot.mkdirs() }
+    workingDir fixtureRoot
+    systemProperty 'muonium.skija.autoDownload', 'false'
+}
+
+tasks.register('youtubeBrowserProbe', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.muoniumplayer.bedrock.YouTubeBrowserPlaybackProbe'
+    def probeRoot = layout.buildDirectory.dir('youtube-browser-probe-runtime').get().asFile
+    doFirst { probeRoot.mkdirs() }
+    workingDir probeRoot
+}
+
+tasks.register('youtubeAccountBaselineTest', Test) {
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = files(project.findProperty('baselineHostJar')) + sourceSets.test.runtimeClasspath
+    include '**/YouTubeAccountRouteTest.class'
+    def fixtureRoot = layout.buildDirectory.dir('youtube-account-baseline-runtime').get().asFile
+    doFirst { fixtureRoot.mkdirs() }
+    workingDir fixtureRoot
+}
+
 tasks.register('worldSpeakerTest', Test) {
     useJUnitPlatform()
     testClassesDirs = sourceSets.test.output.classesDirs
@@ -325,10 +557,35 @@ tasks.register('uiPresentationRenderTest', Test) {
     useJUnitPlatform()
     testClassesDirs = sourceSets.test.output.classesDirs
     classpath = sourceSets.test.runtimeClasspath
-    include '**/UiPresentationRenderTest.class'
+    include '**/UiPresentationRenderTest.class', '**/SettingsAppearanceRenderTest.class'
+    forkEvery = 1
     def uiRoot = layout.buildDirectory.dir('ui-presentation-test-runtime').get().asFile
     doFirst { uiRoot.mkdirs() }
     workingDir uiRoot
+    systemProperty 'muonium.skija.autoDownload', 'false'
+}
+
+tasks.register('voiceBroadcastRenderTest', Test) {
+    useJUnitPlatform()
+    testClassesDirs=sourceSets.test.output.classesDirs
+    classpath=sourceSets.test.runtimeClasspath
+    include '**/VoiceBroadcastRenderTest.class'
+    def fixtureRoot=layout.buildDirectory.dir('voice-render-runtime').get().asFile
+    doFirst { fixtureRoot.mkdirs() }
+    workingDir fixtureRoot
+    systemProperty 'muonium.skija.autoDownload', 'false'
+    systemProperty 'muonium.ci.skipSkijaNative', 'false'
+}
+
+tasks.register('settingsAppearanceTest', Test) {
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/UiPresentationTest.class', '**/SettingsAppearanceTest.class'
+    forkEvery = 1
+    def fixtureRoot = layout.buildDirectory.dir('settings-appearance-runtime').get().asFile
+    doFirst { fixtureRoot.mkdirs() }
+    workingDir fixtureRoot
     systemProperty 'muonium.skija.autoDownload', 'false'
 }
 
@@ -385,5 +642,79 @@ tasks.register('baselineNativeTransferTest', Test) {
     def baselineRoot = layout.buildDirectory.dir('baseline-native-test-runtime').get().asFile
     doFirst { baselineRoot.mkdirs() }
     workingDir baselineRoot
+    systemProperty 'muonium.skija.autoDownload', 'false'
+}
+
+// Bounded full-host mailbox regression, also included in the ordinary suite.
+// Allows rerunning its stronger input/context assertions without rediscovering
+// every process-isolated upstream test class.
+tasks.register('cinematicHostTest', Test) {
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/CinematicHostIntegrationTest.class'
+    include '**/CinematicReaderTest.class'
+    include '**/CinematicSnapshotCacheTest.class'
+    include '**/VoxelLyricClipTest.class'
+    def fixtureRoot = layout.buildDirectory.dir('cinematic-host-test-runtime').get().asFile
+    doFirst { fixtureRoot.mkdirs() }
+    workingDir fixtureRoot
+}
+
+tasks.register('cinematicMotionTest', Test) {
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/CinematicMotionRegressionTest.class'
+    include '**/CinematicSmoothnessTest.class'
+    include 'com/muoniumplayer/core/cine/*Test.class'
+    include '**/CinematicCollisionTest.class'
+    include '**/CinematicRoutePlannerTest.class'
+    def fixtureRoot = layout.buildDirectory.dir('cinematic-motion-test-runtime').get().asFile
+    doFirst { fixtureRoot.mkdirs() }
+    workingDir fixtureRoot
+}
+
+// Final affected render checks after camera/occlusion diagnostics change.
+tasks.register('cinematicClipRenderTest', Test) {
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/LyricOcclusionRenderTest.class'
+    include '**/CinematicEffectsRenderTest.class'
+    include '**/LetterboxContinuityRenderTest.class'
+    forkEvery = 1
+    systemProperty 'muonium.skija.autoDownload', 'false'
+    systemProperty 'muonium.ci.skipSkijaNative', 'false'
+    def fixtureRoot = layout.buildDirectory.dir('cinematic-clip-render-runtime').get().asFile
+    doFirst { fixtureRoot.mkdirs() }
+    workingDir fixtureRoot
+}
+
+// Actual proxy/room socket fixtures, bounded without forking unrelated classes.
+tasks.register('roomProxyTest', Test) {
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/RoomProxy*Test.class'
+    exclude '**/RoomProxyScreenTest.class'
+    include '**/WindowsRoomProxyTest.class'
+    include '**/Tunnel*Test.class'
+    forkEvery = 1
+    def fixtureRoot = layout.buildDirectory.dir('room-proxy-test-runtime').get().asFile
+    doFirst { fixtureRoot.mkdirs() }
+    workingDir fixtureRoot
+}
+
+tasks.register('roomProxyUiTest', Test) {
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/RoomProxyScreenTest.class'
+    include '**/PartyTransportTest.class'
+    forkEvery = 1
+    def fixtureRoot = layout.buildDirectory.dir('room-proxy-ui-runtime').get().asFile
+    doFirst { fixtureRoot.mkdirs() }
+    workingDir fixtureRoot
     systemProperty 'muonium.skija.autoDownload', 'false'
 }

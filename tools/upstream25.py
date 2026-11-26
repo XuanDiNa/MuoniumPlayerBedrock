@@ -8,8 +8,10 @@ def selection():
     return json.loads(CONFIG.read_text(encoding='utf-8'))
 def verify():
     cfg=selection()
-    assert cfg['commit']=='9b4cc7e7bd143315da716075a6d024a0d4c0c81b'
+    assert cfg['commit']=='4011d03b535cc40fa54b2cb8324cd5405eb9d6e0'
     manifest=json.loads((DELTA/'SOURCE-MANIFEST.json').read_text(encoding='utf-8'))
+    assert manifest['commit']==cfg['commit']
+    assert manifest['version']==cfg['version']=='2.6.1' and cfg['branch']=='main'
     records={v['path']:v for v in manifest['files']}
     for rel in cfg['java']+cfg['resources']:
         p=DELTA/rel

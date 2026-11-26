@@ -77,6 +77,13 @@ class UiPresentationRenderTest {
                 preference.selectLayout(layout);preference.selectMotion(motion);
                 var screen=new HostHudEditor();client.gui.setScreen(screen);
                 for(int i=0;i<50;i++)frame(screen);
+                for(String unavailable:List.of("展开方式","可交互展开","音乐卡缩放")) {
+                    set(screen,"searchQuery",unavailable);frame(screen);
+                    for(var row:(List<?>)field(screen,"rows"))
+                        assertFalse(rowEntry(row) instanceof com.muoniumplayer.core.screens.hud.HudSettingsModel.Entry,
+                                "Unavailable chat-only settings must not appear in either editor's search: "+unavailable);
+                }
+                set(screen,"searchQuery","");frame(screen);
                 var rows=(List<?>)field(screen,"rows");assertFalse(rows.isEmpty());
                 int modern=preference.snapshot().modern()?1:0;
                 var geometry=GuiHudEditorPro.class.getDeclaredMethod("panelWidth");geometry.setAccessible(true);
