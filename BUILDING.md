@@ -83,3 +83,11 @@ legacy IPC unit fixtures are retained but no longer wired into the active host.
 Tests use synthetic audio and injected endpoints, never a physical microphone.
 Both ordinary native targets retain their exact-version game boundaries.
 Package with tools/package_room_voice.py; see native/room-voice/README.md.
+
+
+## 2026-11-28 host metadata compatibility
+
+See docs/HOTFIX-0.20.2-20261128.md for the tested binary and matching hotfix source.
+HostHeaderVariantTests and tools/verify_host_header_families.py require exact reviewed
+local game images; they use owned .bin fixtures and never modify the originals.
+No game files are distributed. A rebuild does not inherit binary gameplay acceptance.

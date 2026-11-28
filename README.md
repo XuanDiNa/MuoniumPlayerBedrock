@@ -6,6 +6,8 @@
 
 0.20.2 新增獨立**麥克風增益**：0～400%、每50%一檔、預設100%，即時生效並保存，只調整麥克風。入口為「一起聽 → 直連房間 → 房間語音」，HUD 編輯也能調整。[語音使用說明](docs/ROOM-VOICE.md) · [本版更新](docs/UPDATE-0.20.2.md) · [累計更新及已知限制](docs/RELEASE-0.20.2.md)。
 
+**2026-11-28 緊急熱修復：** 已更新 LeviLamina 完整包／更新包，修正同版遊戲因 GUI／控制台標記或校驗值差異被誤拒載入。維護者已回報測試可用，發布沿用驗收 DLL；原版四版本套件保持原樣。[熱修復說明與來源](docs/HOTFIX-0.20.2-20261128.md)。
+
 ## 安裝
 
 **需另外安裝相容的 [ModMenuBE](https://github.com/AFAlimru/ModMenuBE) 與載入器**。本包不包含選單、遊戲或遊戲伺服器插件。
@@ -21,7 +23,7 @@
 
 首次安裝選 **full.zip**，包含 Java21、播放器依賴、Opus 語音編解碼器、可選穿透輔助程式及授權來源。已有完整環境可選 **update.zip**。原版四版本共用一包，LeviLamina 獨立分包，兩者不可同時載入。
 
-完全退出 Minecraft，再解壓到實例根目錄，一起替換 DLL、JAR、manifest 及設定描述檔。套件保留現有設定、帳號、歌單與快取；缺少的預設設定由首次啟動建立。十項快捷鍵預設未綁定。未改動遊戲 EXE 或 ModMenuBE DLL，也未放寬精確映像與原生掛鉤防護。
+完全退出 Minecraft，再解壓到實例根目錄，一起替換 DLL、JAR、manifest 及設定描述檔。套件保留現有設定、帳號、歌單與快取；缺少的預設設定由首次啟動建立。十項快捷鍵預設未綁定。未改動遊戲 EXE 或 ModMenuBE DLL，保留原生掛鉤防護；只容許已驗證內容的兩項非程式 PE 標記差異，詳見熱修復說明。
 
 ## 功能
 
@@ -46,6 +48,10 @@
 ![四種設定頁主題，離線渲染預覽](docs/images/settings-themes.png)
 
 ## English
+
+Emergency hotfix (2026-11-28): the LeviLamina full/update assets now include the
+maintainer-tested loading fix for checksum and GUI/console metadata differences.
+Vanilla assets are unchanged. See the [scope and matching source](docs/HOTFIX-0.20.2-20261128.md).
 
 A Windows x64 client port of MuoniumPlayer for Minecraft Bedrock, retaining the upstream Java music engine and Skija UI with native D3D11/D3D12 composition. Thanks to the original author for support and technical guidance.
 

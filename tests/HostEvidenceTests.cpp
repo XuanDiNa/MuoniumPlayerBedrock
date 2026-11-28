@@ -49,12 +49,13 @@ int wmain(int argc,wchar_t** argv){try{
     Need(baseline.at("loaderHeaderMatch")==true,"known loader header fingerprint matches");
     std::filesystem::copy_file(argv[1],f.file);
     std::uint32_t nt{};{std::ifstream in(f.file,std::ios::binary);in.seekg(60);in.read(reinterpret_cast<char*>(&nt),4);}
-    // A harmless header checksum difference can produce equivalent native
-    // evidence, but still cannot authorize the modified full-file identity.
+    // Only the documented checksum/subsystem family comparison can admit this
+    // variant. Diagnostic evidence itself still never grants authorization.
     Put(f.file,nt+24+64,0x12345678);
-    Need(!mp::VerifyHost(f.file,&verification),"header-only unknown identity refuses");
+    Need(mp::VerifyHost(f.file,&verification)&&std::string_view(verification.reason)=="matched-header-variant","checksum-only reviewed family variant admitted by production content hash");
+    auto headerIdentity=mp::VerifiedHostIdentity.load();
     auto changedHeader=f.save(f.file,verification.sha256,true);
-    Need(mp::VerifiedHostIdentity.load()==nullptr,"equivalence does not admit unknown header variant");
+    Need(headerIdentity&&mp::VerifiedHostIdentity.load()==headerIdentity,"diagnostic collection preserves independently established family authority");
     Need(changedHeader.at("pe").at("checksum")==0x12345678,"changed scalar explained without raw header");
     Need(changedHeader.at("loaderHeaderMatch")==false,"header-only difference located without exporting bytes");
     auto changed=mp::SaveHostEvidence(f.file,f.folder,std::string(64,'0'));

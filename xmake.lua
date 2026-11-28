@@ -90,6 +90,18 @@ target("HostPlayer409Tests")
     add_syslinks("user32", "bcrypt")
 target_end()
 
+target("HostPlayerGuiTests")
+    set_kind("binary")
+    add_files("tests/HostPlayerGuiTests.cpp", "src/Host.cpp")
+    add_syslinks("user32", "bcrypt")
+target_end()
+
+target("HostHeaderVariantTests")
+    set_kind("binary")
+    add_files("tests/HostHeaderVariantTests.cpp", "src/Host.cpp")
+    add_syslinks("user32", "bcrypt")
+target_end()
+
 target("PlayerConfigFileTests")
     set_kind("binary")
     add_files("tests/PlayerConfigFileTests.cpp","src/Host.cpp","src/Core.cpp")

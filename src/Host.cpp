@@ -1,5 +1,6 @@
 #include "Runtime.h"
 #include "NativeProfile.h"
+#include "HostHeaderFamilies.h"
 #include "NativeContracts.h"
 #include "DefaultPlayerConfig.h"
 #include <bcrypt.h>
@@ -66,13 +67,13 @@ bool VerifyHost(std::filesystem::path const& path,HostVerification* report){
         // Unknown sizes stay refused. A requested diagnostic may still hash a
         // bounded file to identify it; that digest never authorizes a profile.
         if(!knownSize&&(!report||result.bytes>512ull*1024*1024)){result.reason="size-unrecognized";return false;}
-        struct Crypto {BCRYPT_ALG_HANDLE alg{};BCRYPT_HASH_HANDLE hash{};~Crypto(){if(hash)BCryptDestroyHash(hash);if(alg)BCryptCloseAlgorithmProvider(alg,0);}} crypto;
+        struct Crypto {BCRYPT_ALG_HANDLE alg{};BCRYPT_HASH_HANDLE hash{},variant{};~Crypto(){if(variant)BCryptDestroyHash(variant);if(hash)BCryptDestroyHash(hash);if(alg)BCryptCloseAlgorithmProvider(alg,0);}} crypto;
         auto status=BCryptOpenAlgorithmProvider(&crypto.alg,BCRYPT_SHA256_ALGORITHM,nullptr,0);
         if(status<0){result.reason="hash-provider-failed";result.cryptoStatus=static_cast<std::uint32_t>(status);return false;}
         status=BCryptCreateHash(crypto.alg,&crypto.hash,nullptr,0,nullptr,0,0);
         if(status<0){result.reason="hash-create-failed";result.cryptoStatus=static_cast<std::uint32_t>(status);return false;}
         std::vector<unsigned char> buffer(1024*1024);std::array<unsigned char,32> digest{};DWORD read{};
-        std::uint64_t total{};
+        std::uint64_t total{};std::size_t metadataOffset{};
         for(;;){
             if(!ReadFile(file.value,buffer.data(),static_cast<DWORD>(buffer.size()),&read,nullptr)){result.reason="read-failed";result.win32=GetLastError();return false;}
             if(!read)break;
@@ -83,6 +84,11 @@ bool VerifyHost(std::filesystem::path const& path,HostVerification* report){
                     if(nt.Signature==IMAGE_NT_SIGNATURE&&nt.OptionalHeader.Magic==IMAGE_NT_OPTIONAL_HDR64_MAGIC){
                         result.peValid=true;result.machine=nt.FileHeader.Machine;result.timestamp=nt.FileHeader.TimeDateStamp;
                         result.imageSize=nt.OptionalHeader.SizeOfImage;result.subsystem=nt.OptionalHeader.Subsystem;
+                        if(knownSize&&CanHashHostHeaderVariant(result.bytes,result.machine,result.timestamp,result.imageSize,result.subsystem)){
+                            metadataOffset=static_cast<std::size_t>(dos.e_lfanew)+24+64;
+                            status=BCryptCreateHash(crypto.alg,&crypto.variant,nullptr,0,nullptr,0,0);
+                            if(status<0){result.reason="hash-create-failed";result.cryptoStatus=static_cast<std::uint32_t>(status);return false;}
+                        }
                     }
                 }
             }
@@ -90,6 +96,13 @@ bool VerifyHost(std::filesystem::path const& path,HostVerification* report){
             if(total>result.bytes){result.reason="size-changed";return false;}
             status=BCryptHashData(crypto.hash,buffer.data(),read,0);
             if(status<0){result.reason="hash-update-failed";result.cryptoStatus=static_cast<std::uint32_t>(status);return false;}
+            if(crypto.variant){
+                // Raw digest was updated first. Only the first private buffer
+                // masks these six bytes; every other byte is still hashed.
+                if(total==read)std::memset(buffer.data()+metadataOffset,0,6);
+                status=BCryptHashData(crypto.variant,buffer.data(),read,0);
+                if(status<0){result.reason="hash-update-failed";result.cryptoStatus=static_cast<std::uint32_t>(status);return false;}
+            }
         }
         if(total!=result.bytes){result.reason="size-changed";return false;}
         status=BCryptFinishHash(crypto.hash,digest.data(),32,0);
@@ -98,6 +111,13 @@ bool VerifyHost(std::filesystem::path const& path,HostVerification* report){
         result.sha256=s;
         auto identity=knownSize?MatchHostIdentity(s,result.bytes):nullptr;
         result.reason=identity?"matched":knownSize?"digest-unrecognized":"size-unrecognized";
+        if(!identity&&crypto.variant){
+            status=BCryptFinishHash(crypto.variant,digest.data(),32,0);
+            if(status<0){result.reason="hash-finish-failed";result.cryptoStatus=static_cast<std::uint32_t>(status);return false;}
+            for(auto b:digest){result.headerVariantSha256+=hex[b>>4];result.headerVariantSha256+=hex[b&15];}
+            identity=MatchHostHeaderVariant(result.headerVariantSha256,result.bytes,result.machine,result.timestamp,result.imageSize,result.subsystem);
+            if(identity){result.reason="matched-header-variant";result.identitySha256=identity->sha256;}
+        }
         if(identity)VerifiedHostIdentity.store(identity,std::memory_order_release);
         return identity!=nullptr;
     }catch(...){result.reason="unexpected-error";return false;}
@@ -108,6 +128,8 @@ std::string FormatHostVerification(HostVerification const& r){
         <<" sha256="<<(r.sha256.empty()?"unavailable":r.sha256)<<" crypto=0x"<<std::hex<<r.cryptoStatus
         <<" pe="<<(r.peValid?"valid":"unavailable")<<" machine=0x"<<r.machine
         <<" timestamp=0x"<<r.timestamp<<" imageSize=0x"<<r.imageSize<<std::dec<<" subsystem="<<r.subsystem;
+    if(!r.headerVariantSha256.empty())text<<" headerVariantSha256="<<r.headerVariantSha256;
+    if(!r.identitySha256.empty())text<<" identitySha256="<<r.identitySha256;
     return text.str();
 }
 void Log(std::filesystem::path const& folder,std::string const& text)noexcept{

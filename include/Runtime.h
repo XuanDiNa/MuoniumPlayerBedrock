@@ -13,6 +13,9 @@ struct HostVerification {
     std::uint32_t cryptoStatus{};
     std::uint64_t bytes{};
     std::string sha256;
+    // Actual raw digest stays in sha256; these describe the reviewed content
+    // family only when the two non-code PE metadata fields differ.
+    std::string headerVariantSha256,identitySha256;
     bool peValid{};
     WORD machine{},subsystem{};
     DWORD timestamp{},imageSize{};

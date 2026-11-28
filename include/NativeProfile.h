@@ -37,7 +37,10 @@ inline constexpr HostIdentity HostIdentities[]{
     {GameVersion::V2660,"1.26.60.05-console-capture-launcher-console","68B38A0B3FD2A57C4538DBFAC5BEACE14AFD774513E2CBF1BE4443E9DE010768",323821384,0x6AD79EE4,0x1383C000},
     // Received 409C image: launcher section precedes rebuilt imports. All eight
     // original sections, 61 guards, 48 bodies and original IAT rows match.
-    {GameVersion::V2660,"1.26.60.05-LeviLamina-player409","409C9597C5C973B3FA9B11204612850F4BAE8F83270C7692DCC783C491FCF04C",323855872,0x6AD79EE4,0x13847000}
+    {GameVersion::V2660,"1.26.60.05-LeviLamina-player409","409C9597C5C973B3FA9B11204612850F4BAE8F83270C7692DCC783C491FCF04C",323855872,0x6AD79EE4,0x13847000},
+    // Player report reproduced exactly from B554 with only PE Subsystem 3 -> 2.
+    // Keep full-file admission exact; native and launcher sections are unchanged.
+    {GameVersion::V2660,"1.26.60.05-LeviLamina-player-gui","FCBCCAEC4E0EE3AB203146BDF45E41878AED7B42237E6DE2C5053F0730C6E10B",323855872,0x6AD79EE4,0x13847000}
 };
 constexpr HostIdentity const* MatchHostIdentity(std::string_view digest,std::uint64_t size) noexcept {
     for(auto const& p:HostIdentities)if(p.sha256==digest&&p.fileSize==size)return &p;
@@ -46,6 +49,7 @@ constexpr HostIdentity const* MatchHostIdentity(std::string_view digest,std::uin
 constexpr bool MatchLoadedIdentity(HostIdentity const* identity,std::uint16_t machine,std::uint32_t timestamp,std::uint32_t size) noexcept {
     return identity&&machine==0x8664&&identity->timestamp==timestamp&&identity->imageSize==size;
 }
-// Set only after full file hashing. A timestamp alone never selects a profile.
+// Set only after full file hashing (exact or reviewed six-byte PE metadata
+// family). A timestamp or diagnostic evidence alone never selects a profile.
 inline std::atomic<HostIdentity const*> VerifiedHostIdentity{};
 }

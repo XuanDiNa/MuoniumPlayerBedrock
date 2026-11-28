@@ -1,0 +1,526 @@
+{
+  "version": "0.20.2",
+  "candidate": "levilamina-host-compat",
+  "minecraft": "1.26.60.05",
+  "loader": "LeviLamina 26.60.7",
+  "dll": {
+    "bytes": 1016832,
+    "sha256": "E851CBB9CE0CA2D0B1EA2ED4CDCF33B9A56EBA98D8E266E0E8CFA8A616BD7658",
+    "exports": [
+      "MPB_GetStatus",
+      "MPB_GetVersion",
+      "ll_memory_operator_overrided",
+      "ll_mod_disable",
+      "ll_mod_enable",
+      "ll_mod_load"
+    ]
+  },
+  "imports": {
+    "levilamina.dll": [
+      "?throwMemoryException@memory@ll@@YAX_K@Z",
+      "?getDefaultAllocator@memory@ll@@YAAEAVIMemoryAllocator@Memory@Bedrock@@XZ"
+    ],
+    "bcrypt.dll": [
+      "BCryptDestroyHash",
+      "BCryptFinishHash",
+      "BCryptCreateHash",
+      "BCryptOpenAlgorithmProvider",
+      "BCryptCloseAlgorithmProvider",
+      "BCryptGenRandom",
+      "BCryptHash",
+      "BCryptHashData"
+    ],
+    "winhttp.dll": [
+      "WinHttpCrackUrl",
+      "WinHttpOpen",
+      "WinHttpCloseHandle",
+      "WinHttpConnect",
+      "WinHttpReadData",
+      "WinHttpSetOption",
+      "WinHttpSetTimeouts",
+      "WinHttpOpenRequest",
+      "WinHttpSendRequest",
+      "WinHttpReceiveResponse",
+      "WinHttpQueryHeaders"
+    ],
+    "user32.dll": [
+      "GetForegroundWindow",
+      "KillTimer",
+      "UnhookWindowsHookEx",
+      "CallNextHookEx",
+      "GetWindowLongPtrW",
+      "SetWindowLongPtrW",
+      "GetRawInputData",
+      "SetTimer",
+      "GetAsyncKeyState",
+      "PostQuitMessage",
+      "DispatchMessageW",
+      "IsChild",
+      "SetWindowsHookExW",
+      "DefWindowProcW",
+      "RegisterClassW",
+      "CreateWindowExW",
+      "IsWindow",
+      "DestroyWindow",
+      "TranslateMessage",
+      "GetMessageW",
+      "GetWindow",
+      "IsIconic",
+      "GetWindowThreadProcessId",
+      "GetClassNameW",
+      "EnumWindows",
+      "EnumChildWindows",
+      "GetClientRect",
+      "IsWindowVisible",
+      "PostMessageW",
+      "GetClassInfoW"
+    ],
+    "api-ms-win-core-libraryloader-l1-2-0.dll": [
+      "FreeLibraryAndExitThread",
+      "FreeLibrary",
+      "LoadLibraryExW",
+      "GetProcAddress",
+      "GetModuleHandleW",
+      "GetModuleHandleExW",
+      "GetModuleFileNameW"
+    ],
+    "api-ms-win-core-handle-l1-1-0.dll": [
+      "CloseHandle"
+    ],
+    "api-ms-win-core-errorhandling-l1-1-0.dll": [
+      "GetLastError",
+      "RaiseException",
+      "SetLastError"
+    ],
+    "api-ms-win-core-synch-l1-1-0.dll": [
+      "SetEvent",
+      "CreateEventW",
+      "ReleaseMutex",
+      "InitializeCriticalSectionAndSpinCount",
+      "WaitForSingleObject",
+      "CreateMutexW"
+    ],
+    "api-ms-win-core-sysinfo-l1-1-0.dll": [
+      "GetSystemDirectoryW",
+      "GetSystemInfo",
+      "GetLocalTime",
+      "GetTickCount64"
+    ],
+    "api-ms-win-core-memory-l1-1-0.dll": [
+      "UnmapViewOfFile",
+      "VirtualFree",
+      "MapViewOfFile",
+      "CreateFileMappingW",
+      "VirtualQuery",
+      "ReadProcessMemory",
+      "VirtualAlloc",
+      "VirtualProtect"
+    ],
+    "api-ms-win-core-processthreads-l1-1-0.dll": [
+      "ExitProcess",
+      "TlsFree",
+      "DeleteProcThreadAttributeList",
+      "CreateProcessW",
+      "ResumeThread",
+      "GetExitCodeProcess",
+      "TerminateProcess",
+      "TlsSetValue",
+      "TlsGetValue",
+      "TlsAlloc",
+      "ExitThread",
+      "GetCurrentProcessId",
+      "CreateThread",
+      "OpenThread",
+      "InitializeProcThreadAttributeList",
+      "SuspendThread",
+      "UpdateProcThreadAttribute",
+      "GetCurrentProcess",
+      "GetCurrentThreadId"
+    ],
+    "api-ms-win-appmodel-runtime-l1-1-0.dll": [
+      "GetCurrentPackageFullName"
+    ],
+    "api-ms-win-core-string-l1-1-0.dll": [
+      "WideCharToMultiByte",
+      "MultiByteToWideChar"
+    ],
+    "api-ms-win-core-file-l1-1-0.dll": [
+      "GetFileSizeEx",
+      "ReadFile",
+      "DeleteFileW",
+      "SetFileInformationByHandle",
+      "GetFileInformationByHandle",
+      "WriteFile",
+      "CreateDirectoryW",
+      "SetFilePointerEx",
+      "GetFileType",
+      "SetEndOfFile",
+      "FlushFileBuffers",
+      "GetFileAttributesW",
+      "CreateFileW"
+    ],
+    "api-ms-win-core-file-l2-1-0.dll": [
+      "MoveFileExW"
+    ],
+    "api-ms-win-core-job-l2-1-0.dll": [
+      "SetInformationJobObject",
+      "CreateJobObjectW",
+      "AssignProcessToJobObject"
+    ],
+    "api-ms-win-core-profile-l1-1-0.dll": [
+      "QueryPerformanceFrequency",
+      "QueryPerformanceCounter"
+    ],
+    "api-ms-win-core-file-l2-1-2.dll": [
+      "CopyFileW"
+    ],
+    "api-ms-win-core-synch-l1-2-0.dll": [
+      "Sleep"
+    ],
+    "api-ms-win-core-heap-l1-1-0.dll": [
+      "GetProcessHeap",
+      "HeapAlloc",
+      "HeapCreate",
+      "HeapSize",
+      "HeapReAlloc",
+      "HeapFree"
+    ],
+    "api-ms-win-core-processthreads-l1-1-1.dll": [
+      "SetThreadContext",
+      "GetThreadContext",
+      "FlushInstructionCache"
+    ],
+    "api-ms-win-core-toolhelp-l1-1-0.dll": [
+      "Thread32Next",
+      "Thread32First",
+      "CreateToolhelp32Snapshot"
+    ],
+    "kernel32.dll": [
+      "GetExitCodeThread",
+      "EnterCriticalSection",
+      "LeaveCriticalSection",
+      "InitializeCriticalSectionEx",
+      "DeleteCriticalSection",
+      "EncodePointer",
+      "DecodePointer",
+      "LCMapStringEx",
+      "SleepConditionVariableSRW",
+      "GetCPInfo",
+      "GetStringTypeW",
+      "RtlCaptureContext",
+      "RtlLookupFunctionEntry",
+      "RtlVirtualUnwind",
+      "UnhandledExceptionFilter",
+      "SetUnhandledExceptionFilter",
+      "IsProcessorFeaturePresent",
+      "IsDebuggerPresent",
+      "GetStartupInfoW",
+      "InitializeSListHead",
+      "WakeAllConditionVariable",
+      "GetFileInformationByHandleEx",
+      "WaitForSingleObjectEx",
+      "AreFileApisANSI",
+      "ReleaseSRWLockExclusive",
+      "GetFullPathNameW",
+      "GetFileAttributesExW",
+      "FindNextFileW",
+      "FindFirstFileExW",
+      "FindFirstFileW",
+      "FindClose",
+      "GetLocaleInfoEx",
+      "LocalFree",
+      "FormatMessageA",
+      "TryAcquireSRWLockExclusive",
+      "AcquireSRWLockExclusive",
+      "GetSystemTimeAsFileTime"
+    ],
+    "api-ms-win-core-rtlsupport-l1-1-0.dll": [
+      "RtlUnwindEx",
+      "RtlUnwind",
+      "RtlPcToFileHeader"
+    ],
+    "api-ms-win-core-interlocked-l1-1-0.dll": [
+      "InterlockedFlushSList"
+    ],
+    "api-ms-win-core-fibers-l1-1-0.dll": [
+      "FlsSetValue",
+      "FlsGetValue",
+      "FlsFree",
+      "FlsAlloc"
+    ],
+    "api-ms-win-core-localization-l1-2-0.dll": [
+      "EnumSystemLocalesW",
+      "GetOEMCP",
+      "IsValidLocale",
+      "GetLocaleInfoW",
+      "LCMapStringW",
+      "IsValidCodePage",
+      "GetACP",
+      "GetUserDefaultLCID"
+    ],
+    "api-ms-win-core-processenvironment-l1-1-0.dll": [
+      "GetCommandLineW",
+      "GetEnvironmentStringsW",
+      "FreeEnvironmentStringsW",
+      "SetStdHandle",
+      "GetCommandLineA",
+      "GetStdHandle"
+    ],
+    "api-ms-win-core-console-l1-1-0.dll": [
+      "GetConsoleMode",
+      "WriteConsoleW",
+      "GetConsoleOutputCP",
+      "ReadConsoleW"
+    ]
+  },
+  "previousReleaseDllSha256": "A8155C95BE3059DB7098732BBC407637FA68A3A7D551A841B6EB2D86CF2A7272",
+  "unchangedHostJarSha256": "7C8AED2FD0B601AB8BEEC57F1E4A5B54154A425BF758F771AA4D26925781BF82",
+  "imageProof": {
+    "canonicalSha256": "B554A2DA8B2271A4A164AE544A4A447F3A630B5FC2261AFEFE47C7C206826A53",
+    "playerSha256": "FCBCCAEC4E0EE3AB203146BDF45E41878AED7B42237E6DE2C5053F0730C6E10B",
+    "fileBytes": 323855872,
+    "identicalReports": 2,
+    "changedField": "IMAGE_OPTIONAL_HEADER64.Subsystem",
+    "oldSubsystem": 3,
+    "newSubsystem": 2,
+    "checksumChanged": false,
+    "playerHeaderSha256": "B209EAF72E8F22691B0BE8AE7C94AD3BA2BA59CF274E0997F920115282A84F09",
+    "matchedSectionHashes": 10,
+    "originalSections": 8,
+    "loaderSections": 2,
+    "nativeGuards": 61,
+    "nativeBodies": 48,
+    "tableSlots": 3,
+    "originalGameFileUnchanged": true,
+    "reconstructedInMemoryOnly": true,
+    "diagnosticReportsAuthorizeNothing": true
+  },
+  "regressionRedConfirmed": true,
+  "checks": {
+    "regression-debug.log": "Exact LL GUI host reconstruction, production streaming admission, loader ownership and mutation checks=110 passed",
+    "loader-debug.log": "Wrong-loader refusal, exact LL admission and concurrent one-start/restart passed",
+    "header-regression-debug.log": "Header variants without per-player allowlisting, full-content mutations, loader ownership and exact-route preservation checks=152 passed"
+  },
+  "headerVariantRegressionRedConfirmed": true,
+  "verifiedHeaderFamilies": {
+    "1.26.60.05": {
+      "exit": 0,
+      "output": "Header variants without per-player allowlisting, full-content mutations, loader ownership and exact-route preservation checks=109 passed\r\n",
+      "referenceSha256": "988F6A61403B4381AA41E6C66D64CCE441B14E561A9B10F647C2758EF3F2672A",
+      "headerFamilySha256": "08A931A86949961525855B2D5D6CDEA3D76DE3186BF3DF540A87A6D878A673EB",
+      "originalUnchanged": true
+    },
+    "1.26.51.01-vanilla-console": {
+      "exit": 0,
+      "output": "Header variants without per-player allowlisting, full-content mutations, loader ownership and exact-route preservation checks=109 passed\r\n",
+      "referenceSha256": "F3B58B0D0B21155382EB9B6F6DCE7228B8BCB5E23030CF22F05F81FBFC88786E",
+      "headerFamilySha256": "21934948D5DD699F51F75EE7E23CC91661A3500A0E6BB7CCCC010D9F07AFF9E7",
+      "originalUnchanged": true
+    },
+    "1.26.52.03": {
+      "exit": 0,
+      "output": "Header variants without per-player allowlisting, full-content mutations, loader ownership and exact-route preservation checks=109 passed\r\n",
+      "referenceSha256": "4A92BFA3CE2428B40EE517B7C1125D9F6F79274382DE03846351992663B2E2E4",
+      "headerFamilySha256": "2B81CFFF1CBBABBEE75DC0CC315970B17470A62B0D5A70915069E159006F3ABC",
+      "originalUnchanged": true
+    },
+    "1.26.60.05-LeviLamina-player": {
+      "exit": 0,
+      "output": "Header variants without per-player allowlisting, full-content mutations, loader ownership and exact-route preservation checks=152 passed\r\n",
+      "referenceSha256": "B554A2DA8B2271A4A164AE544A4A447F3A630B5FC2261AFEFE47C7C206826A53",
+      "headerFamilySha256": "58779BCB1E89BB2EC591BB61BEF29015F42853E5BC42B9C16B538DB77CFE0328",
+      "originalUnchanged": true
+    },
+    "1.26.45.01": {
+      "exit": 0,
+      "output": "Header variants without per-player allowlisting, full-content mutations, loader ownership and exact-route preservation checks=109 passed\r\n",
+      "referenceSha256": "008408E6F544D7987F9CDE4E34C8E853690A65AFD97F8498DA2CD6ED24C4793B",
+      "headerFamilySha256": "B8A036375B85003F12BCDFB2CA2C3B36D81851F99DE3EC30E259189AA25B6911",
+      "originalUnchanged": true
+    },
+    "1.26.52.03-launcher": {
+      "exit": 0,
+      "output": "Header variants without per-player allowlisting, full-content mutations, loader ownership and exact-route preservation checks=109 passed\r\n",
+      "referenceSha256": "0B66101DC873434E853A898329CB85CEE0DE52D0AE91AC796EFA0FE05B61522C",
+      "headerFamilySha256": "D4A8955AB2EDACF27D9630A3E07CF126A96D2EF03081FA0FC7D016CCC66B6F1C",
+      "originalUnchanged": true
+    },
+    "1.26.45.01-launcher": {
+      "exit": 0,
+      "output": "Header variants without per-player allowlisting, full-content mutations, loader ownership and exact-route preservation checks=109 passed\r\n",
+      "referenceSha256": "4143182F113D774062809039154248E7AF7578A81C92E54323F7D53361F8EFA1",
+      "headerFamilySha256": "D820230B9A31C199AA4E37CE90D102C7195E27D3A450401844EC0C6CE66F1D5F",
+      "originalUnchanged": true
+    },
+    "1.26.60.05-console-capture-launcher-console": {
+      "exit": 0,
+      "output": "Header variants without per-player allowlisting, full-content mutations, loader ownership and exact-route preservation checks=109 passed\r\n",
+      "referenceSha256": "68B38A0B3FD2A57C4538DBFAC5BEACE14AFD774513E2CBF1BE4443E9DE010768",
+      "headerFamilySha256": "E2AC7687BF82AE741FABCF9D152C508BB261B6604BDC18AF5D61248D0412F247",
+      "originalUnchanged": true
+    },
+    "1.26.51.01-vanilla-launcher-console": {
+      "exit": 0,
+      "output": "Header variants without per-player allowlisting, full-content mutations, loader ownership and exact-route preservation checks=109 passed\r\n",
+      "referenceSha256": "A7E1700A3A855D380368D8841460258EA3AF8B68417772CA11918057E222A891",
+      "headerFamilySha256": "EBDDDBEDDE5B1C43F86F3923A99C1227946F09DD81641EE0FEB263658013DB2A",
+      "originalUnchanged": true
+    }
+  },
+  "variantPolicy": {
+    "maskedFields": {
+      "CheckSum": 4,
+      "Subsystem": 2
+    },
+    "allowedSubsystems": [
+      2,
+      3
+    ],
+    "allOtherFileBytesHashed": true,
+    "rawDigestRetained": true,
+    "exactRoutePriority": true,
+    "perPlayerAllowlistingRequiredForMetadataVariants": false
+  },
+  "nativeRelease": {
+    "suites": {
+      "NativeContractTests": 0,
+      "HostAdmissionTests": 0,
+      "LoaderPolicyTests": 0,
+      "PlayerConfigFileTests": 0,
+      "OlderSceneFixtureTests": 0,
+      "WorldCaptureFixtureTests": 0,
+      "JvmPolicyTests": 0,
+      "Local3RouteTests": 0,
+      "CinematicTests": 0,
+      "CinematicInputTests": 0,
+      "CinematicTraceTests": 0,
+      "CinematicBridgeTests": 0,
+      "CinematicRegistryTests": 0,
+      "EnvironmentTests": 0,
+      "EnvironmentMaterialFixtureTests": 0,
+      "EntityTests": 0,
+      "DepthTests": 0,
+      "DepthHookTests": 0,
+      "MetricsTests": 0,
+      "NetworkFixtureTests": 0,
+      "PlayerTests": 0,
+      "Phase2Tests": 0,
+      "NativeTests": 0,
+      "WorldBridgeTests": 0,
+      "CompositionTests": 0,
+      "CompositionGpuTests": 0,
+      "CompositionHookTests": 0,
+      "D3D12AdmissionTests": 0,
+      "D3D12RuntimeTests": 0,
+      "D3D12TransferTests": 0,
+      "D3D12NativeTests": 0,
+      "OlderVersionTests": 0,
+      "Native51VanillaAdmissionTests": 0,
+      "Native60ConsoleAdmissionTests": 0
+    },
+    "passed": 34
+  },
+  "supplementaryRelease": {
+    "host-diagnostics-release": {
+      "exit": 0,
+      "output": "Host diagnostics exact admission, missing/locked/size/digest refusal, PE metadata and privacy checks=32 passed\r\n"
+    },
+    "host-evidence-release": {
+      "exit": 0,
+      "output": "Host evidence hash-only privacy, reference equivalence, header/body mutation, bounded parsing and no authorization checks=194 passed\r\n"
+    },
+    "gui-player-release": {
+      "exit": 0,
+      "output": "Exact LL GUI host reconstruction, production streaming admission, loader ownership and mutation checks=110 passed\r\n"
+    },
+    "diagnostic-dll": {
+      "exit": 0,
+      "output": "Real LL refusal diagnostics, SHA/size attribution, no worker and path privacy passed\r\n"
+    },
+    "evidence-dll": {
+      "exit": 0,
+      "output": "Real LL refusal saved bounded section hashes, no paths/raw bytes/authorization or player worker passed\r\n"
+    }
+  },
+  "unchangedNativeFiles": 100,
+  "changedNativeFiles": [
+    "include/LoaderPolicy.h",
+    "include/NativeProfile.h",
+    "include/Runtime.h",
+    "src/Host.cpp"
+  ],
+  "priorExactIdentitiesPreserved": 20,
+  "nativeContractsAndHooksChanged": false,
+  "unreviewedCodeOrLoaderFallbackAdmission": false,
+  "baselineSource": {
+    "name": "MuoniumPlayerBedrock-0.20.2-source.zip",
+    "sha256": "1FBF75F913C4EB840779A429B659F91B4944AA512703D804C4DF4E3C0170DEBC"
+  },
+  "baselineFilesPreserved": {
+    "MuoniumPlayerBedrock-0.20.2-levilamina-mc26.60-full.zip": "B2DE4078CFD41846771C45C37D7B5FF4045101BF1A741DF6779258AD8E8DA4A3",
+    "MuoniumPlayerBedrock-0.20.2-levilamina-mc26.60-update.zip": "66F12D81BD8D12318085D3F43DC2C711B8CCECB95D9EDE9C59327EAD7494189B",
+    "MuoniumPlayerBedrock-0.20.2-source.zip": "1FBF75F913C4EB840779A429B659F91B4944AA512703D804C4DF4E3C0170DEBC",
+    "MuoniumPlayerBedrock-0.20.2-vanilla-mc26.45-26.51-26.52-26.60-full.zip": "C3C7E0DA34DA6FAFCEE56A178F3E758A559D46259C41092E7615813140DC93FD",
+    "MuoniumPlayerBedrock-0.20.2-vanilla-mc26.45-26.51-26.52-26.60-update.zip": "6FD988BAFA3A8DD0FDA2B413133ACF379383CAC9FB100B78E67919429E0F86CF",
+    "PUBLIC-ASSET-AUDIT.json": "C64B8AA6B568C0CB4E0930B33D28F4557060DF8F4DB9F77870DBFD21AE4AE56E",
+    "RELEASE-NOTES.md": "7D2274CEDD287039609985353C4D42D83CA6B0C9AA77D02AD07087D5A6A9ACBB",
+    "SHA256SUMS.txt": "927934B85C5AC4CC20BBF0DFB88DD23900D4A69AAA62FE4D0F27D3591C9CBA13",
+    "TESTING.md": "79520EADCC41AD0CCC811371C7BE5AE233FA8282C4E8B050DA064F0939A2122F",
+    "UPDATE-0.20.2.md": "FDD9E0E0E3F4D808ECE2275D7E3BB60CABFB2910194894B8474621DAEC0251DC",
+    "VERIFICATION.json": "EEAC370B9AD63DFB817C67D6CD12FBDD7667DD775625596B53127DAD01F921B0"
+  },
+  "manualGameplayAcceptance": "User-reported test passed; detailed individual scenarios and additional devices were not specified",
+  "autoInstalled": false,
+  "published": false,
+  "manualAcceptance": {
+    "date": "2026-11-28",
+    "timezone": "Asia/Shanghai",
+    "userReport": "測試可以最好緊急熱修復這個問題到GitHub",
+    "testedPackage": "MuoniumPlayerBedrock-0.20.2-levilamina-host-compat-full.zip",
+    "packageSha256": "1610C08F3C90BAA9EB262B143BCCC3E78D1B140401617C5F0B5EACA2DE47503E",
+    "dllSha256": "E851CBB9CE0CA2D0B1EA2ED4CDCF33B9A56EBA98D8E266E0E8CFA8A616BD7658",
+    "acceptance": "User-reported test passed; detailed individual scenarios and additional devices were not specified",
+    "scope": "Minecraft 1.26.60.05 / LeviLamina 26.60.7 candidate; does not imply all hardware or loader variants tested"
+  },
+  "githubPublication": true,
+  "hotfixDate": "2026-11-28",
+  "releaseUrl": "https://github.com/XuanDiNa/MuoniumPlayerBedrock/releases/tag/v0.20.2",
+  "binaryRebuiltForPublication": false,
+  "vanillaPublicPackagesUnchanged": true,
+  "freshNativeRelease": {
+    "NativeContractTests": 0,
+    "HostAdmissionTests": 0,
+    "LoaderPolicyTests": 0,
+    "PlayerConfigFileTests": 0,
+    "OlderSceneFixtureTests": 0,
+    "WorldCaptureFixtureTests": 0,
+    "JvmPolicyTests": 0,
+    "Local3RouteTests": 0,
+    "CinematicTests": 0,
+    "CinematicInputTests": 0,
+    "CinematicTraceTests": 0,
+    "CinematicBridgeTests": 0,
+    "CinematicRegistryTests": 0,
+    "EnvironmentTests": 0,
+    "EnvironmentMaterialFixtureTests": 0,
+    "EntityTests": 0,
+    "DepthTests": 0,
+    "DepthHookTests": 0,
+    "MetricsTests": 0,
+    "NetworkFixtureTests": 0,
+    "PlayerTests": 0,
+    "Phase2Tests": 0,
+    "NativeTests": 0,
+    "WorldBridgeTests": 0,
+    "CompositionTests": 0,
+    "CompositionGpuTests": 0,
+    "CompositionHookTests": 0,
+    "D3D12AdmissionTests": 0,
+    "D3D12RuntimeTests": 0,
+    "D3D12TransferTests": 0,
+    "D3D12NativeTests": 0,
+    "OlderVersionTests": 0,
+    "Native51VanillaAdmissionTests": 0,
+    "Native60ConsoleAdmissionTests": 0
+  }
+}
